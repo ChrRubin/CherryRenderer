@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
@@ -38,6 +39,10 @@ public class PlayerStageController extends BaseController {
     private Button forwardButton;
     @FXML
     private Slider volumeSlider;
+    @FXML
+    private HBox seekHbox;
+    @FXML
+    private HBox controlHbox;
 
     private URI currentUri;
 
@@ -46,6 +51,9 @@ public class PlayerStageController extends BaseController {
     }
 
     public void initialize(){
+        UpnpHandler handler = new UpnpHandler("CherryRenderer");
+        handler.startService();
+
 
         ScheduledService<Void> helperService = new ScheduledService<Void>() {
             @Override
@@ -53,71 +61,67 @@ public class PlayerStageController extends BaseController {
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-//                        System.out.println("Test");
                         checkApplicationHelper();
                         return null;
                     }
                 };
             }
         };
-        helperService.setPeriod(Duration.seconds(1));
+        helperService.setPeriod(Duration.seconds(0.5));
         helperService.start();
-
-        UpnpHandler handler = new UpnpHandler("RMediaRenderer");
-        handler.startService();
-
-
-//        ScheduledExecutorService helperService = Executors.newSingleThreadScheduledExecutor();
-//        helperService.scheduleWithFixedDelay(new Task<Void>() {
-//            @Override
-//            protected Void call() throws Exception {
-//                checkApplicationHelper();
-//                return null;
-//            }
-//        }, 0, 1, TimeUnit.SECONDS);
     }
 
-    public void createListeners(){
+    public void createPlayerListeners(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
 
         player.setAutoPlay(true);
 
         player.currentTimeProperty().addListener(observable -> {
-            currentTimeLabel.setText(durationToString(player.getCurrentTime()));
-            timeSlider.setValue(player.getCurrentTime().divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
+            currentTimeLabel.setText(ApplicationHelper.durationToString(player.getCurrentTime()));
+            if(!timeSlider.isValueChanging()) {
+                timeSlider.setValue(player.getCurrentTime().divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
+            }
         });
 
         player.setOnPlaying(() -> playButton.setText("||"));
 
         player.setOnPaused(() -> playButton.setText(">"));
 
-        player.setOnReady(() -> totalTimeLabel.setText(durationToString(player.getTotalDuration())));
+        player.setOnReady(() -> totalTimeLabel.setText(ApplicationHelper.durationToString(player.getTotalDuration())));
 
-        player.setOnEndOfMedia(this::endOfMedia);
+        player.setOnEndOfMedia(() -> {
+            playButton.setText(">");
+            this.endOfMedia();
+        });
 
-        timeSlider.valueProperty().addListener(observable -> {
-            if(timeSlider.isValueChanging()){
+        timeSlider.valueChangingProperty().addListener((observable, wasChanging, isChanging) -> {
+            if(!isChanging){
                 player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
             }
         });
 
-        volumeSlider.valueProperty().addListener(observable -> {
-            if(volumeSlider.isValueChanging()){
+        timeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(!timeSlider.isValueChanging()){
+                double currentTime = oldValue.doubleValue();
+                double newTime = newValue.doubleValue();
+                if(Math.abs(newTime - currentTime) > 0.5) {
+
+                    player.seek(player.getTotalDuration().multiply(newTime / 100.0));
+                }
+            }
+        });
+
+        volumeSlider.valueChangingProperty().addListener((observable, wasChanging, isChanging) -> {
+            if(!isChanging){
                 player.setVolume(volumeSlider.getValue() / 100.0);
             }
         });
-    }
 
-    private String durationToString(Duration duration){
-        int intSeconds = (int)Math.floor(duration.toSeconds());
-        int hours = intSeconds / 60 / 60;
-        if(hours > 0){
-            intSeconds -= (hours * 60 * 60);
-        }
-        int minutes = intSeconds / 60;
-        int seconds = intSeconds - (hours * 60 * 60) - (minutes * 60);
-
-        return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        volumeSlider.valueProperty().addListener(observable -> {
+            if(!volumeSlider.isValueChanging()){
+                player.setVolume(volumeSlider.getValue() / 100.0);
+            }
+        });
     }
 
     private void endOfMedia(){
@@ -128,16 +132,24 @@ public class PlayerStageController extends BaseController {
         forwardButton.setDisable(true);
         volumeSlider.setDisable(true);
 
+        if(videoMediaView.getMediaPlayer() != null){
+            videoMediaView.getMediaPlayer().stop();
+            videoMediaView.setMediaPlayer(null);
+        }
+
+        currentTimeLabel.setText("--:--");
+        totalTimeLabel.setText("--:--");
         timeSlider.setValue(0);
-        playButton.setText(">");
+        volumeSlider.setValue(1);
     }
 
-    @FXML
-    private void onMenuSettings(){}
-
-    @FXML
-    private void onMenuClose(){
-        System.exit(0);
+    private void startOfMedia(){
+        timeSlider.setDisable(false);
+        playButton.setDisable(false);
+        rewindButton.setDisable(false);
+        stopButton.setDisable(false);
+        forwardButton.setDisable(false);
+        volumeSlider.setDisable(false);
     }
 
     @FXML
@@ -177,6 +189,7 @@ public class PlayerStageController extends BaseController {
 
         if(status == Status.PAUSED || status == Status.PLAYING || status == Status.HALTED){
             player.stop();
+            endOfMedia();
         }
     }
 
@@ -194,9 +207,6 @@ public class PlayerStageController extends BaseController {
     }
 
     private void checkApplicationHelper(){
-//        System.out.println("Checking helper");
-//        System.out.println(ApplicationHelper.getRendererState().name());
-
         switch(ApplicationHelper.getRendererState()){
             case PLAYING:
                 if(ApplicationHelper.getUri() != currentUri) {
@@ -205,16 +215,36 @@ public class PlayerStageController extends BaseController {
                     Media media = new Media(ApplicationHelper.getUri().toString());
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
                     videoMediaView.getMediaPlayer().play();
+
+                    ApplicationHelper.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
+                    bindMediaView();
+                    createPlayerListeners();
+                    startOfMedia();
                 }
+
+                ApplicationHelper.setVideoCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime());
+
                 break;
             case PAUSED:
+                if(videoMediaView.getMediaPlayer() != null){
+                    ApplicationHelper.setVideoCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime());
+                    videoMediaView.getMediaPlayer().pause();
+                }
                 break;
             case STOPPED:
+                endOfMedia();
                 break;
             case NOMEDIAPRESENT:
                 endOfMedia();
                 break;
+            case SEEKING:
+                break;
         }
     }
 
+    public void bindMediaView(){
+        double bottomBarHeight = (seekHbox.getHeight() + controlHbox.getHeight()) * 2.0; // I don't understand why * 2.0 but it works /shrug
+        videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight));
+        videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+    }
 }

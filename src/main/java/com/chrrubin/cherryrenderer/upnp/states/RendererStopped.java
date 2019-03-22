@@ -18,6 +18,7 @@ public class RendererStopped extends Stopped {
     public void onEntry() {
         super.onEntry();
         // Optional: Stop playing, release resources, etc.
+        System.out.println("Entered Stopped state");
         ApplicationHelper.setRendererState(RendererState.STOPPED);
     }
 
@@ -41,12 +42,9 @@ public class RendererStopped extends Stopped {
             getTransport().setMediaInfo(
                     new MediaInfo(uri.toString(), metaData)
             );
+        }
 
-            return RendererPlaying.class;
-        }
-        else {
-            return RendererNoMediaPresent.class;
-        }
+        return RendererStopped.class;
     }
 
     @Override

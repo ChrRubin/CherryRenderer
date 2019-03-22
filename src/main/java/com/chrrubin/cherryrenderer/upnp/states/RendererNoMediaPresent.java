@@ -14,20 +14,20 @@ public class RendererNoMediaPresent extends NoMediaPresent {
 
     public RendererNoMediaPresent(AVTransport avTransport){
         super(avTransport);
+        System.out.println("Entered NoMediaPresent state");
+        ApplicationHelper.setInstanceID(avTransport.getInstanceId());
         ApplicationHelper.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
         if(uri != ApplicationHelper.getUri()) {
-            System.out.println("Setting new URI");
             ApplicationHelper.setUri(uri);
             ApplicationHelper.setMetadata(metaData);
 
             getTransport().setMediaInfo(
                     new MediaInfo(uri.toString(), metaData)
             );
-
 
             // If you can, you should find and set the duration of the track here!
             getTransport().setPositionInfo(
@@ -41,7 +41,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
                     new AVTransportVariable.CurrentTrackURI(uri)
             );
 
-            return RendererPlaying.class;
+            return RendererStopped.class;
         }
         else{
             return RendererNoMediaPresent.class;

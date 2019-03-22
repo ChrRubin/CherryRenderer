@@ -8,7 +8,7 @@ import org.seamless.statemachine.States;
         RendererNoMediaPresent.class,
         RendererStopped.class,
         RendererPlaying.class,
-        RendererPaused.class
+        RendererPausedPlay.class
 })
 public interface RendererStateMachine extends AVTransportStateMachine {
 }

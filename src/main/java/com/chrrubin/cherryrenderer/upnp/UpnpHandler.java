@@ -18,14 +18,15 @@ import org.fourthline.cling.support.avtransport.lastchange.AVTransportLastChange
 import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
 import org.fourthline.cling.support.lastchange.LastChangeParser;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @UpnpService(
-        serviceId = @UpnpServiceId("RMediaRenderer"),
+        serviceId = @UpnpServiceId("CherryRenderer"),
         serviceType = @UpnpServiceType(value = "MediaRenderer", version = 1)
 )
 public class UpnpHandler {
@@ -46,33 +47,30 @@ public class UpnpHandler {
         this.friendlyName = friendlyName;
     }
 
-    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, IOException {
+    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, URISyntaxException {
 
-        DeviceIdentity identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("RMediaRenderer"));
+        DeviceIdentity identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("CherryRenderer"));
 
         DeviceType type = new UDADeviceType("MediaRenderer", 1);
 
         DeviceDetails details = new DeviceDetails(
                 friendlyName,
-                new ManufacturerDetails("ChrRubin"),
+                new ManufacturerDetails("ChrRubin", new URI("http://chrrubin.com")),
                 new ModelDetails(
-                        "RMediaRenderer",
-                        "RMediaRenderer - Standalone UPnP Media Renderer",
+                        "CherryRenderer",
+                        "CherryRenderer - Standalone UPnP Media Renderer",
                         "1"
                         )
         );
 
         LocalService<AVTransportService> service = new AnnotationLocalServiceBinder().read(AVTransportService.class);
 
-//    Service's which have "logical" instances are very special, they use the
-//    "LastChange" mechanism for eventing. This requires some extra wrappers.
         LastChangeParser lastChangeParser = new AVTransportLastChangeParser();
 
         service.setManager(
                 new LastChangeAwareServiceManager<AVTransportService>(service, lastChangeParser) {
                     @Override
                     protected AVTransportService createServiceInstance() throws Exception {
-
                         return new AVTransportService(
                                 RendererStateMachine.class,   // All states
                                 RendererNoMediaPresent.class  // Initial state
@@ -91,6 +89,8 @@ public class UpnpHandler {
     }
 
     public void startService() {
+        // TODO: Figure out why 2 instances spawn instead after the first time running the program
+
         mainExecutor.submit(() -> {
             try{
                 org.fourthline.cling.UpnpService upnpService = new UpnpServiceImpl();
@@ -109,4 +109,5 @@ public class UpnpHandler {
             }
         });
     }
+
 }
