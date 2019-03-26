@@ -2,6 +2,7 @@ package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.ApplicationHelper;
 import com.chrrubin.cherryrenderer.upnp.UpnpHandler;
+import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -54,7 +55,6 @@ public class PlayerStageController extends BaseController {
         UpnpHandler handler = new UpnpHandler("CherryRenderer");
         handler.startService();
 
-
         ScheduledService<Void> helperService = new ScheduledService<Void>() {
             @Override
             protected Task<Void> createTask() {
@@ -91,6 +91,10 @@ public class PlayerStageController extends BaseController {
 
         player.setOnEndOfMedia(() -> {
             playButton.setText(">");
+            currentTimeLabel.setText("--:--");
+            totalTimeLabel.setText("--:--");
+            timeSlider.setValue(0);
+            volumeSlider.setValue(1);
             this.endOfMedia();
         });
 
@@ -134,13 +138,11 @@ public class PlayerStageController extends BaseController {
 
         if(videoMediaView.getMediaPlayer() != null){
             videoMediaView.getMediaPlayer().stop();
-            videoMediaView.setMediaPlayer(null);
+            videoMediaView.getMediaPlayer().dispose();
         }
 
-        currentTimeLabel.setText("--:--");
-        totalTimeLabel.setText("--:--");
-        timeSlider.setValue(0);
-        volumeSlider.setValue(1);
+        ApplicationHelper.setRendererState(RendererState.STOPPED);
+        currentUri = null;
     }
 
     private void startOfMedia(){
@@ -209,6 +211,7 @@ public class PlayerStageController extends BaseController {
     private void checkApplicationHelper(){
         switch(ApplicationHelper.getRendererState()){
             case PLAYING:
+                // TODO: Resume playing while paused. It currently blocks both control point and player controls from resume
                 if(ApplicationHelper.getUri() != currentUri) {
                     currentUri = ApplicationHelper.getUri();
 
@@ -232,12 +235,15 @@ public class PlayerStageController extends BaseController {
                 }
                 break;
             case STOPPED:
-                endOfMedia();
+                if(videoMediaView.getMediaPlayer() != null) {
+                    endOfMedia();
+                }
                 break;
             case NOMEDIAPRESENT:
                 endOfMedia();
                 break;
             case SEEKING:
+                ApplicationHelper.setRendererState(RendererState.PLAYING);
                 break;
         }
     }

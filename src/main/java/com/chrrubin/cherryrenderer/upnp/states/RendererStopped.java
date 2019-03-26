@@ -22,8 +22,8 @@ public class RendererStopped extends Stopped {
         ApplicationHelper.setRendererState(RendererState.STOPPED);
     }
 
-    public void onExit() {
-        // Optional: Cleanup etc.
+    public void onExit(){
+        System.out.println("Exited Stopped state");
     }
 
     @Override
@@ -34,6 +34,8 @@ public class RendererStopped extends Stopped {
         // the media and position info, just like in MyRendererNoMediaPresent.
         // However, if this would be the MyRendererPlaying state, would you
         // prefer stopping first?
+
+        System.out.println("RendererStopped.SetTransportURI triggered");
 
         if(uri != ApplicationHelper.getUri()) {
             ApplicationHelper.setUri(uri);
@@ -49,28 +51,33 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> stop() {
+        System.out.println("RendererStopped.stop triggered");
         /// Same here, if you are stopped already and someone calls STOP, well...
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> play(String speed) {
+        System.out.println("RendererStopped.play triggered");
         // It's easier to let this classes' onEntry() method do the work
         return RendererPlaying.class;
     }
 
     @Override
     public Class<? extends AbstractState> next() {
+        System.out.println("RendererStopped.next triggered");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> previous() {
+        System.out.println("RendererStopped.previous triggered");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
+        System.out.println("RendererStopped.seek triggered");
         // Implement seeking with the stream in stopped state!
         return RendererStopped.class;
     }

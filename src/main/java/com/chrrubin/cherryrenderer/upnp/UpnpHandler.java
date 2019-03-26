@@ -2,12 +2,10 @@ package com.chrrubin.cherryrenderer.upnp;
 
 import com.chrrubin.cherryrenderer.upnp.states.RendererNoMediaPresent;
 import com.chrrubin.cherryrenderer.upnp.states.RendererStateMachine;
+import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.binding.LocalServiceBindingException;
 import org.fourthline.cling.binding.annotations.AnnotationLocalServiceBinder;
-import org.fourthline.cling.binding.annotations.UpnpService;
-import org.fourthline.cling.binding.annotations.UpnpServiceId;
-import org.fourthline.cling.binding.annotations.UpnpServiceType;
 import org.fourthline.cling.model.ValidationException;
 import org.fourthline.cling.model.meta.*;
 import org.fourthline.cling.model.types.DeviceType;
@@ -25,10 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@UpnpService(
-        serviceId = @UpnpServiceId("CherryRenderer"),
-        serviceType = @UpnpServiceType(value = "MediaRenderer", version = 1)
-)
 public class UpnpHandler {
     private String friendlyName;
 
@@ -93,9 +87,10 @@ public class UpnpHandler {
 
         mainExecutor.submit(() -> {
             try{
-                org.fourthline.cling.UpnpService upnpService = new UpnpServiceImpl();
+                final UpnpService upnpService = new UpnpServiceImpl();
 
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    System.out.println("Running shutdown hooks");
                     upnpService.shutdown();
                     mainExecutor.shutdown();
                     lastChangeExecutor.shutdown();

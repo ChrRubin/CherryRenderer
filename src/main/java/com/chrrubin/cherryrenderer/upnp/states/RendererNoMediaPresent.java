@@ -19,8 +19,16 @@ public class RendererNoMediaPresent extends NoMediaPresent {
         ApplicationHelper.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
+    public void onExit(){
+        System.out.println("Exited NoMediaPresent state");
+    }
+
+
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
+
+        System.out.println("RendererNoMediaPresent.SetTransportURI triggered");
+
         if(uri != ApplicationHelper.getUri()) {
             ApplicationHelper.setUri(uri);
             ApplicationHelper.setMetadata(metaData);
@@ -29,6 +37,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
                     new MediaInfo(uri.toString(), metaData)
             );
 
+            // TODO: Set total time here
             // If you can, you should find and set the duration of the track here!
             getTransport().setPositionInfo(
                     new PositionInfo(1, metaData, uri.toString())
@@ -46,5 +55,9 @@ public class RendererNoMediaPresent extends NoMediaPresent {
         else{
             return RendererNoMediaPresent.class;
         }
+    }
+
+    public Class<? extends AbstractState> stop() {
+        return RendererStopped.class;
     }
 }

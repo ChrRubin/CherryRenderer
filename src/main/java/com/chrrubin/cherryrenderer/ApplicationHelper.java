@@ -36,6 +36,7 @@ public class ApplicationHelper {
     public static void setRendererState(RendererState rendererState) {
         try{
             writeLock.lock();
+            System.out.println("ApplicationHandler.rendererState set to " + rendererState.name());
             ApplicationHelper.rendererState = rendererState;
         }
         finally {

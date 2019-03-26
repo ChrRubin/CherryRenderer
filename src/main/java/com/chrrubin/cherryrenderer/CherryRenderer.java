@@ -8,6 +8,9 @@ public class CherryRenderer extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+//        String path = CherryRenderer.class.getClassLoader().getResource("log.properties").getFile();
+//        System.setProperty("java.util.logging.config.file", path);
+
         PlayerStage stage = new PlayerStage();
         stage.prepareStage();
         stage.show();
