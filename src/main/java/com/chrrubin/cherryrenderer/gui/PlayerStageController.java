@@ -1,10 +1,9 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.ApplicationHelper;
+import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.RendererEventBus;
 import com.chrrubin.cherryrenderer.upnp.UpnpHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
-import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -46,6 +45,8 @@ public class PlayerStageController extends BaseController {
     private HBox controlHbox;
 
     private URI currentUri;
+    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+    // TODO: handle eventBus events
 
     public BaseStage getStage() {
         return (BaseStage)rootGridPane.getScene().getWindow();
@@ -55,29 +56,33 @@ public class PlayerStageController extends BaseController {
         UpnpHandler handler = new UpnpHandler("CherryRenderer");
         handler.startService();
 
-        ScheduledService<Void> helperService = new ScheduledService<Void>() {
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        checkApplicationHelper();
-                        return null;
-                    }
-                };
-            }
-        };
-        helperService.setPeriod(Duration.seconds(0.5));
-        helperService.start();
+        rendererEventBus.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+
+//        ScheduledService<Void> helperService = new ScheduledService<Void>() {
+//            @Override
+//            protected Task<Void> createTask() {
+//                return new Task<Void>() {
+//                    @Override
+//                    protected Void call() throws Exception {
+//                        checkApplicationHelper();
+//                        return null;
+//                    }
+//                };
+//            }
+//        };
+//        helperService.setPeriod(Duration.seconds(0.5));
+//        helperService.start();
     }
 
-    public void createPlayerListeners(){
+    private void prepareMediaPlayer(){
+        bindMediaView();
+
         MediaPlayer player = videoMediaView.getMediaPlayer();
 
         player.setAutoPlay(true);
 
         player.currentTimeProperty().addListener(observable -> {
-            currentTimeLabel.setText(ApplicationHelper.durationToString(player.getCurrentTime()));
+            currentTimeLabel.setText(CherryUtil.durationToString(player.getCurrentTime()));
             if(!timeSlider.isValueChanging()) {
                 timeSlider.setValue(player.getCurrentTime().divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
             }
@@ -87,7 +92,10 @@ public class PlayerStageController extends BaseController {
 
         player.setOnPaused(() -> playButton.setText(">"));
 
-        player.setOnReady(() -> totalTimeLabel.setText(ApplicationHelper.durationToString(player.getTotalDuration())));
+        player.setOnReady(() -> {
+            totalTimeLabel.setText(CherryUtil.durationToString(player.getTotalDuration()));
+            startOfMedia();
+        });
 
         player.setOnEndOfMedia(() -> {
             playButton.setText(">");
@@ -141,11 +149,11 @@ public class PlayerStageController extends BaseController {
             videoMediaView.getMediaPlayer().dispose();
         }
 
-        ApplicationHelper.setRendererState(RendererState.STOPPED);
         currentUri = null;
     }
 
     private void startOfMedia(){
+        // TODO: Only trigger when media is done initial loading?
         timeSlider.setDisable(false);
         playButton.setDisable(false);
         rewindButton.setDisable(false);
@@ -208,47 +216,49 @@ public class PlayerStageController extends BaseController {
         }
     }
 
-    private void checkApplicationHelper(){
-        switch(ApplicationHelper.getRendererState()){
-            case PLAYING:
-                // TODO: Resume playing while paused. It currently blocks both control point and player controls from resume
-                if(ApplicationHelper.getUri() != currentUri) {
-                    currentUri = ApplicationHelper.getUri();
+    private void onRendererStateChanged(RendererState rendererState){
+        MediaPlayer player = videoMediaView.getMediaPlayer();
 
-                    Media media = new Media(ApplicationHelper.getUri().toString());
-                    videoMediaView.setMediaPlayer(new MediaPlayer(media));
-                    videoMediaView.getMediaPlayer().play();
-
-                    ApplicationHelper.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
-                    bindMediaView();
-                    createPlayerListeners();
-                    startOfMedia();
-                }
-
-                ApplicationHelper.setVideoCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime());
-
-                break;
-            case PAUSED:
-                if(videoMediaView.getMediaPlayer() != null){
-                    ApplicationHelper.setVideoCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime());
-                    videoMediaView.getMediaPlayer().pause();
-                }
-                break;
-            case STOPPED:
-                if(videoMediaView.getMediaPlayer() != null) {
+        switch (rendererState){
+            case NOMEDIAPRESENT:
+                if(player != null){
                     endOfMedia();
                 }
                 break;
-            case NOMEDIAPRESENT:
-                endOfMedia();
+            case STOPPED:
+                if(player != null){
+                    endOfMedia();
+                }
+                break;
+            case PLAYING:
+                if(rendererEventBus.getUri() != currentUri) {
+                    currentUri = rendererEventBus.getUri();
+
+                    Media media = new Media(rendererEventBus.getUri().toString());
+                    videoMediaView.setMediaPlayer(new MediaPlayer(media));
+
+                    rendererEventBus.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
+                    prepareMediaPlayer();
+                }
+                else{
+                    if(player != null){
+                        player.play();
+                    }
+                }
+                break;
+            case PAUSED:
+                if(player != null){
+                    rendererEventBus.setVideoCurrentTime(player.getCurrentTime());
+                    player.pause();
+                }
                 break;
             case SEEKING:
-                ApplicationHelper.setRendererState(RendererState.PLAYING);
+                rendererEventBus.setRendererState(RendererState.PLAYING);
                 break;
         }
     }
 
-    public void bindMediaView(){
+    private void bindMediaView(){
         double bottomBarHeight = (seekHbox.getHeight() + controlHbox.getHeight()) * 2.0; // I don't understand why * 2.0 but it works /shrug
         videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight));
         videoMediaView.fitWidthProperty().bind(getStage().widthProperty());

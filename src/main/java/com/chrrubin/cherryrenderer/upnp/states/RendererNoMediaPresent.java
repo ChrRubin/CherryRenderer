@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.ApplicationHelper;
+import com.chrrubin.cherryrenderer.RendererEventBus;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.NoMediaPresent;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
@@ -12,11 +12,13 @@ import java.net.URI;
 
 public class RendererNoMediaPresent extends NoMediaPresent {
 
+    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+
     public RendererNoMediaPresent(AVTransport avTransport){
         super(avTransport);
         System.out.println("Entered NoMediaPresent state");
-        ApplicationHelper.setInstanceID(avTransport.getInstanceId());
-        ApplicationHelper.setRendererState(RendererState.NOMEDIAPRESENT);
+
+        rendererEventBus.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     public void onExit(){
@@ -29,19 +31,18 @@ public class RendererNoMediaPresent extends NoMediaPresent {
 
         System.out.println("RendererNoMediaPresent.SetTransportURI triggered");
 
-        if(uri != ApplicationHelper.getUri()) {
-            ApplicationHelper.setUri(uri);
-            ApplicationHelper.setMetadata(metaData);
+        if(uri != rendererEventBus.getUri()) {
+            rendererEventBus.setUri(uri);
+            rendererEventBus.setMetadata(metaData);
 
             getTransport().setMediaInfo(
                     new MediaInfo(uri.toString(), metaData)
             );
 
-            // TODO: Set total time here
-            // If you can, you should find and set the duration of the track here!
-            getTransport().setPositionInfo(
-                    new PositionInfo(1, metaData, uri.toString())
-            );
+//             If you can, you should find and set the duration of the track here!
+//            getTransport().setPositionInfo(
+//                    new PositionInfo(1, metaData, uri.toString())
+//            );
 
             // It's up to you what "last changes" you want to announce to event listeners
             getTransport().getLastChange().setEventedValue(
@@ -58,6 +59,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     }
 
     public Class<? extends AbstractState> stop() {
+        System.out.println("RendererNoMediaPresent.stop triggered");
         return RendererStopped.class;
     }
 }

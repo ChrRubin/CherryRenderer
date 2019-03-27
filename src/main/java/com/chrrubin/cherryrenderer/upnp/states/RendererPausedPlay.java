@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.ApplicationHelper;
+import com.chrrubin.cherryrenderer.RendererEventBus;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.PausedPlay;
 import org.fourthline.cling.support.model.AVTransport;
@@ -11,6 +11,8 @@ import java.net.URI;
 
 public class RendererPausedPlay extends PausedPlay {
 
+    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+
     public RendererPausedPlay(AVTransport avTransport){
         super(avTransport);
     }
@@ -19,7 +21,8 @@ public class RendererPausedPlay extends PausedPlay {
     public void onEntry(){
         super.onEntry();
         System.out.println("Entered PausedPlay state");
-        ApplicationHelper.setRendererState(RendererState.PAUSED);
+
+        rendererEventBus.setRendererState(RendererState.PAUSED);
     }
 
     public void onExit(){
@@ -30,9 +33,9 @@ public class RendererPausedPlay extends PausedPlay {
 
         System.out.println("RendererPausedPlay.SetTransportURI triggered");
 
-        if(uri != ApplicationHelper.getUri()) {
-            ApplicationHelper.setUri(uri);
-            ApplicationHelper.setMetadata(metaData);
+        if(uri != rendererEventBus.getUri()) {
+            rendererEventBus.setUri(uri);
+            rendererEventBus.setMetadata(metaData);
 
             getTransport().setMediaInfo(
                     new MediaInfo(uri.toString(), metaData)

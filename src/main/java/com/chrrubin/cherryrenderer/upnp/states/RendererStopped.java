@@ -1,15 +1,20 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.ApplicationHelper;
+import com.chrrubin.cherryrenderer.RendererEventBus;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.Stopped;
+import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.AVTransport;
 import org.fourthline.cling.support.model.MediaInfo;
+import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
 
 public class RendererStopped extends Stopped {
+
+    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+
     public RendererStopped(AVTransport transport) {
         super(transport);
     }
@@ -19,7 +24,8 @@ public class RendererStopped extends Stopped {
         super.onEntry();
         // Optional: Stop playing, release resources, etc.
         System.out.println("Entered Stopped state");
-        ApplicationHelper.setRendererState(RendererState.STOPPED);
+
+        rendererEventBus.setRendererState(RendererState.STOPPED);
     }
 
     public void onExit(){
@@ -37,14 +43,23 @@ public class RendererStopped extends Stopped {
 
         System.out.println("RendererStopped.SetTransportURI triggered");
 
-        if(uri != ApplicationHelper.getUri()) {
-            ApplicationHelper.setUri(uri);
-            ApplicationHelper.setMetadata(metaData);
+        // FIXME: Renderer goes to an infinite loop when setting URI while playing - PLAYING - STOPPPED - STOPPED - STOPPED...
+        rendererEventBus.setUri(uri);
+        rendererEventBus.setMetadata(metaData);
 
-            getTransport().setMediaInfo(
-                    new MediaInfo(uri.toString(), metaData)
-            );
-        }
+        getTransport().setMediaInfo(
+                new MediaInfo(uri.toString(), metaData)
+        );
+
+        getTransport().setPositionInfo(
+                new PositionInfo(1, metaData, uri.toString())
+        );
+
+        getTransport().getLastChange().setEventedValue(
+                getTransport().getInstanceId(),
+                new AVTransportVariable.AVTransportURI(uri),
+                new AVTransportVariable.CurrentTrackURI(uri)
+        );
 
         return RendererStopped.class;
     }
@@ -53,6 +68,9 @@ public class RendererStopped extends Stopped {
     public Class<? extends AbstractState> stop() {
         System.out.println("RendererStopped.stop triggered");
         /// Same here, if you are stopped already and someone calls STOP, well...
+        
+        // FIXME: The immediate transition from current to desired state not supported. java.lang.reflect.InvocationTargetException
+
         return RendererStopped.class;
     }
 
