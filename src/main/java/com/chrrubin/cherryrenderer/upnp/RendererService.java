@@ -23,13 +23,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class UpnpHandler {
+public class RendererService {
     private String friendlyName;
 
     private ExecutorService mainExecutor = Executors.newSingleThreadExecutor();
     private ScheduledExecutorService lastChangeExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    public UpnpHandler(String friendlyName){
+    public RendererService(String friendlyName){
         this.friendlyName = friendlyName;
     }
 
@@ -77,22 +77,20 @@ public class UpnpHandler {
 //            System.out.println("Flushing last change");
             LastChangeAwareServiceManager manager = (LastChangeAwareServiceManager)service.getManager();
             manager.fireLastChange();
-        },0,1, TimeUnit.SECONDS);
+        },0,500, TimeUnit.MILLISECONDS);
 
         return new LocalDevice(identity, type, details, service);
     }
 
     public void startService() {
         // TODO: Figure out why 2 instances spawn instead after the first time running the program
-
         mainExecutor.submit(() -> {
             try{
                 final UpnpService upnpService = new UpnpServiceImpl();
 
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                    System.out.println("Running shutdown hooks");
+                Runtime.getRuntime().addShutdownHook(new Thread(() ->{
+                    // TODO: The service doesn't shutdown properly? It's not showing signs of it in the log
                     upnpService.shutdown();
-                    mainExecutor.shutdown();
                     lastChangeExecutor.shutdown();
                 }));
 
@@ -103,6 +101,7 @@ public class UpnpHandler {
                 System.exit(1);
             }
         });
+
     }
 
 }

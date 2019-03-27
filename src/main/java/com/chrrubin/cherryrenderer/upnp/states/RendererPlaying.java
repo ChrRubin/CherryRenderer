@@ -14,7 +14,6 @@ import org.fourthline.cling.support.model.SeekMode;
 import java.net.URI;
 
 public class RendererPlaying extends Playing {
-//    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
 
     public RendererPlaying(AVTransport transport) {
@@ -29,8 +28,26 @@ public class RendererPlaying extends Playing {
 
         rendererEventBus.setRendererState(RendererState.PLAYING);
 
-//        executorService.scheduleWithFixedDelay(this::updatePositionInfo, 0, 3, TimeUnit.SECONDS);
-        // FIXME: Updated position info by executorService doesn't apply to GetPositionInfoResponse
+        //TODO: This doesn't seem like a good way of implementing this, so it's commented out for now
+//        rendererEventBus.getVideoCurrentTimeChangedEvent().addListener(currentTime -> {
+//            System.out.println("Setting current position to " + CherryUtil.durationToString(currentTime));
+//            Duration totalTime = rendererEventBus.getVideoTotalTime();
+//
+//            getTransport().setPositionInfo(new PositionInfo(1,
+//                    CherryUtil.durationToString(totalTime),
+//                    rendererEventBus.getUri().toString(),
+//                    CherryUtil.durationToString(currentTime),
+//                    CherryUtil.durationToString(currentTime)
+//                    ));
+//
+//            getTransport().getLastChange().setEventedValue(
+//                    getTransport().getInstanceId(),
+//                    new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(currentTime)),
+//                    new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(currentTime)),
+//                    new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(totalTime))
+//            );
+//        });
+
     }
 
     public void onExit(){
@@ -91,10 +108,11 @@ public class RendererPlaying extends Playing {
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
         System.out.println("RendererPlaying.seek triggered");
 //        updatePositionInfo();
-        System.out.println("Seeking to " + target);
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
-            rendererEventBus.setRendererState(RendererState.PLAYING);
-            // TODO: translate target to Duration
+            System.out.println("Seeking to " + target);
+
+            Duration duration = CherryUtil.stringToDuration(target);
+            rendererEventBus.setVideoSeek(duration);
         }
         return RendererPlaying.class;
     }
@@ -105,29 +123,4 @@ public class RendererPlaying extends Playing {
         System.out.println("RendererPlaying.stop triggered");
         return RendererStopped.class;
     }
-
-
-
-//    private void updatePositionInfo(){
-//        // TODO: only trigger on eventBus events
-//        if(ApplicationHelper.getVideoCurrentTime() != null && ApplicationHelper.getVideoTotalTime() != null){
-//            Duration videoTotalTime = ApplicationHelper.getVideoTotalTime();
-//            Duration videoCurrentTime = ApplicationHelper.getVideoCurrentTime();
-//
-//            System.out.println("Setting current position to " + CherryUtil.durationToString(videoCurrentTime));
-//
-//            getTransport().setPositionInfo(new PositionInfo(1,
-//                    CherryUtil.durationToString(videoTotalTime),
-//                    ApplicationHelper.getUri().toString(),
-//                    CherryUtil.durationToString(videoCurrentTime),
-//                    CherryUtil.durationToString(videoCurrentTime)
-//                    ));
-//            getTransport().getLastChange().setEventedValue(
-//                    getTransport().getInstanceId(),
-//                    new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(videoCurrentTime)),
-//                    new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(videoCurrentTime)),
-//                    new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(videoTotalTime))
-//            );
-//        }
-//    }
 }

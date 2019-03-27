@@ -2,8 +2,12 @@ package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.RendererEventBus;
-import com.chrrubin.cherryrenderer.upnp.UpnpHandler;
+import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -46,6 +50,7 @@ public class PlayerStageController extends BaseController {
 
     private URI currentUri;
     private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+    private ScheduledService<Void> eventService = null;
     // TODO: handle eventBus events
 
     public BaseStage getStage() {
@@ -53,25 +58,10 @@ public class PlayerStageController extends BaseController {
     }
 
     public void initialize(){
-        UpnpHandler handler = new UpnpHandler("CherryRenderer");
+        RendererService handler = new RendererService("CherryRenderer");
         handler.startService();
 
         rendererEventBus.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
-
-//        ScheduledService<Void> helperService = new ScheduledService<Void>() {
-//            @Override
-//            protected Task<Void> createTask() {
-//                return new Task<Void>() {
-//                    @Override
-//                    protected Void call() throws Exception {
-//                        checkApplicationHelper();
-//                        return null;
-//                    }
-//                };
-//            }
-//        };
-//        helperService.setPeriod(Duration.seconds(0.5));
-//        helperService.start();
     }
 
     private void prepareMediaPlayer(){
@@ -97,22 +87,14 @@ public class PlayerStageController extends BaseController {
             startOfMedia();
         });
 
-        player.setOnEndOfMedia(() -> {
-            playButton.setText(">");
-            currentTimeLabel.setText("--:--");
-            totalTimeLabel.setText("--:--");
-            timeSlider.setValue(0);
-            volumeSlider.setValue(1);
-            this.endOfMedia();
-        });
-
-        timeSlider.valueChangingProperty().addListener((observable, wasChanging, isChanging) -> {
+        ChangeListener<Boolean> timeChangingListener = (observable, wasChanging, isChanging) -> {
             if(!isChanging){
                 player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
             }
-        });
+        };
+        timeSlider.valueChangingProperty().addListener(timeChangingListener);
 
-        timeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+        ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
             if(!timeSlider.isValueChanging()){
                 double currentTime = oldValue.doubleValue();
                 double newTime = newValue.doubleValue();
@@ -121,22 +103,79 @@ public class PlayerStageController extends BaseController {
                     player.seek(player.getTotalDuration().multiply(newTime / 100.0));
                 }
             }
-        });
+        };
+        timeSlider.valueProperty().addListener(timeChangeListener);
 
-        volumeSlider.valueChangingProperty().addListener((observable, wasChanging, isChanging) -> {
+        ChangeListener<Boolean> volumeChangingListener = (observable, wasChanging, isChanging) -> {
             if(!isChanging){
                 player.setVolume(volumeSlider.getValue() / 100.0);
             }
-        });
+        };
+        volumeSlider.valueChangingProperty().addListener(volumeChangingListener);
 
-        volumeSlider.valueProperty().addListener(observable -> {
+        InvalidationListener volumeInvalidationListener = observable -> {
             if(!volumeSlider.isValueChanging()){
                 player.setVolume(volumeSlider.getValue() / 100.0);
             }
+        };
+        volumeSlider.valueProperty().addListener(volumeInvalidationListener);
+
+        player.setOnEndOfMedia(() -> {
+            timeSlider.valueChangingProperty().removeListener(timeChangingListener);
+            timeSlider.valueProperty().removeListener(timeChangeListener);
+            volumeSlider.valueChangingProperty().removeListener(volumeChangingListener);
+            volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
+            endOfMedia();
         });
+
+        player.setOnStopped(() -> {
+            timeSlider.valueChangingProperty().removeListener(timeChangingListener);
+            timeSlider.valueProperty().removeListener(timeChangeListener);
+            volumeSlider.valueChangingProperty().removeListener(volumeChangingListener);
+            volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
+            endOfMedia();
+        });
+
+        eventService = new ScheduledService<Void>(){
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        if(player.getStatus() == Status.PLAYING) {
+                            rendererEventBus.setVideoCurrentTime(player.getCurrentTime());
+                        }
+                        return null;
+                    }
+                };
+            }
+        };
+        eventService.setPeriod(Duration.seconds(1));
+        eventService.start();
+
+        rendererEventBus.getVideoSeekEvent().addListener(seekDuration -> {
+            if(seekDuration != null) {
+                player.seek(seekDuration);
+            }
+        });
+
     }
 
     private void endOfMedia(){
+        if(eventService != null){
+            eventService.cancel();
+        }
+
+        if(videoMediaView.getMediaPlayer() != null){
+            videoMediaView.getMediaPlayer().dispose();
+        }
+
+        playButton.setText(">");
+        currentTimeLabel.setText("--:--");
+        totalTimeLabel.setText("--:--");
+        timeSlider.setValue(0);
+        volumeSlider.setValue(1);
+
         timeSlider.setDisable(true);
         playButton.setDisable(true);
         rewindButton.setDisable(true);
@@ -144,16 +183,11 @@ public class PlayerStageController extends BaseController {
         forwardButton.setDisable(true);
         volumeSlider.setDisable(true);
 
-        if(videoMediaView.getMediaPlayer() != null){
-            videoMediaView.getMediaPlayer().stop();
-            videoMediaView.getMediaPlayer().dispose();
-        }
-
         currentUri = null;
+        rendererEventBus.setUri(null);
     }
 
     private void startOfMedia(){
-        // TODO: Only trigger when media is done initial loading?
         timeSlider.setDisable(false);
         playButton.setDisable(false);
         rewindButton.setDisable(false);
@@ -199,7 +233,6 @@ public class PlayerStageController extends BaseController {
 
         if(status == Status.PAUSED || status == Status.PLAYING || status == Status.HALTED){
             player.stop();
-            endOfMedia();
         }
     }
 
@@ -221,13 +254,10 @@ public class PlayerStageController extends BaseController {
 
         switch (rendererState){
             case NOMEDIAPRESENT:
-                if(player != null){
-                    endOfMedia();
-                }
                 break;
             case STOPPED:
                 if(player != null){
-                    endOfMedia();
+                    player.stop();
                 }
                 break;
             case PLAYING:
@@ -251,9 +281,6 @@ public class PlayerStageController extends BaseController {
                     rendererEventBus.setVideoCurrentTime(player.getCurrentTime());
                     player.pause();
                 }
-                break;
-            case SEEKING:
-                rendererEventBus.setRendererState(RendererState.PLAYING);
                 break;
         }
     }

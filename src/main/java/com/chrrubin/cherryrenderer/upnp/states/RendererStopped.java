@@ -26,6 +26,9 @@ public class RendererStopped extends Stopped {
         System.out.println("Entered Stopped state");
 
         rendererEventBus.setRendererState(RendererState.STOPPED);
+
+        getTransport().setMediaInfo(new MediaInfo());
+        getTransport().setPositionInfo(new PositionInfo());
     }
 
     public void onExit(){
@@ -43,7 +46,6 @@ public class RendererStopped extends Stopped {
 
         System.out.println("RendererStopped.SetTransportURI triggered");
 
-        // FIXME: Renderer goes to an infinite loop when setting URI while playing - PLAYING - STOPPPED - STOPPED - STOPPED...
         rendererEventBus.setUri(uri);
         rendererEventBus.setMetadata(metaData);
 
@@ -70,6 +72,7 @@ public class RendererStopped extends Stopped {
         /// Same here, if you are stopped already and someone calls STOP, well...
         
         // FIXME: The immediate transition from current to desired state not supported. java.lang.reflect.InvocationTargetException
+        // TODO: Now it actually works without me trying to fix it???? Keep this in mind in case it happens again
 
         return RendererStopped.class;
     }
