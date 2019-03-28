@@ -83,8 +83,7 @@ public class RendererPausedPlay extends PausedPlay {
         System.out.println("RendererPausedPlay.seek triggered");
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
             System.out.println("Seeking to " + target);
-            Duration duration = CherryUtil.stringToDuration(target);
-            rendererHandler.setVideoSeek(duration);
+            rendererHandler.setVideoSeek(CherryUtil.stringToDuration(target));
         }
 
         return RendererPausedPlay.class;

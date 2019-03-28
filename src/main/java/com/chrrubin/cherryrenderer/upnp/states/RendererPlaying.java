@@ -91,12 +91,11 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
+        // FIXME: May freeze service when seeking beyond player buffer.
         System.out.println("RendererPlaying.seek triggered");
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
             System.out.println("Seeking to " + target);
-
-            Duration duration = CherryUtil.stringToDuration(target);
-            rendererHandler.setVideoSeek(duration);
+            rendererHandler.setVideoSeek(CherryUtil.stringToDuration(target));
         }
         return RendererPlaying.class;
     }

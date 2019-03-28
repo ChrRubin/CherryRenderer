@@ -156,7 +156,7 @@ public class PlayerStageController extends BaseController {
                     @Override
                     protected Void call() throws Exception {
                         if(player.getStatus() == Status.PLAYING) {
-//                            rendererHandler.setVideoCurrentTime(player.getCurrentTime());
+                            // TODO: Doesn't seem to actually update control point?
                             transportHandler.setPositionInfo(
                                     rendererHandler.getUri(),
                                     rendererHandler.getMetadata(),
