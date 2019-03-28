@@ -1,21 +1,21 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
-import com.chrrubin.cherryrenderer.RendererEventBus;
+import com.chrrubin.cherryrenderer.upnp.RendererHandler;
+import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import javafx.util.Duration;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.PausedPlay;
-import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.AVTransport;
 import org.fourthline.cling.support.model.MediaInfo;
-import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
 
 public class RendererPausedPlay extends PausedPlay {
 
-    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+    private RendererHandler rendererHandler = RendererHandler.getInstance();
+    private TransportHandler transportHandler = TransportHandler.getInstance();
 
     public RendererPausedPlay(AVTransport avTransport){
         super(avTransport);
@@ -26,24 +26,22 @@ public class RendererPausedPlay extends PausedPlay {
         super.onEntry();
         System.out.println("Entered PausedPlay state");
 
-        Duration totalTime = rendererEventBus.getVideoTotalTime();
-        Duration currentTime = rendererEventBus.getVideoCurrentTime();
+        rendererHandler.setRendererState(RendererState.PAUSED);
+        transportHandler.setTransport(getTransport());
 
-        getTransport().setPositionInfo(new PositionInfo(1,
-                CherryUtil.durationToString(totalTime),
-                rendererEventBus.getUri().toString(),
-                CherryUtil.durationToString(currentTime),
-                CherryUtil.durationToString(currentTime)
-        ));
-
-        getTransport().getLastChange().setEventedValue(
-                getTransport().getInstanceId(),
-                new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(currentTime)),
-                new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(currentTime)),
-                new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(totalTime))
-        );
-
-        rendererEventBus.setRendererState(RendererState.PAUSED);
+        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoTotalTime() != null){
+            transportHandler.setMediaInfo(
+                    rendererHandler.getUri(),
+                    rendererHandler.getMetadata(),
+                    rendererHandler.getVideoTotalTime()
+            );
+            transportHandler.setPositionInfo(
+                    rendererHandler.getUri(),
+                    rendererHandler.getMetadata(),
+                    rendererHandler.getVideoTotalTime(),
+                    rendererHandler.getVideoCurrentTime()
+            );
+        }
     }
 
     public void onExit(){
@@ -54,9 +52,9 @@ public class RendererPausedPlay extends PausedPlay {
 
         System.out.println("RendererPausedPlay.SetTransportURI triggered");
 
-        if(uri != rendererEventBus.getUri()) {
-            rendererEventBus.setUri(uri);
-            rendererEventBus.setMetadata(metaData);
+        if(uri != rendererHandler.getUri()) {
+            rendererHandler.setUri(uri);
+            rendererHandler.setMetadata(metaData);
 
             getTransport().setMediaInfo(
                     new MediaInfo(uri.toString(), metaData)
@@ -76,7 +74,19 @@ public class RendererPausedPlay extends PausedPlay {
         return RendererPlaying.class;
     }
 
+    public Class<? extends AbstractState> pause() {
+        System.out.println("RendererPausedPlay.pause triggered");
+        return RendererPausedPlay.class;
+    }
+
     public Class<? extends AbstractState> seek(SeekMode unit, String target){
+        System.out.println("RendererPausedPlay.seek triggered");
+        if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
+            System.out.println("Seeking to " + target);
+            Duration duration = CherryUtil.stringToDuration(target);
+            rendererHandler.setVideoSeek(duration);
+        }
+
         return RendererPausedPlay.class;
     }
 }

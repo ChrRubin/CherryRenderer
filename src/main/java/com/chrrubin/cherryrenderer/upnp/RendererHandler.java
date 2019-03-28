@@ -1,4 +1,4 @@
-package com.chrrubin.cherryrenderer;
+package com.chrrubin.cherryrenderer.upnp;
 
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import com.pploder.events.Event;
@@ -7,16 +7,22 @@ import javafx.util.Duration;
 import org.fourthline.cling.support.model.AVTransport;
 
 import java.net.URI;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class RendererEventBus {
-    // Singleton to handle events
-    private static RendererEventBus instance = new RendererEventBus();
+public class RendererHandler {
+    private static RendererHandler instance = new RendererHandler();
 
     private AVTransport avTransport = null;
     private URI uri = null;
     private String metadata = null;
     private Duration videoCurrentTime = null;
     private Duration videoTotalTime = null;
+
+    private ReadWriteLock currentTimeLock = new ReentrantReadWriteLock();
+    private Lock readCurrentTimeLock = currentTimeLock.readLock();
+    private Lock writeCurrentTimeLock = currentTimeLock.writeLock();
 
     private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
     private final Event<URI> uriChangedEvent = new SimpleEvent<>();
@@ -25,9 +31,9 @@ public class RendererEventBus {
     private final Event<Duration> videoTotalTimeChangedEvent = new SimpleEvent<>();
     private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
 
-    private RendererEventBus(){}
+    private RendererHandler(){}
 
-    public static RendererEventBus getInstance() {
+    public static RendererHandler getInstance() {
         return instance;
     }
 
@@ -87,12 +93,24 @@ public class RendererEventBus {
     }
 
     public Duration getVideoCurrentTime() {
-        return videoCurrentTime;
+        try {
+            readCurrentTimeLock.lock();
+            return videoCurrentTime;
+        }
+        finally {
+            readCurrentTimeLock.unlock();
+        }
     }
 
     public void setVideoCurrentTime(Duration duration){
-        this.videoCurrentTime = duration;
-        videoCurrentTimeChangedEvent.trigger(duration);
+        try {
+            writeCurrentTimeLock.lock();
+            this.videoCurrentTime = duration;
+            videoCurrentTimeChangedEvent.trigger(duration);
+        }
+        finally {
+            writeCurrentTimeLock.unlock();
+        }
     }
 
     public Duration getVideoTotalTime() {

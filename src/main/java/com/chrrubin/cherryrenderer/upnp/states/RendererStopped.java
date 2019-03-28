@@ -1,19 +1,18 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.RendererEventBus;
+import com.chrrubin.cherryrenderer.upnp.RendererHandler;
+import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.Stopped;
-import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.AVTransport;
-import org.fourthline.cling.support.model.MediaInfo;
-import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
 
 public class RendererStopped extends Stopped {
 
-    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+    private RendererHandler rendererHandler = RendererHandler.getInstance();
+    private TransportHandler transportHandler = TransportHandler.getInstance();
 
     public RendererStopped(AVTransport transport) {
         super(transport);
@@ -25,10 +24,8 @@ public class RendererStopped extends Stopped {
         // Optional: Stop playing, release resources, etc.
         System.out.println("Entered Stopped state");
 
-        rendererEventBus.setRendererState(RendererState.STOPPED);
-
-        getTransport().setMediaInfo(new MediaInfo());
-        getTransport().setPositionInfo(new PositionInfo());
+        rendererHandler.setRendererState(RendererState.STOPPED);
+        transportHandler.setTransport(getTransport());
     }
 
     public void onExit(){
@@ -46,22 +43,11 @@ public class RendererStopped extends Stopped {
 
         System.out.println("RendererStopped.SetTransportURI triggered");
 
-        rendererEventBus.setUri(uri);
-        rendererEventBus.setMetadata(metaData);
+        rendererHandler.setUri(uri);
+        rendererHandler.setMetadata(metaData);
 
-        getTransport().setMediaInfo(
-                new MediaInfo(uri.toString(), metaData)
-        );
-
-        getTransport().setPositionInfo(
-                new PositionInfo(1, metaData, uri.toString())
-        );
-
-        getTransport().getLastChange().setEventedValue(
-                getTransport().getInstanceId(),
-                new AVTransportVariable.AVTransportURI(uri),
-                new AVTransportVariable.CurrentTrackURI(uri)
-        );
+        transportHandler.setMediaInfo(uri, metaData);
+        transportHandler.setPositionInfo(uri, metaData);
 
         return RendererStopped.class;
     }

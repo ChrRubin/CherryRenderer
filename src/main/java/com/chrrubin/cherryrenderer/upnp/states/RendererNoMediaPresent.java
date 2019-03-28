@@ -1,24 +1,29 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.RendererEventBus;
+import com.chrrubin.cherryrenderer.upnp.RendererHandler;
+import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.NoMediaPresent;
-import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.AVTransport;
-import org.fourthline.cling.support.model.MediaInfo;
-import org.fourthline.cling.support.model.PositionInfo;
 
 import java.net.URI;
 
 public class RendererNoMediaPresent extends NoMediaPresent {
 
-    private RendererEventBus rendererEventBus = RendererEventBus.getInstance();
+    private RendererHandler rendererHandler = RendererHandler.getInstance();
+    private TransportHandler transportHandler = TransportHandler.getInstance();
 
     public RendererNoMediaPresent(AVTransport avTransport){
         super(avTransport);
+    }
+
+    @Override
+    public void onEntry(){
+        super.onEntry();
         System.out.println("Entered NoMediaPresent state");
 
-        rendererEventBus.setRendererState(RendererState.NOMEDIAPRESENT);
+        rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
+        transportHandler.setTransport(getTransport());
     }
 
     public void onExit(){
@@ -31,25 +36,11 @@ public class RendererNoMediaPresent extends NoMediaPresent {
 
         System.out.println("RendererNoMediaPresent.SetTransportURI triggered");
 
-        if(uri != rendererEventBus.getUri()) {
-            rendererEventBus.setUri(uri);
-            rendererEventBus.setMetadata(metaData);
+        if(uri != rendererHandler.getUri()) {
+            rendererHandler.setUri(uri);
+            rendererHandler.setMetadata(metaData);
 
-            getTransport().setMediaInfo(
-                    new MediaInfo(uri.toString(), metaData)
-            );
-
-//             If you can, you should find and set the duration of the track here!
-//            getTransport().setPositionInfo(
-//                    new PositionInfo(1, metaData, uri.toString())
-//            );
-
-            // It's up to you what "last changes" you want to announce to event listeners
-            getTransport().getLastChange().setEventedValue(
-                    getTransport().getInstanceId(),
-                    new AVTransportVariable.AVTransportURI(uri),
-                    new AVTransportVariable.CurrentTrackURI(uri)
-            );
+            transportHandler.setMediaInfo(uri, metaData);
 
             return RendererStopped.class;
         }
