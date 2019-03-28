@@ -3,7 +3,6 @@ package com.chrrubin.cherryrenderer.upnp.states;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
-import javafx.util.Duration;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.PausedPlay;
 import org.fourthline.cling.support.model.AVTransport;
@@ -26,10 +25,9 @@ public class RendererPausedPlay extends PausedPlay {
         super.onEntry();
         System.out.println("Entered PausedPlay state");
 
-        rendererHandler.setRendererState(RendererState.PAUSED);
         transportHandler.setTransport(getTransport());
 
-        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoTotalTime() != null){
+        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoCurrentTime() != null){
             transportHandler.setMediaInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
@@ -42,6 +40,8 @@ public class RendererPausedPlay extends PausedPlay {
                     rendererHandler.getVideoCurrentTime()
             );
         }
+
+        rendererHandler.setRendererState(RendererState.PAUSED);
     }
 
     public void onExit(){

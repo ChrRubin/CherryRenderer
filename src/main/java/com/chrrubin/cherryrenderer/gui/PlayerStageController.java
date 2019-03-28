@@ -8,7 +8,6 @@ import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,7 +48,7 @@ public class PlayerStageController extends BaseController {
     @FXML
     private HBox controlHbox;
 
-    private URI currentUri;
+    private URI currentUri = null;
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
     private ScheduledService<Void> eventService = null;
@@ -149,32 +148,33 @@ public class PlayerStageController extends BaseController {
             endOfMedia();
         });
 
-        eventService = new ScheduledService<Void>(){
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        if(player.getStatus() == Status.PLAYING) {
-                            // TODO: Doesn't seem to actually update control point?
-                            transportHandler.setPositionInfo(
-                                    rendererHandler.getUri(),
-                                    rendererHandler.getMetadata(),
-                                    player.getTotalDuration(),
-                                    player.getCurrentTime()
-                            );
-                        }
-                        return null;
-                    }
-                };
-            }
-        };
-        eventService.setPeriod(Duration.seconds(1));
-        eventService.start();
+//        eventService = new ScheduledService<Void>(){
+//            @Override
+//            protected Task<Void> createTask() {
+//                return new Task<Void>() {
+//                    @Override
+//                    protected Void call() throws Exception {
+//                        if(player.getStatus() == Status.PLAYING) {
+//                            // TODO: Doesn't seem to actually update control point?
+//                            transportHandler.setPositionInfo(
+//                                    rendererHandler.getUri(),
+//                                    rendererHandler.getMetadata(),
+//                                    player.getTotalDuration(),
+//                                    player.getCurrentTime()
+//                            );
+//                        }
+//                        return null;
+//                    }
+//                };
+//            }
+//        };
+//        eventService.setPeriod(Duration.seconds(1));
+//        eventService.start();
 
         rendererHandler.getVideoSeekEvent().addListener(seekDuration -> {
             if(seekDuration != null) {
                 player.seek(seekDuration);
+                updateCurrentTime();
             }
         });
 
@@ -203,7 +203,6 @@ public class PlayerStageController extends BaseController {
         volumeSlider.setDisable(true);
 
         currentUri = null;
-        rendererHandler.setUri(null);
     }
 
     private void startOfMedia(){
@@ -273,6 +272,9 @@ public class PlayerStageController extends BaseController {
 
         switch (rendererState){
             case NOMEDIAPRESENT:
+                if(player != null){
+                    player.stop();
+                }
                 break;
             case STOPPED:
                 if(player != null){
@@ -290,22 +292,23 @@ public class PlayerStageController extends BaseController {
                     prepareMediaPlayer();
                 }
                 else{
-                    if(player != null){
+                    if(player != null && player.getStatus() == Status.PAUSED){
                         player.play();
+                        updateCurrentTime();
                     }
                 }
                 break;
             case PAUSED:
                 if(player != null){
-                    rendererHandler.setVideoCurrentTime(player.getCurrentTime());
                     player.pause();
+                    updateCurrentTime();
                 }
                 break;
         }
     }
 
     private void bindMediaView(){
-        double bottomBarHeight = (seekHbox.getHeight() + controlHbox.getHeight()) * 2.0; // I don't understand why * 2.0 but it works /shrug
+        double bottomBarHeight = (seekHbox.getHeight() + controlHbox.getHeight()) * 2.0; // I don't understand why multiplying by 2 works but it works /shrug
         videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight));
         videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
     }
@@ -316,5 +319,19 @@ public class PlayerStageController extends BaseController {
         timeSlider.valueProperty().removeListener(timeChangeListener);
         volumeSlider.valueChangingProperty().removeListener(volumeChangingListener);
         volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
+    }
+
+    private void updateCurrentTime(){
+        MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player != null) {
+            rendererHandler.setVideoCurrentTime(player.getCurrentTime());
+
+            transportHandler.setPositionInfo(
+                    rendererHandler.getUri(),
+                    rendererHandler.getMetadata(),
+                    player.getTotalDuration(),
+                    player.getCurrentTime()
+            );
+        }
     }
 }

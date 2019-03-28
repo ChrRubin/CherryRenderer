@@ -83,13 +83,13 @@ public class RendererService {
     }
 
     public void startService() {
-        // TODO: Figure out why 2 instances spawn instead after the first time running the program
+        // FIXME: Figure out why 2 instances spawn instead after the first time running the program
         mainExecutor.submit(() -> {
             try{
                 final UpnpService upnpService = new UpnpServiceImpl();
 
                 Runtime.getRuntime().addShutdownHook(new Thread(() ->{
-                    // TODO: The service doesn't shutdown properly? It's not showing signs of it in the log
+                    // TODO: The service doesn't shutdown properly? It's not showing signs of it in the output/log
                     upnpService.shutdown();
                     lastChangeExecutor.shutdown();
                 }));

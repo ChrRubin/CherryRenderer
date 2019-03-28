@@ -21,11 +21,10 @@ public class RendererStopped extends Stopped {
     @Override
     public void onEntry() {
         super.onEntry();
-        // Optional: Stop playing, release resources, etc.
         System.out.println("Entered Stopped state");
 
-        rendererHandler.setRendererState(RendererState.STOPPED);
         transportHandler.setTransport(getTransport());
+        rendererHandler.setRendererState(RendererState.STOPPED);
     }
 
     public void onExit(){
@@ -34,13 +33,6 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-        // This operation can be triggered in any state, you should think
-        // about how you'd want your player to react. If we are in Stopped
-        // state nothing much will happen, except that you have to set
-        // the media and position info, just like in MyRendererNoMediaPresent.
-        // However, if this would be the MyRendererPlaying state, would you
-        // prefer stopping first?
-
         System.out.println("RendererStopped.SetTransportURI triggered");
 
         rendererHandler.setUri(uri);
@@ -55,18 +47,17 @@ public class RendererStopped extends Stopped {
     @Override
     public Class<? extends AbstractState> stop() {
         System.out.println("RendererStopped.stop triggered");
-        /// Same here, if you are stopped already and someone calls STOP, well...
-        
         // FIXME: The immediate transition from current to desired state not supported. java.lang.reflect.InvocationTargetException
         // TODO: Now it actually works without me trying to fix it???? Keep this in mind in case it happens again
-
+        // FIXME: Yup it's happening again
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> play(String speed) {
         System.out.println("RendererStopped.play triggered");
-        // It's easier to let this classes' onEntry() method do the work
+        // TODO: Sometimes program goes into a Stop.SetURI - Stop.Play - Play.Stop - Stop.SetURI... cycle.
+        //  Not sure if it's the control point or program, further investigation required
         return RendererPlaying.class;
     }
 
@@ -85,7 +76,6 @@ public class RendererStopped extends Stopped {
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
         System.out.println("RendererStopped.seek triggered");
-        // Implement seeking with the stream in stopped state!
         return RendererStopped.class;
     }
 }

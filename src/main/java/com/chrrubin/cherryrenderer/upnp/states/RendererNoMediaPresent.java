@@ -22,8 +22,8 @@ public class RendererNoMediaPresent extends NoMediaPresent {
         super.onEntry();
         System.out.println("Entered NoMediaPresent state");
 
-        rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
         transportHandler.setTransport(getTransport());
+        rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     public void onExit(){

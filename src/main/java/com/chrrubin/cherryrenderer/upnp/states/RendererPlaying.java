@@ -3,7 +3,6 @@ package com.chrrubin.cherryrenderer.upnp.states;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
-import javafx.util.Duration;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.Playing;
 import org.fourthline.cling.support.model.AVTransport;
@@ -22,13 +21,11 @@ public class RendererPlaying extends Playing {
     @Override
     public void onEntry() {
         super.onEntry();
-        // Start playing now!
         System.out.println("Entered Playing state");
 
-        rendererHandler.setRendererState(RendererState.PLAYING);
         transportHandler.setTransport(getTransport());
 
-        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoTotalTime() != null){
+        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoCurrentTime() != null){
             transportHandler.setMediaInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
@@ -42,6 +39,8 @@ public class RendererPlaying extends Playing {
             );
         }
 
+        rendererHandler.setRendererState(RendererState.PLAYING);
+
     }
 
     public void onExit(){
@@ -50,8 +49,6 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-        // Your choice of action here, and what the next state is going to be!
-
         System.out.println("RendererPlaying.setTransportURI triggered");
 
         if(uri != rendererHandler.getUri()) {
@@ -102,8 +99,9 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> stop() {
-        // Stop playing!
         System.out.println("RendererPlaying.stop triggered");
+        // FIXME: Trying to set a new video while video is playing hangs program.
+        //  Though it worked fine for setting the exact same video for some reason
         return RendererStopped.class;
     }
 }
