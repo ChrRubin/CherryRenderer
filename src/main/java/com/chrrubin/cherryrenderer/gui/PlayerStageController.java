@@ -5,11 +5,13 @@ import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
+import javafx.animation.PauseTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -162,8 +164,8 @@ public class PlayerStageController extends BaseController {
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
 
-            getStage().fullScreenProperty().removeListener(isFullScreenListener);
             endOfMedia();
+            getStage().fullScreenProperty().removeListener(isFullScreenListener);
         });
 
         player.setOnStopped(() -> {
@@ -172,8 +174,8 @@ public class PlayerStageController extends BaseController {
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
 
-            getStage().fullScreenProperty().removeListener(isFullScreenListener);
             endOfMedia();
+            getStage().fullScreenProperty().removeListener(isFullScreenListener);
         });
 
 //        eventService = new ScheduledService<Void>(){
@@ -348,6 +350,7 @@ public class PlayerStageController extends BaseController {
     private void prepareFullScreen(boolean isFullScreen){
         videoMediaView.fitHeightProperty().unbind();
         videoMediaView.fitWidthProperty().unbind();
+        PauseTransition mouseIdle = new PauseTransition(Duration.seconds(1));
 
         if(isFullScreen){
             StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
@@ -356,8 +359,21 @@ public class PlayerStageController extends BaseController {
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
 
             bottomBarVBox.setMaxWidth(Region.USE_PREF_SIZE);
+            bottomBarVBox.setOpacity(0);
+            getStage().getScene().setCursor(Cursor.NONE);
 
-            // TODO: implement auto hide bottom bar
+            mouseIdle.setOnFinished(event -> {
+                getStage().getScene().setCursor(Cursor.NONE);
+                bottomBarVBox.setOpacity(0);
+            });
+
+            videoMediaView.setOnMouseMoved(event -> {
+                getStage().getScene().setCursor(Cursor.DEFAULT);
+                bottomBarVBox.setOpacity(1);
+                mouseIdle.playFromStart();
+            });
+
+            bottomBarVBox.setOnMouseEntered(event -> mouseIdle.pause());
         }
         else {
             double bottomBarHeight = bottomBarVBox.getHeight();
@@ -368,6 +384,12 @@ public class PlayerStageController extends BaseController {
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
 
             bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
+
+            mouseIdle.setOnFinished(null);
+            videoMediaView.setOnMouseMoved(null);
+            bottomBarVBox.setOnMouseEntered(null);
+            getStage().getScene().setCursor(Cursor.DEFAULT);
+            bottomBarVBox.setOpacity(1);
         }
     }
 
