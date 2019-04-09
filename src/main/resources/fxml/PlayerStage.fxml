@@ -5,80 +5,72 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.media.MediaView?>
 
-<GridPane fx:id="rootGridPane" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="640.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PlayerStageController">
-   <columnConstraints>
-      <ColumnConstraints />
-   </columnConstraints>
-   <rowConstraints>
-      <RowConstraints />
-      <RowConstraints />
-      <RowConstraints />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" />
-   </rowConstraints>
+
+<StackPane fx:id="rootStackPane" minHeight="360.0" minWidth="640.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PlayerStageController">
    <children>
-      <VBox fx:id="videoVbox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="360.0" minWidth="640.0" style="-fx-background-color: black;" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
-      <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
-      <HBox fx:id="seekHbox" alignment="BOTTOM_CENTER" spacing="10.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+      <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: black;" StackPane.alignment="CENTER" />
+      <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" StackPane.alignment="CENTER" />
+      <VBox fx:id="bottomBarVBox" alignment="BOTTOM_CENTER" maxHeight="-Infinity" spacing="5.0" style="-fx-background-color: f4f4f4;" StackPane.alignment="BOTTOM_CENTER">
          <children>
-            <Label fx:id="currentTimeLabel" text="--:--" />
-            <Slider fx:id="timeSlider" disable="true" HBox.hgrow="ALWAYS" />
-            <Label fx:id="totalTimeLabel" alignment="TOP_LEFT" text="--:--" textAlignment="RIGHT" />
-         </children>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-         <GridPane.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
-         </GridPane.margin>
-      </HBox>
-      <HBox fx:id="controlHbox" alignment="BOTTOM_CENTER" spacing="10.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
-         <GridPane.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
-         </GridPane.margin>
-         <children>
-            <HBox alignment="CENTER" spacing="10.0">
+            <HBox alignment="BOTTOM_CENTER" spacing="10.0">
                <children>
-                  <Button fx:id="playButton" disable="true" mnemonicParsing="false" onAction="#onPlay" text="&gt;">
-                     <tooltip>
-                        <Tooltip text="Play/Pause" />
-                     </tooltip>
-                     <HBox.margin>
-                        <Insets right="20.0" />
-                     </HBox.margin></Button>
-                  <Button fx:id="rewindButton" disable="true" mnemonicParsing="false" onAction="#onRewind" text="&lt;&lt;">
-                     <tooltip>
-                        <Tooltip text="Rewind" />
-                     </tooltip></Button>
-                  <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#onStop" text="□">
-                     <tooltip>
-                        <Tooltip text="Stop" />
-                     </tooltip></Button>
-                  <Button fx:id="forwardButton" disable="true" mnemonicParsing="false" onAction="#onForward" text="&gt;&gt;">
-                     <tooltip>
-                        <Tooltip text="Fast Forward" />
-                     </tooltip></Button>
+                  <Label fx:id="currentTimeLabel" text="--:--" />
+                  <Slider fx:id="timeSlider" disable="true" minWidth="500.0" HBox.hgrow="ALWAYS" />
+                  <Label fx:id="totalTimeLabel" alignment="TOP_LEFT" text="--:--" textAlignment="RIGHT" />
                </children>
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
             </HBox>
-            <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
+            <HBox alignment="BOTTOM_CENTER" spacing="10.0">
                <children>
-                  <Label text="Vol:" />
-                  <Slider fx:id="volumeSlider" disable="true" maxWidth="100.0" value="100.0" />
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="playButton" disable="true" mnemonicParsing="false" onAction="#onPlay" text="&gt;">
+                           <tooltip>
+                              <Tooltip text="Play/Pause" />
+                           </tooltip>
+                           <HBox.margin>
+                              <Insets right="20.0" />
+                           </HBox.margin>
+                        </Button>
+                        <Button fx:id="rewindButton" disable="true" mnemonicParsing="false" onAction="#onRewind" text="&lt;&lt;">
+                           <tooltip>
+                              <Tooltip text="Rewind" />
+                           </tooltip>
+                        </Button>
+                        <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#onStop" text="□">
+                           <tooltip>
+                              <Tooltip text="Stop" />
+                           </tooltip>
+                        </Button>
+                        <Button fx:id="forwardButton" disable="true" mnemonicParsing="false" onAction="#onForward" text="&gt;&gt;">
+                           <tooltip>
+                              <Tooltip text="Fast Forward" />
+                           </tooltip>
+                        </Button>
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </HBox>
+                  <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Vol:" />
+                        <Slider fx:id="volumeSlider" disable="true" maxWidth="100.0" value="100.0" />
+                     </children>
+                  </HBox>
                </children>
             </HBox>
          </children>
-      </HBox>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </VBox>
    </children>
-   <padding>
-      <Insets bottom="5.0" />
-   </padding>
-</GridPane>
+</StackPane>

@@ -8,14 +8,15 @@ import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
@@ -27,7 +28,7 @@ import java.net.URI;
 
 public class PlayerStageController extends BaseController {
     @FXML
-    private GridPane rootGridPane;
+    private StackPane rootStackPane;
     @FXML
     private MediaView videoMediaView;
     @FXML
@@ -47,9 +48,7 @@ public class PlayerStageController extends BaseController {
     @FXML
     private Slider volumeSlider;
     @FXML
-    private HBox seekHbox;
-    @FXML
-    private HBox controlHbox;
+    private VBox bottomBarVBox;
 
     private URI currentUri = null;
     private RendererHandler rendererHandler = RendererHandler.getInstance();
@@ -57,7 +56,7 @@ public class PlayerStageController extends BaseController {
     private ScheduledService<Void> eventService = null;
 
     public BaseStage getStage() {
-        return (BaseStage)rootGridPane.getScene().getWindow();
+        return (BaseStage) rootStackPane.getScene().getWindow();
     }
 
     public void initialize(){
@@ -68,7 +67,7 @@ public class PlayerStageController extends BaseController {
     }
 
     private void prepareMediaPlayer(){
-        bindMediaView();
+        prepareFullScreen(false);
 
         MediaPlayer player = videoMediaView.getMediaPlayer();
 
@@ -80,6 +79,8 @@ public class PlayerStageController extends BaseController {
                 timeSlider.setValue(player.getCurrentTime().divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
             }
         });
+
+        // TODO: Show any signs of buffering
 
         player.setOnPlaying(() -> playButton.setText("||"));
 
@@ -102,6 +103,7 @@ public class PlayerStageController extends BaseController {
             startOfMedia();
         });
 
+        // FIXME: Seeking from renderer side doesn't update control point
         ChangeListener<Boolean> timeChangingListener = (observable, wasChanging, isChanging) -> {
             if(!isChanging){
                 player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
@@ -140,17 +142,27 @@ public class PlayerStageController extends BaseController {
         videoMediaView.setOnMouseClicked(mouseEvent -> {
             if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                 if(mouseEvent.getClickCount() == 2){
-                    // TODO: Implement fullscreen
+                    if(!getStage().isFullScreen()){
+                        getStage().setFullScreen(true);
+                    }
+                    else{
+                        getStage().setFullScreen(false);
+                    }
                 }
             }
         });
+
+        ChangeListener<Boolean> isFullScreenListener =
+                (observable, wasFullScreen, isFullScreen) -> prepareFullScreen(isFullScreen);
+        getStage().fullScreenProperty().addListener(isFullScreenListener);
 
         player.setOnEndOfMedia(() -> {
             clearSliderListeners(
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
-            videoMediaView.setOnMouseClicked(null);
+
+            getStage().fullScreenProperty().removeListener(isFullScreenListener);
             endOfMedia();
         });
 
@@ -159,7 +171,8 @@ public class PlayerStageController extends BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
-            videoMediaView.setOnMouseClicked(null);
+
+            getStage().fullScreenProperty().removeListener(isFullScreenListener);
             endOfMedia();
         });
 
@@ -213,6 +226,11 @@ public class PlayerStageController extends BaseController {
         volumeSlider.setDisable(true);
 
         currentUri = null;
+
+        videoMediaView.setOnMouseClicked(null);
+        if(getStage().isFullScreen()){
+            getStage().setFullScreen(false);
+        }
 
         transportHandler.setTransportInfo(TransportState.STOPPED);
     }
@@ -327,10 +345,30 @@ public class PlayerStageController extends BaseController {
         }
     }
 
-    private void bindMediaView(){
-        double bottomBarHeight = (seekHbox.getHeight() + controlHbox.getHeight()) * 2.0; // I don't understand why multiplying by 2 works but it works /shrug
-        videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight));
-        videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+    private void prepareFullScreen(boolean isFullScreen){
+        videoMediaView.fitHeightProperty().unbind();
+        videoMediaView.fitWidthProperty().unbind();
+
+        if(isFullScreen){
+            StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
+
+            videoMediaView.fitHeightProperty().bind(getStage().heightProperty());
+            videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+
+            bottomBarVBox.setMaxWidth(Region.USE_PREF_SIZE);
+
+            // TODO: implement auto hide bottom bar
+        }
+        else {
+            double bottomBarHeight = bottomBarVBox.getHeight();
+            StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
+
+            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 2.0));
+            // I don't understand why multiplying by 2 works but it works. There's still a top/bottom black bar but I don't feel like fidgeting with the math /shrug
+            videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+
+            bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        }
     }
 
     private void clearSliderListeners(Slider timeSlider, ChangeListener<Boolean> timeChangingListener, ChangeListener<Number> timeChangeListener,
