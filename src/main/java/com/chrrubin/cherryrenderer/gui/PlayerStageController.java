@@ -68,6 +68,10 @@ public class PlayerStageController extends BaseController {
         rendererHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
     }
 
+    /**
+     * Prepares MediaPlayer for video playing.
+     * Creates required property listeners and event handlers that are used during video playback.
+     */
     private void prepareMediaPlayer(){
         prepareFullScreen(false);
 
@@ -82,7 +86,7 @@ public class PlayerStageController extends BaseController {
             }
         });
 
-        // TODO: Show any signs of buffering
+        // TODO: Implement buffer handling
 
         player.setOnPlaying(() -> playButton.setText("||"));
 
@@ -106,6 +110,10 @@ public class PlayerStageController extends BaseController {
         });
 
         // FIXME: Seeking from renderer side doesn't update control point
+        /*
+        timeSlider and volumeSlider property listeners.
+        Allows video time and volume to be manipulated via the respective sliders.
+         */
         ChangeListener<Boolean> timeChangingListener = (observable, wasChanging, isChanging) -> {
             if(!isChanging){
                 player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
@@ -141,6 +149,9 @@ public class PlayerStageController extends BaseController {
         };
         volumeSlider.valueProperty().addListener(volumeInvalidationListener);
 
+        /*
+        Toggle fullscreen via double click
+         */
         videoMediaView.setOnMouseClicked(mouseEvent -> {
             if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                 if(mouseEvent.getClickCount() == 2){
@@ -158,6 +169,9 @@ public class PlayerStageController extends BaseController {
                 (observable, wasFullScreen, isFullScreen) -> prepareFullScreen(isFullScreen);
         getStage().fullScreenProperty().addListener(isFullScreenListener);
 
+        /*
+        Properly removes property listeners during onEndOfMedia and onStopped
+         */
         player.setOnEndOfMedia(() -> {
             clearSliderListeners(
                     timeSlider, timeChangingListener, timeChangeListener,
@@ -196,6 +210,9 @@ public class PlayerStageController extends BaseController {
 //        eventService.setPeriod(Duration.seconds(2));
 //        eventService.start();
 
+        /*
+        Seeks video when VideoSeekEvent is triggered by control point
+         */
         rendererHandler.getVideoSeekEvent().addListener(seekDuration -> {
             if(seekDuration != null) {
                 player.seek(seekDuration);
@@ -307,6 +324,10 @@ public class PlayerStageController extends BaseController {
         updateCurrentTime();
     }
 
+    /**
+     * Handles RendererStateChanged events, triggered by uPnP state classes.
+     * @param rendererState Current RendererState of MediaRenderer
+     */
     private void onRendererStateChanged(RendererState rendererState){
         MediaPlayer player = videoMediaView.getMediaPlayer();
 
@@ -347,6 +368,11 @@ public class PlayerStageController extends BaseController {
         }
     }
 
+    /**
+     * Prepares UI elements based on whether fullscreen is triggered.
+     * During fullscreen, cursor and bottom bar will be hidden when mouse is idle for 1 second.
+     * @param isFullScreen Whether the application is in fullscreen mode.
+     */
     private void prepareFullScreen(boolean isFullScreen){
         videoMediaView.fitHeightProperty().unbind();
         videoMediaView.fitWidthProperty().unbind();
@@ -401,6 +427,9 @@ public class PlayerStageController extends BaseController {
         volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
     }
 
+    /**
+     * Notifies control point of current time changes via transportHandler
+     */
     private void updateCurrentTime(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null){

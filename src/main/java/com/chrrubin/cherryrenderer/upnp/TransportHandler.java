@@ -88,8 +88,14 @@ public class TransportHandler {
         );
     }
 
+    /**
+     * Notifies control point of the MediaRenderer's state changes when state is changed
+     * from the renderer side.
+     * @param transportState Current TransportState of the MediaRenderer.
+     */
     public synchronized void setTransportInfo(TransportState transportState){
         // FIXME: Control point doesn't get notified after the first video???
+        //  As with a lot of other uPnP stuff I'm not sure if it's cling or me or the control point causing this
         if(transport == null){
             return;
         }
