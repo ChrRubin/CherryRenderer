@@ -8,10 +8,12 @@ import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.Media;
@@ -19,6 +21,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
+import org.fourthline.cling.support.model.TransportState;
 
 import java.net.URI;
 
@@ -102,6 +105,7 @@ public class PlayerStageController extends BaseController {
         ChangeListener<Boolean> timeChangingListener = (observable, wasChanging, isChanging) -> {
             if(!isChanging){
                 player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
+                updateCurrentTime();
             }
         };
         timeSlider.valueChangingProperty().addListener(timeChangingListener);
@@ -113,6 +117,7 @@ public class PlayerStageController extends BaseController {
                 if(Math.abs(newTime - currentTime) > 0.5) {
 
                     player.seek(player.getTotalDuration().multiply(newTime / 100.0));
+                    updateCurrentTime();
                 }
             }
         };
@@ -132,11 +137,20 @@ public class PlayerStageController extends BaseController {
         };
         volumeSlider.valueProperty().addListener(volumeInvalidationListener);
 
+        videoMediaView.setOnMouseClicked(mouseEvent -> {
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if(mouseEvent.getClickCount() == 2){
+                    // TODO: Implement fullscreen
+                }
+            }
+        });
+
         player.setOnEndOfMedia(() -> {
             clearSliderListeners(
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            videoMediaView.setOnMouseClicked(null);
             endOfMedia();
         });
 
@@ -145,6 +159,7 @@ public class PlayerStageController extends BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            videoMediaView.setOnMouseClicked(null);
             endOfMedia();
         });
 
@@ -154,21 +169,16 @@ public class PlayerStageController extends BaseController {
 //                return new Task<Void>() {
 //                    @Override
 //                    protected Void call() throws Exception {
-//                        if(player.getStatus() == Status.PLAYING) {
-//                            // TODO: Doesn't seem to actually update control point?
-//                            transportHandler.setPositionInfo(
-//                                    rendererHandler.getUri(),
-//                                    rendererHandler.getMetadata(),
-//                                    player.getTotalDuration(),
-//                                    player.getCurrentTime()
-//                            );
+//                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
+//                            // FIXME: Doesn't seem to actually update control point?
+//                            updateCurrentTime();
 //                        }
 //                        return null;
 //                    }
 //                };
 //            }
 //        };
-//        eventService.setPeriod(Duration.seconds(1));
+//        eventService.setPeriod(Duration.seconds(2));
 //        eventService.start();
 
         rendererHandler.getVideoSeekEvent().addListener(seekDuration -> {
@@ -193,7 +203,7 @@ public class PlayerStageController extends BaseController {
         currentTimeLabel.setText("--:--");
         totalTimeLabel.setText("--:--");
         timeSlider.setValue(0);
-        volumeSlider.setValue(1);
+        volumeSlider.setValue(100);
 
         timeSlider.setDisable(true);
         playButton.setDisable(true);
@@ -203,6 +213,8 @@ public class PlayerStageController extends BaseController {
         volumeSlider.setDisable(true);
 
         currentUri = null;
+
+        transportHandler.setTransportInfo(TransportState.STOPPED);
     }
 
     private void startOfMedia(){
@@ -225,9 +237,13 @@ public class PlayerStageController extends BaseController {
 
         if(status == Status.PAUSED || status == Status.STOPPED || status == Status.READY){
             player.play();
+            updateCurrentTime();
+            transportHandler.setTransportInfo(TransportState.PLAYING);
         }
         else{
             player.pause();
+            updateCurrentTime();
+            transportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
         }
     }
 
@@ -242,6 +258,8 @@ public class PlayerStageController extends BaseController {
         else{
             player.seek(Duration.ZERO);
         }
+
+        updateCurrentTime();
     }
 
     @FXML
@@ -265,6 +283,8 @@ public class PlayerStageController extends BaseController {
         else{
             player.seek(player.getTotalDuration());
         }
+
+        updateCurrentTime();
     }
 
     private void onRendererStateChanged(RendererState rendererState){
@@ -323,15 +343,17 @@ public class PlayerStageController extends BaseController {
 
     private void updateCurrentTime(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player != null) {
-            rendererHandler.setVideoCurrentTime(player.getCurrentTime());
-
-            transportHandler.setPositionInfo(
-                    rendererHandler.getUri(),
-                    rendererHandler.getMetadata(),
-                    player.getTotalDuration(),
-                    player.getCurrentTime()
-            );
+        if(player == null){
+            return;
         }
+
+        rendererHandler.setVideoCurrentTime(player.getCurrentTime());
+
+        transportHandler.setPositionInfo(
+                rendererHandler.getUri(),
+                rendererHandler.getMetadata(),
+                player.getTotalDuration(),
+                player.getCurrentTime()
+        );
     }
 }

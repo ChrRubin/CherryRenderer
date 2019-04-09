@@ -51,13 +51,11 @@ public class RendererPlaying extends Playing {
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
         System.out.println("RendererPlaying.setTransportURI triggered");
 
-        if(uri != rendererHandler.getUri()) {
-            rendererHandler.setUri(uri);
-            rendererHandler.setMetadata(metaData);
+        rendererHandler.setUri(uri);
+        rendererHandler.setMetadata(metaData);
 
-            transportHandler.setMediaInfo(uri, metaData);
-            transportHandler.setPositionInfo(uri, metaData);
-        }
+        transportHandler.setMediaInfo(uri, metaData);
+        transportHandler.setPositionInfo(uri, metaData);
 
         return RendererPlaying.class;
     }
@@ -88,7 +86,6 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
-        // FIXME: May freeze service when seeking beyond player buffer.
         System.out.println("RendererPlaying.seek triggered");
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
             System.out.println("Seeking to " + target);
@@ -100,8 +97,8 @@ public class RendererPlaying extends Playing {
     @Override
     public Class<? extends AbstractState> stop() {
         System.out.println("RendererPlaying.stop triggered");
-        // FIXME: Trying to set a new video while video is playing hangs program.
-        //  Though it worked fine for setting the exact same video for some reason
+        // FIXME: Stopping within 2 seconds after video is ready freezes the program. Deadlock somewhere?
+        //  This shit is just inconsistent to reproduce for some reason
         return RendererStopped.class;
     }
 }

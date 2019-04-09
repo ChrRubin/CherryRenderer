@@ -36,17 +36,13 @@ public class RendererNoMediaPresent extends NoMediaPresent {
 
         System.out.println("RendererNoMediaPresent.SetTransportURI triggered");
 
-        if(uri != rendererHandler.getUri()) {
-            rendererHandler.setUri(uri);
-            rendererHandler.setMetadata(metaData);
+        rendererHandler.setUri(uri);
+        rendererHandler.setMetadata(metaData);
 
-            transportHandler.setMediaInfo(uri, metaData);
+        transportHandler.setMediaInfo(uri, metaData);
+        transportHandler.setPositionInfo(uri, metaData);
 
-            return RendererStopped.class;
-        }
-        else{
-            return RendererNoMediaPresent.class;
-        }
+        return RendererStopped.class;
     }
 
     public Class<? extends AbstractState> stop() {

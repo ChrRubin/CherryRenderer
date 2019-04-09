@@ -6,7 +6,6 @@ import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.PausedPlay;
 import org.fourthline.cling.support.model.AVTransport;
-import org.fourthline.cling.support.model.MediaInfo;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
@@ -52,14 +51,11 @@ public class RendererPausedPlay extends PausedPlay {
 
         System.out.println("RendererPausedPlay.SetTransportURI triggered");
 
-        if(uri != rendererHandler.getUri()) {
-            rendererHandler.setUri(uri);
-            rendererHandler.setMetadata(metaData);
+        rendererHandler.setUri(uri);
+        rendererHandler.setMetadata(metaData);
 
-            getTransport().setMediaInfo(
-                    new MediaInfo(uri.toString(), metaData)
-            );
-        }
+        transportHandler.setMediaInfo(uri, metaData);
+        transportHandler.setPositionInfo(uri, metaData);
 
         return RendererPausedPlay.class;
     }
