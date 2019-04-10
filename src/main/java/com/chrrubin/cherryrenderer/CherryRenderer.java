@@ -5,11 +5,12 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class CherryRenderer extends Application {
-
     @Override
     public void start(Stage primaryStage) throws Exception{
-//        String path = CherryRenderer.class.getClassLoader().getResource("log.properties").getFile();
-//        System.setProperty("java.util.logging.config.file", path);
+        String path = CherryRenderer.class.getClassLoader().getResource("log-debug.properties").getFile();
+//        String path = CherryRenderer.class.getClassLoader().getResource("log-normal.properties").getFile();
+
+        System.setProperty("java.util.logging.config.file", path);
 
         PlayerStage stage = new PlayerStage();
         stage.prepareStage();

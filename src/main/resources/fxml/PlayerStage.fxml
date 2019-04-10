@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Slider?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.media.MediaView?>
-
-
 <StackPane fx:id="rootStackPane" minHeight="360.0" minWidth="640.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PlayerStageController">
    <children>
       <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: black;" StackPane.alignment="CENTER" />
       <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" StackPane.alignment="CENTER" />
+      <ProgressIndicator fx:id="videoProgressIndicator" maxHeight="-Infinity" maxWidth="-Infinity" opacity="0.0" style="-fx-background-color: white;" StackPane.alignment="CENTER">
+         <StackPane.margin>
+            <Insets />
+         </StackPane.margin>
+      </ProgressIndicator>
       <VBox fx:id="bottomBarVBox" alignment="BOTTOM_CENTER" maxHeight="-Infinity" spacing="5.0" style="-fx-background-color: f4f4f4;" StackPane.alignment="BOTTOM_CENTER">
          <children>
             <HBox alignment="BOTTOM_CENTER" spacing="10.0">

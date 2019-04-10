@@ -9,8 +9,11 @@ import org.fourthline.cling.support.model.AVTransport;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class RendererPlaying extends Playing {
+    final private Logger LOGGER = Logger.getLogger(RendererPlaying.class.getName());
+
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
 
@@ -21,7 +24,7 @@ public class RendererPlaying extends Playing {
     @Override
     public void onEntry() {
         super.onEntry();
-        System.out.println("Entered Playing state");
+        LOGGER.info("Entered Playing state");
 
         transportHandler.setTransport(getTransport());
 
@@ -44,12 +47,14 @@ public class RendererPlaying extends Playing {
     }
 
     public void onExit(){
-        System.out.println("Exited Playing state");
+        LOGGER.info("Exited Playing state");
     }
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-        System.out.println("RendererPlaying.setTransportURI triggered");
+        LOGGER.fine("Setting transport URI...");
+        LOGGER.finer("URI: " + uri.toString());
+        LOGGER.finer("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -62,33 +67,34 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> play(String speed) {
-        System.out.println("RendererPlaying.play triggered");
+        LOGGER.fine("Play invoked");
         return RendererPlaying.class;
     }
 
     @Override
     public Class<? extends AbstractState> pause() {
-        System.out.println("RendererPlaying.pause triggered");
+        LOGGER.fine("Pause invoked");
         return RendererPausedPlay.class;
     }
 
     @Override
     public Class<? extends AbstractState> next() {
-        System.out.println("RendererPlaying.next triggered");
+        LOGGER.fine("Next invoked");
         return RendererPlaying.class;
     }
 
     @Override
     public Class<? extends AbstractState> previous() {
-        System.out.println("RendererPlaying.previous triggered");
+        LOGGER.fine("Previous invoked");
         return RendererPlaying.class;
     }
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
-        System.out.println("RendererPlaying.seek triggered");
+        LOGGER.fine("Seek invoked");
+
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
-            System.out.println("Seeking to " + target);
+            LOGGER.finer("Seeking to " + target + " with unit " + unit.name());
             rendererHandler.setVideoSeek(CherryUtil.stringToDuration(target));
         }
         return RendererPlaying.class;
@@ -96,7 +102,7 @@ public class RendererPlaying extends Playing {
 
     @Override
     public Class<? extends AbstractState> stop() {
-        System.out.println("RendererPlaying.stop triggered");
+        LOGGER.fine("Stop invoked");
         // FIXME: Stopping within 2 seconds after video is ready freezes the program. Deadlock somewhere?
         //  This shit is just inconsistent to reproduce for some reason
         return RendererStopped.class;

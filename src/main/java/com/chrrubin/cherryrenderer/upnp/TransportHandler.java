@@ -7,8 +7,11 @@ import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.*;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class TransportHandler {
+    private final Logger LOGGER = Logger.getLogger(TransportHandler.class.getName());
+
     private static TransportHandler instance = new TransportHandler();
 
     private AVTransport transport = null;
@@ -100,7 +103,7 @@ public class TransportHandler {
             return;
         }
 
-        System.out.println("TransportHandler.SetTransportInfo > " + transportState.name());
+        LOGGER.fine("Notifying control point of transport state change to " + transportState.name());
         transport.setTransportInfo(new TransportInfo(
                 transportState,
                 transport.getTransportInfo().getCurrentTransportStatus(),

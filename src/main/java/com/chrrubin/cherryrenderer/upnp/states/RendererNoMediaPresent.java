@@ -7,8 +7,10 @@ import org.fourthline.cling.support.avtransport.impl.state.NoMediaPresent;
 import org.fourthline.cling.support.model.AVTransport;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class RendererNoMediaPresent extends NoMediaPresent {
+    final private Logger LOGGER = Logger.getLogger(RendererNoMediaPresent.class.getName());
 
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
@@ -20,21 +22,23 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     @Override
     public void onEntry(){
         super.onEntry();
-        System.out.println("Entered NoMediaPresent state");
+        LOGGER.info("Entered NoMediaPresent state");
 
         transportHandler.setTransport(getTransport());
         rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     public void onExit(){
-        System.out.println("Exited NoMediaPresent state");
+        LOGGER.info("Exited NoMediaPresent state");
     }
 
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
 
-        System.out.println("RendererNoMediaPresent.SetTransportURI triggered");
+        LOGGER.fine("Setting transport URI...");
+        LOGGER.finer("URI: " + uri.toString());
+        LOGGER.finer("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -46,7 +50,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     }
 
     public Class<? extends AbstractState> stop() {
-        System.out.println("RendererNoMediaPresent.stop triggered");
+        LOGGER.fine("Stop invoked");
         return RendererStopped.class;
     }
 }

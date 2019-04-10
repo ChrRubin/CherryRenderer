@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Region;
@@ -27,6 +28,7 @@ import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class PlayerStageController extends BaseController {
     @FXML
@@ -51,6 +53,10 @@ public class PlayerStageController extends BaseController {
     private Slider volumeSlider;
     @FXML
     private VBox bottomBarVBox;
+    @FXML
+    private ProgressIndicator videoProgressIndicator;
+
+    private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
     private URI currentUri = null;
     private RendererHandler rendererHandler = RendererHandler.getInstance();
@@ -86,11 +92,13 @@ public class PlayerStageController extends BaseController {
             }
         });
 
-        // TODO: Implement buffer handling
+        player.setOnPlaying(() -> {
+            playButton.setText("||");
+        });
 
-        player.setOnPlaying(() -> playButton.setText("||"));
-
-        player.setOnPaused(() -> playButton.setText(">"));
+        player.setOnPaused(() -> {
+            playButton.setText(">");
+        });
 
         player.setOnReady(() -> {
             totalTimeLabel.setText(CherryUtil.durationToString(player.getTotalDuration()));
@@ -108,6 +116,18 @@ public class PlayerStageController extends BaseController {
             );
             startOfMedia();
         });
+
+        // TODO: Implement buffer handling
+        //  Soooooo this doesn't work for some reason???????
+        ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
+            if(newStatus == Status.STALLED){
+                videoProgressIndicator.setOpacity(1);
+            }
+            else if(oldStatus == Status.STALLED){
+                videoProgressIndicator.setOpacity(0);
+            }
+        };
+        player.statusProperty().addListener(playerStatusListener);
 
         // FIXME: Seeking from renderer side doesn't update control point
         /*
@@ -180,6 +200,7 @@ public class PlayerStageController extends BaseController {
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
+            player.statusProperty().removeListener(playerStatusListener);
         });
 
         player.setOnStopped(() -> {
@@ -190,6 +211,7 @@ public class PlayerStageController extends BaseController {
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
+            player.statusProperty().removeListener(playerStatusListener);
         });
 
 //        eventService = new ScheduledService<Void>(){
@@ -380,6 +402,7 @@ public class PlayerStageController extends BaseController {
 
         if(isFullScreen){
             StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
+//            StackPane.setMargin(videoProgressIndicator, new Insets(0, 0, 0, 0));
 
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty());
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
@@ -404,6 +427,7 @@ public class PlayerStageController extends BaseController {
         else {
             double bottomBarHeight = bottomBarVBox.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
+//            StackPane.setMargin(videoProgressIndicator, new Insets(0,0, bottomBarHeight,0));
 
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 2.0));
             // I don't understand why multiplying by 2 works but it works. There's still a top/bottom black bar but I don't feel like fidgeting with the math /shrug

@@ -9,8 +9,11 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 public class RendererHandler {
+    private final Logger LOGGER = Logger.getLogger(RendererHandler.class.getName());
+
     private static RendererHandler instance = new RendererHandler();
 
     private URI uri = null;
@@ -40,7 +43,7 @@ public class RendererHandler {
     }
 
     public void setRendererState(RendererState rendererState){
-        System.out.println("RendererState set to " + rendererState.name());
+        LOGGER.info("RendererState set to " + rendererState.name());
         rendererStateChangedEvent.trigger(rendererState);
     }
 

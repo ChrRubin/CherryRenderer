@@ -8,8 +8,10 @@ import org.fourthline.cling.support.model.AVTransport;
 import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class RendererStopped extends Stopped {
+    final private Logger LOGGER = Logger.getLogger(RendererStopped.class.getName());
 
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
@@ -21,19 +23,21 @@ public class RendererStopped extends Stopped {
     @Override
     public void onEntry() {
         super.onEntry();
-        System.out.println("Entered Stopped state");
+        LOGGER.info("Entered Stopped state");
 
         transportHandler.setTransport(getTransport());
         rendererHandler.setRendererState(RendererState.STOPPED);
     }
 
     public void onExit(){
-        System.out.println("Exited Stopped state");
+        LOGGER.info("Exited Stopped state");
     }
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-        System.out.println("RendererStopped.SetTransportURI triggered");
+        LOGGER.fine("Setting transport URI...");
+        LOGGER.finer("URI: " + uri.toString());
+        LOGGER.finer("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -46,7 +50,7 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> stop() {
-        System.out.println("RendererStopped.stop triggered");
+        LOGGER.fine("Stop invoked");
         // FIXME: The immediate transition from current to desired state not supported. java.lang.reflect.InvocationTargetException
         // TODO: Now it actually works without me trying to fix it???? Keep this in mind in case it happens again
         // FIXME: Yup it's happening again
@@ -55,7 +59,7 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> play(String speed) {
-        System.out.println("RendererStopped.play triggered");
+        LOGGER.fine("Play invoked");
         // TODO: Sometimes program goes into a Stop.SetURI - Stop.Play - Play.Stop - Stop.SetURI... cycle.
         //  Not sure if it's the control point or program, further investigation required
         return RendererPlaying.class;
@@ -63,19 +67,19 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> next() {
-        System.out.println("RendererStopped.next triggered");
+        LOGGER.fine("Next invoked");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> previous() {
-        System.out.println("RendererStopped.previous triggered");
+        LOGGER.fine("Previous invoked");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
-        System.out.println("RendererStopped.seek triggered");
+        LOGGER.fine("Seek invoked");
         return RendererStopped.class;
     }
 }
