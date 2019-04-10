@@ -63,6 +63,8 @@ public class PlayerStageController extends BaseController {
     private TransportHandler transportHandler = TransportHandler.getInstance();
     private ScheduledService<Void> eventService = null;
 
+    private PauseTransition mouseIdle = new PauseTransition(Duration.seconds(1));
+
     public BaseStage getStage() {
         return (BaseStage) rootStackPane.getScene().getWindow();
     }
@@ -398,7 +400,6 @@ public class PlayerStageController extends BaseController {
     private void prepareFullScreen(boolean isFullScreen){
         videoMediaView.fitHeightProperty().unbind();
         videoMediaView.fitWidthProperty().unbind();
-        PauseTransition mouseIdle = new PauseTransition(Duration.seconds(1));
 
         if(isFullScreen){
             StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
@@ -425,6 +426,10 @@ public class PlayerStageController extends BaseController {
             bottomBarVBox.setOnMouseEntered(event -> mouseIdle.pause());
         }
         else {
+            mouseIdle.setOnFinished(null);
+            videoMediaView.setOnMouseMoved(null);
+            bottomBarVBox.setOnMouseEntered(null);
+
             double bottomBarHeight = bottomBarVBox.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
 //            StackPane.setMargin(videoProgressIndicator, new Insets(0,0, bottomBarHeight,0));
@@ -435,9 +440,6 @@ public class PlayerStageController extends BaseController {
 
             bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
 
-            mouseIdle.setOnFinished(null);
-            videoMediaView.setOnMouseMoved(null);
-            bottomBarVBox.setOnMouseEntered(null);
             getStage().getScene().setCursor(Cursor.DEFAULT);
             bottomBarVBox.setOpacity(1);
         }

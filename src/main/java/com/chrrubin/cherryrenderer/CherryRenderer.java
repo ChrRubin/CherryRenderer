@@ -4,13 +4,14 @@ import com.chrrubin.cherryrenderer.gui.PlayerStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.io.InputStream;
+import java.util.logging.LogManager;
+
 public class CherryRenderer extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
-        String path = CherryRenderer.class.getClassLoader().getResource("log-debug.properties").getFile();
-//        String path = CherryRenderer.class.getClassLoader().getResource("log-normal.properties").getFile();
-
-        System.setProperty("java.util.logging.config.file", path);
+        InputStream inputStream = CherryRenderer.class.getClassLoader().getResourceAsStream("log-debug.properties");
+        LogManager.getLogManager().readConfiguration(inputStream);
 
         PlayerStage stage = new PlayerStage();
         stage.prepareStage();
