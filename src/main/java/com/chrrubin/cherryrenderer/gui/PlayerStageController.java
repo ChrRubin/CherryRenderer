@@ -9,6 +9,7 @@ import javafx.animation.PauseTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -216,23 +217,22 @@ public class PlayerStageController extends BaseController {
             player.statusProperty().removeListener(playerStatusListener);
         });
 
-//        eventService = new ScheduledService<Void>(){
-//            @Override
-//            protected Task<Void> createTask() {
-//                return new Task<Void>() {
-//                    @Override
-//                    protected Void call() throws Exception {
-//                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
-//                            // FIXME: Doesn't seem to actually update control point?
-//                            updateCurrentTime();
-//                        }
-//                        return null;
-//                    }
-//                };
-//            }
-//        };
-//        eventService.setPeriod(Duration.seconds(2));
-//        eventService.start();
+        eventService = new ScheduledService<Void>(){
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
+                            updateCurrentTime();
+                        }
+                        return null;
+                    }
+                };
+            }
+        };
+        eventService.setPeriod(Duration.seconds(1));
+        eventService.start();
 
         /*
         Seeks video when VideoSeekEvent is triggered by control point
