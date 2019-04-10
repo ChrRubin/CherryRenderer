@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp;
 
+import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.upnp.states.RendererNoMediaPresent;
 import com.chrrubin.cherryrenderer.upnp.states.RendererStateMachine;
 import org.fourthline.cling.UpnpService;
@@ -16,14 +17,19 @@ import org.fourthline.cling.support.avtransport.lastchange.AVTransportLastChange
 import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
 import org.fourthline.cling.support.lastchange.LastChangeParser;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RendererService {
+    private final Logger LOGGER = Logger.getLogger(RendererService.class.getName());
+
     private String friendlyName;
 
     private ExecutorService mainExecutor = Executors.newSingleThreadExecutor();
@@ -41,7 +47,7 @@ public class RendererService {
         this.friendlyName = friendlyName;
     }
 
-    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, URISyntaxException {
+    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, URISyntaxException, IOException {
 
         DeviceIdentity identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("CherryRenderer"));
 
@@ -56,6 +62,8 @@ public class RendererService {
                         "1"
                         )
         );
+
+        Icon icon = new Icon("image/png", 64, 64, 32, CherryRenderer.class.getClassLoader().getResource("icon.png"));
 
         LocalService<AVTransportService> service = new AnnotationLocalServiceBinder().read(AVTransportService.class);
 
@@ -79,7 +87,7 @@ public class RendererService {
             manager.fireLastChange();
         },0,500, TimeUnit.MILLISECONDS);
 
-        return new LocalDevice(identity, type, details, service);
+        return new LocalDevice(identity, type, details, icon, service);
     }
 
     public void startService() {
@@ -98,7 +106,7 @@ public class RendererService {
                 upnpService.getRegistry().addDevice(createDevice());
             }
             catch (Exception e){
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, e.toString(), e);
                 System.exit(1);
             }
         });
