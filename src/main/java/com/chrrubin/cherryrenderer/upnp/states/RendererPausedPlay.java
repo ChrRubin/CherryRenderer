@@ -51,9 +51,9 @@ public class RendererPausedPlay extends PausedPlay {
 
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
 
-        LOGGER.fine("Setting transport URI...");
-        LOGGER.finer("URI: " + uri.toString());
-        LOGGER.finer("Metadata: " + metaData);
+        LOGGER.finer("Setting transport URI...");
+        LOGGER.finest("URI: " + uri.toString());
+        LOGGER.finest("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -65,22 +65,22 @@ public class RendererPausedPlay extends PausedPlay {
     }
 
     public Class<? extends AbstractState> stop() {
-        LOGGER.fine("Stop invoked");
+        LOGGER.finer("Stop invoked");
         return RendererStopped.class;
     }
 
     public Class<? extends AbstractState> play(String speed) {
-        LOGGER.fine("Play invoked");
+        LOGGER.finer("Play invoked");
         return RendererPlaying.class;
     }
 
     public Class<? extends AbstractState> pause() {
-        LOGGER.fine("Pause invoked");
+        LOGGER.finer("Pause invoked");
         return RendererPausedPlay.class;
     }
 
     public Class<? extends AbstractState> seek(SeekMode unit, String target){
-        LOGGER.fine("Seek invoked");
+        LOGGER.finer("Seek invoked");
 
         if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
             LOGGER.finer("Seeking to " + target + " with unit " + unit.name());

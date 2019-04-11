@@ -88,13 +88,6 @@ public class PlayerStageController extends BaseController {
 
         player.setAutoPlay(true);
 
-        player.currentTimeProperty().addListener(observable -> {
-            currentTimeLabel.setText(CherryUtil.durationToString(player.getCurrentTime()));
-            if(!timeSlider.isValueChanging()) {
-                timeSlider.setValue(player.getCurrentTime().divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
-            }
-        });
-
         player.setOnPlaying(() -> {
             playButton.setText("||");
         });
@@ -145,7 +138,15 @@ public class PlayerStageController extends BaseController {
         };
         player.statusProperty().addListener(playerStatusListener);
 
-        // FIXME: Seeking from renderer side doesn't update control point
+        // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
+        ChangeListener<Duration> currentTimeChangeListener = (observable, oldValue, newValue) -> {
+            currentTimeLabel.setText(CherryUtil.durationToString(newValue));
+            if(!timeSlider.isValueChanging()){
+                timeSlider.setValue(newValue.divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
+            }
+        };
+        player.currentTimeProperty().addListener(currentTimeChangeListener);
+
         /*
         timeSlider and volumeSlider property listeners.
         Allows video time and volume to be manipulated via the respective sliders.
@@ -209,10 +210,13 @@ public class PlayerStageController extends BaseController {
         Properly removes property listeners during onEndOfMedia and onStopped
          */
         player.setOnEndOfMedia(() -> {
+            LOGGER.finest("player.setOnEndOfMedia triggered");
+
             clearSliderListeners(
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            player.currentTimeProperty().removeListener(currentTimeChangeListener);
             player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
@@ -220,10 +224,13 @@ public class PlayerStageController extends BaseController {
         });
 
         player.setOnStopped(() -> {
+            LOGGER.finest("player.setOnStopped triggered");
+
             clearSliderListeners(
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            player.currentTimeProperty().removeListener(currentTimeChangeListener);
             player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
@@ -267,7 +274,7 @@ public class PlayerStageController extends BaseController {
         }
 
         if(videoMediaView.getMediaPlayer() != null){
-            LOGGER.finest("Disposing MediaPlayer");
+            LOGGER.finer("Disposing MediaPlayer");
             videoMediaView.getMediaPlayer().dispose();
         }
 
@@ -309,6 +316,7 @@ public class PlayerStageController extends BaseController {
         Status status = player.getStatus();
 
         if(status == Status.UNKNOWN){
+            LOGGER.warning("Attempted to pause/play video while player is still initializing. Ignoring.");
             return;
         }
 
@@ -348,6 +356,10 @@ public class PlayerStageController extends BaseController {
             LOGGER.finer("Stopping playback");
             player.stop();
         }
+        else if(status == Status.UNKNOWN){
+            LOGGER.warning("Attempted to stop while player is still initializing. Will run stop() after player is done initializing");
+            player.stop();
+        }
     }
 
     @FXML
@@ -378,14 +390,12 @@ public class PlayerStageController extends BaseController {
         switch (rendererState){
             case NOMEDIAPRESENT:
                 if(player != null){
-                    LOGGER.finer("Stopping playback");
-                    player.stop();
+                    onStop();
                 }
                 break;
             case STOPPED:
                 if(player != null){
-                    LOGGER.finer("Stopping playback");
-                    player.stop();
+                    onStop();
                 }
                 break;
             case PLAYING:
@@ -457,7 +467,7 @@ public class PlayerStageController extends BaseController {
             double bottomBarHeight = bottomBarVBox.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
 
-            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 2.0));
+            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 1.65));
             // I don't understand why multiplying by 2 works but it works. There's still a top/bottom black bar but I don't feel like fidgeting with the math /shrug
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
 

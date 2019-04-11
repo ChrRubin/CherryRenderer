@@ -39,7 +39,7 @@ public class TransportHandler {
             return;
         }
 
-        LOGGER.finer("Updating position info");
+        LOGGER.finest("Updating position info");
         LOGGER.finest("RelTime/AbsTime: " + CherryUtil.durationToString(currentTime));
         LOGGER.finest("CurrentTrackDuration: " + CherryUtil.durationToString(totalTime));
 

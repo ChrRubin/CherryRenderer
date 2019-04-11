@@ -36,9 +36,9 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
 
-        LOGGER.fine("Setting transport URI...");
-        LOGGER.finer("URI: " + uri.toString());
-        LOGGER.finer("Metadata: " + metaData);
+        LOGGER.finer("Setting transport URI...");
+        LOGGER.finest("URI: " + uri.toString());
+        LOGGER.finest("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -50,7 +50,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     }
 
     public Class<? extends AbstractState> stop() {
-        LOGGER.fine("Stop invoked");
+        LOGGER.finer("Stop invoked");
         return RendererStopped.class;
     }
 }

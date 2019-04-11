@@ -35,9 +35,9 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-        LOGGER.fine("Setting transport URI...");
-        LOGGER.finer("URI: " + uri.toString());
-        LOGGER.finer("Metadata: " + metaData);
+        LOGGER.finer("Setting transport URI...");
+        LOGGER.finest("URI: " + uri.toString());
+        LOGGER.finest("Metadata: " + metaData);
 
         rendererHandler.setUri(uri);
         rendererHandler.setMetadata(metaData);
@@ -50,7 +50,7 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> stop() {
-        LOGGER.fine("Stop invoked");
+        LOGGER.finer("Stop invoked");
         // FIXME: The immediate transition from current to desired state not supported. java.lang.reflect.InvocationTargetException
         // TODO: Now it actually works without me trying to fix it???? Keep this in mind in case it happens again
         // FIXME: Yup it's happening again
@@ -59,7 +59,7 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> play(String speed) {
-        LOGGER.fine("Play invoked");
+        LOGGER.finer("Play invoked");
         // TODO: Sometimes program goes into a Stop.SetURI - Stop.Play - Play.Stop - Stop.SetURI... cycle.
         //  Not sure if it's the control point or program, further investigation required
         return RendererPlaying.class;
@@ -67,19 +67,19 @@ public class RendererStopped extends Stopped {
 
     @Override
     public Class<? extends AbstractState> next() {
-        LOGGER.fine("Next invoked");
+        LOGGER.finer("Next invoked");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> previous() {
-        LOGGER.fine("Previous invoked");
+        LOGGER.finer("Previous invoked");
         return RendererStopped.class;
     }
 
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
-        LOGGER.fine("Seek invoked");
+        LOGGER.finer("Seek invoked");
         return RendererStopped.class;
     }
 }
