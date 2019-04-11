@@ -13,7 +13,7 @@ public class CherryUtil {
             intSeconds -= (hours * 60 * 60);
         }
         int minutes = intSeconds / 60;
-        int seconds = intSeconds - (hours * 60 * 60) - (minutes * 60);
+        int seconds = intSeconds - (minutes * 60);
 
         return String.format("%d:%02d:%02d", hours, minutes, seconds);
     }
