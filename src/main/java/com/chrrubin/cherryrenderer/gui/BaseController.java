@@ -1,5 +1,5 @@
 package com.chrrubin.cherryrenderer.gui;
 
-public abstract class BaseController {
-    abstract BaseStage getStage();
+public interface BaseController {
+    BaseStage getStage();
 }

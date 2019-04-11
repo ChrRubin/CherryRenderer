@@ -12,8 +12,8 @@ import java.io.IOException;
 public class BaseStage extends Stage {
     private String title;
     private String fxml;
-    private double minWidth = 200;
-    private double minHeight = 200;
+    private double minWidth;
+    private double minHeight;
     private boolean modal = false;
     private Window parent = null;
     private BaseController controller;
@@ -28,10 +28,11 @@ public class BaseStage extends Stage {
         this.minHeight = minHeight;
         this.minWidth = minWidth;
     }
-    public BaseStage(String title, String fxml, boolean modal){
+    public BaseStage(String title, String fxml, boolean modal, Window parent){
         this.title = title;
         this.fxml = fxml;
         this.modal = true;
+        this.parent = parent;
     }
 
     public void prepareStage() throws IOException {
@@ -41,14 +42,15 @@ public class BaseStage extends Stage {
 
         this.setTitle(title);
         this.setScene(new Scene(root));
-        this.setMinWidth(minWidth);
-        this.setMinHeight(minHeight);
 
         if(modal){
             this.initModality(Modality.APPLICATION_MODAL);
             this.initOwner(parent);
+            this.setResizable(false);
         }
         else{
+            this.setMinWidth(minWidth);
+            this.setMinHeight(minHeight);
             this.setOnCloseRequest(event -> System.exit(0));
         }
     }

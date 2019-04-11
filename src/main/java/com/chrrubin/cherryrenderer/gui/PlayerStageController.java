@@ -27,11 +27,12 @@ import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PlayerStageController extends BaseController {
+public class PlayerStageController implements BaseController {
     @FXML
     private StackPane rootStackPane;
     @FXML
@@ -43,7 +44,7 @@ public class PlayerStageController extends BaseController {
     @FXML
     private Label totalTimeLabel;
     @FXML
-    private Button playButton; // TODO: Set constant width so it doesn't auto adjust when text changes
+    private Button playButton;
     @FXML
     private Button rewindButton;
     @FXML
@@ -377,6 +378,29 @@ public class PlayerStageController extends BaseController {
         }
 
         updateCurrentTime();
+    }
+
+    @FXML
+    private void onMenuPreferences(){
+        PreferencesStage preferencesStage = new PreferencesStage(getStage());
+        try{
+            preferencesStage.prepareStage();
+            preferencesStage.show();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
+
+    }
+
+    @FXML
+    private void onMenuAbout(){
+
+    }
+
+    @FXML
+    private void onMenuExit(){
+        System.exit(0);
     }
 
     /**
