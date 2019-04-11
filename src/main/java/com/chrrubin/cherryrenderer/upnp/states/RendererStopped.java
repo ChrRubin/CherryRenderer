@@ -23,14 +23,14 @@ public class RendererStopped extends Stopped {
     @Override
     public void onEntry() {
         super.onEntry();
-        LOGGER.info("Entered Stopped state");
+        LOGGER.fine("Entered Stopped state");
 
         transportHandler.setTransport(getTransport());
         rendererHandler.setRendererState(RendererState.STOPPED);
     }
 
     public void onExit(){
-        LOGGER.info("Exited Stopped state");
+        LOGGER.fine("Exited Stopped state");
     }
 
     @Override

@@ -24,7 +24,7 @@ public class RendererPlaying extends Playing {
     @Override
     public void onEntry() {
         super.onEntry();
-        LOGGER.info("Entered Playing state");
+        LOGGER.fine("Entered Playing state");
 
         transportHandler.setTransport(getTransport());
 
@@ -47,7 +47,7 @@ public class RendererPlaying extends Playing {
     }
 
     public void onExit(){
-        LOGGER.info("Exited Playing state");
+        LOGGER.fine("Exited Playing state");
     }
 
     @Override

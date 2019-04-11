@@ -1,6 +1,5 @@
 package com.chrrubin.cherryrenderer.upnp;
 
-import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.upnp.states.RendererNoMediaPresent;
 import com.chrrubin.cherryrenderer.upnp.states.RendererStateMachine;
 import org.fourthline.cling.UpnpService;
@@ -63,8 +62,6 @@ public class RendererService {
                         )
         );
 
-        Icon icon = new Icon("image/png", 64, 64, 32, CherryRenderer.class.getClassLoader().getResource("icon.png"));
-
         LocalService<AVTransportService> service = new AnnotationLocalServiceBinder().read(AVTransportService.class);
 
         LastChangeParser lastChangeParser = new AVTransportLastChangeParser();
@@ -87,7 +84,7 @@ public class RendererService {
             manager.fireLastChange();
         },0,500, TimeUnit.MILLISECONDS);
 
-        return new LocalDevice(identity, type, details, icon, service);
+        return new LocalDevice(identity, type, details, service);
     }
 
     public void startService() {

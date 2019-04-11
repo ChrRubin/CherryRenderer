@@ -15,7 +15,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Region;
@@ -29,6 +28,7 @@ import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
 import java.net.URI;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerStageController extends BaseController {
@@ -43,7 +43,7 @@ public class PlayerStageController extends BaseController {
     @FXML
     private Label totalTimeLabel;
     @FXML
-    private Button playButton;
+    private Button playButton; // TODO: Set constant width so it doesn't auto adjust when text changes
     @FXML
     private Button rewindButton;
     @FXML
@@ -54,8 +54,6 @@ public class PlayerStageController extends BaseController {
     private Slider volumeSlider;
     @FXML
     private VBox bottomBarVBox;
-    @FXML
-    private ProgressIndicator videoProgressIndicator;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -82,6 +80,8 @@ public class PlayerStageController extends BaseController {
      * Creates required property listeners and event handlers that are used during video playback.
      */
     private void prepareMediaPlayer(){
+        LOGGER.finer("Preparing Media Player for playback");
+
         prepareFullScreen(false);
 
         MediaPlayer player = videoMediaView.getMediaPlayer();
@@ -117,17 +117,30 @@ public class PlayerStageController extends BaseController {
                     player.getTotalDuration(),
                     new Duration(0)
             );
+            transportHandler.sendLastChangeMediaDuration(player.getTotalDuration());
             startOfMedia();
         });
 
-        // TODO: Implement buffer handling
-        //  Soooooo this doesn't work for some reason???????
+        // TODO: Handle player errors better (media not supported, player halted etc)
+        player.setOnError(() ->
+                LOGGER.log(Level.SEVERE, player.getError().toString(), player.getError()));
+
+        player.setOnHalted(() -> {
+            LOGGER.warning("Media player reached HALTED status. Disposing media player...");
+            endOfMedia();
+        });
+
+        // TODO: Implement buffering handling
+        //  For some reason Status.STALLED can't be used to determine whether player is buffering...
+        player.setOnStalled(() ->
+                LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering."));
+
         ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
             if(newStatus == Status.STALLED){
-                videoProgressIndicator.setOpacity(1);
+                LOGGER.fine("(Caught by listener) Media player in STALLED status. Video is currently buffering.");
             }
             else if(oldStatus == Status.STALLED){
-                videoProgressIndicator.setOpacity(0);
+                LOGGER.finer("Media player exited STALLED status, going into " + newStatus.name() + " status.");
             }
         };
         player.statusProperty().addListener(playerStatusListener);
@@ -200,10 +213,10 @@ public class PlayerStageController extends BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
-            player.statusProperty().removeListener(playerStatusListener);
         });
 
         player.setOnStopped(() -> {
@@ -211,10 +224,10 @@ public class PlayerStageController extends BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
-            player.statusProperty().removeListener(playerStatusListener);
         });
 
         eventService = new ScheduledService<Void>(){
@@ -224,7 +237,7 @@ public class PlayerStageController extends BaseController {
                     @Override
                     protected Void call() throws Exception {
                         if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
-                            updateCurrentTime();
+                            updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
                         }
                         return null;
                     }
@@ -247,11 +260,14 @@ public class PlayerStageController extends BaseController {
     }
 
     private void endOfMedia(){
+        LOGGER.finer("Running end of media function");
+
         if(eventService != null){
             eventService.cancel();
         }
 
         if(videoMediaView.getMediaPlayer() != null){
+            LOGGER.finest("Disposing MediaPlayer");
             videoMediaView.getMediaPlayer().dispose();
         }
 
@@ -292,7 +308,7 @@ public class PlayerStageController extends BaseController {
         MediaPlayer player = videoMediaView.getMediaPlayer();
         Status status = player.getStatus();
 
-        if(status == Status.UNKNOWN || status == Status.HALTED){
+        if(status == Status.UNKNOWN){
             return;
         }
 
@@ -328,7 +344,8 @@ public class PlayerStageController extends BaseController {
         MediaPlayer player = videoMediaView.getMediaPlayer();
         Status status = player.getStatus();
 
-        if(status == Status.PAUSED || status == Status.PLAYING || status == Status.HALTED){
+        if(status == Status.PAUSED || status == Status.PLAYING || status == Status.STALLED){
+            LOGGER.finer("Stopping playback");
             player.stop();
         }
     }
@@ -339,9 +356,11 @@ public class PlayerStageController extends BaseController {
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.add(Duration.seconds(10)).lessThanOrEqualTo(player.getTotalDuration())){
+            LOGGER.finer("Seeking 10 seconds forward");
             player.seek(currentTime.add(Duration.seconds(10)));
         }
         else{
+            LOGGER.finer("Seeking to end of media");
             player.seek(player.getTotalDuration());
         }
 
@@ -353,21 +372,25 @@ public class PlayerStageController extends BaseController {
      * @param rendererState Current RendererState of MediaRenderer
      */
     private void onRendererStateChanged(RendererState rendererState){
+        LOGGER.fine("Detected RendererState change to " + rendererState.name());
         MediaPlayer player = videoMediaView.getMediaPlayer();
 
         switch (rendererState){
             case NOMEDIAPRESENT:
                 if(player != null){
+                    LOGGER.finer("Stopping playback");
                     player.stop();
                 }
                 break;
             case STOPPED:
                 if(player != null){
+                    LOGGER.finer("Stopping playback");
                     player.stop();
                 }
                 break;
             case PLAYING:
-                if(rendererHandler.getUri() != currentUri) {
+                if(!rendererHandler.getUri().equals(currentUri)) {
+                    LOGGER.finer("Creating new player for URI " + rendererHandler.getUri().toString());
                     currentUri = rendererHandler.getUri();
 
                     Media media = new Media(rendererHandler.getUri().toString());
@@ -378,6 +401,7 @@ public class PlayerStageController extends BaseController {
                 }
                 else{
                     if(player != null && player.getStatus() == Status.PAUSED){
+                        LOGGER.finer("Resuming playback");
                         player.play();
                         updateCurrentTime();
                     }
@@ -385,6 +409,7 @@ public class PlayerStageController extends BaseController {
                 break;
             case PAUSED:
                 if(player != null){
+                    LOGGER.finer("Pausing playback");
                     player.pause();
                     updateCurrentTime();
                 }
@@ -403,7 +428,6 @@ public class PlayerStageController extends BaseController {
 
         if(isFullScreen){
             StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
-//            StackPane.setMargin(videoProgressIndicator, new Insets(0, 0, 0, 0));
 
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty());
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
@@ -432,7 +456,6 @@ public class PlayerStageController extends BaseController {
 
             double bottomBarHeight = bottomBarVBox.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
-//            StackPane.setMargin(videoProgressIndicator, new Insets(0,0, bottomBarHeight,0));
 
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 2.0));
             // I don't understand why multiplying by 2 works but it works. There's still a top/bottom black bar but I don't feel like fidgeting with the math /shrug
@@ -447,6 +470,8 @@ public class PlayerStageController extends BaseController {
 
     private void clearSliderListeners(Slider timeSlider, ChangeListener<Boolean> timeChangingListener, ChangeListener<Number> timeChangeListener,
                                       Slider volumeSlider, ChangeListener<Boolean> volumeChangingListener, InvalidationListener volumeInvalidationListener){
+        LOGGER.finest("Clearing media player slider listeners");
+
         timeSlider.valueChangingProperty().removeListener(timeChangingListener);
         timeSlider.valueProperty().removeListener(timeChangeListener);
         volumeSlider.valueChangingProperty().removeListener(volumeChangingListener);
@@ -469,6 +494,17 @@ public class PlayerStageController extends BaseController {
                 rendererHandler.getMetadata(),
                 player.getTotalDuration(),
                 player.getCurrentTime()
+        );
+    }
+
+    private void updateCurrentTime(Duration currentTime, Duration totalTime){
+        rendererHandler.setVideoCurrentTime(currentTime);
+
+        transportHandler.setPositionInfo(
+                rendererHandler.getUri(),
+                rendererHandler.getMetadata(),
+                totalTime,
+                currentTime
         );
     }
 }

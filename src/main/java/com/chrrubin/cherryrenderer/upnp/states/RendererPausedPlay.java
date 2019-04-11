@@ -24,7 +24,7 @@ public class RendererPausedPlay extends PausedPlay {
     @Override
     public void onEntry(){
         super.onEntry();
-        LOGGER.info("Entered PausedPlay state");
+        LOGGER.fine("Entered PausedPlay state");
 
         transportHandler.setTransport(getTransport());
 
@@ -46,7 +46,7 @@ public class RendererPausedPlay extends PausedPlay {
     }
 
     public void onExit(){
-        LOGGER.info("Exited PausedPlay state");
+        LOGGER.fine("Exited PausedPlay state");
     }
 
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {

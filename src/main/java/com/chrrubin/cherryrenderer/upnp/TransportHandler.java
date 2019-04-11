@@ -39,6 +39,10 @@ public class TransportHandler {
             return;
         }
 
+        LOGGER.finer("Updating position info");
+        LOGGER.finest("RelTime/AbsTime: " + CherryUtil.durationToString(currentTime));
+        LOGGER.finest("CurrentTrackDuration: " + CherryUtil.durationToString(totalTime));
+
         transport.setPositionInfo(new PositionInfo(1,
                 CherryUtil.durationToString(totalTime),
                 metadata,
@@ -49,11 +53,19 @@ public class TransportHandler {
                 2147483647
         ));
 
+        // There's no need to update these via LastChange according to AVTransport specs
+//        transport.getLastChange().setEventedValue(
+//                transport.getInstanceId(),
+//                new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(currentTime)),
+//                new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(currentTime)),
+//                new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(totalTime))
+//        );
+    }
+
+    public synchronized void sendLastChangeMediaDuration(Duration currentTime){
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
-                new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(currentTime)),
-                new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(currentTime)),
-                new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(totalTime))
+                new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(currentTime))
         );
     }
 

@@ -22,14 +22,14 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     @Override
     public void onEntry(){
         super.onEntry();
-        LOGGER.info("Entered NoMediaPresent state");
+        LOGGER.fine("Entered NoMediaPresent state");
 
         transportHandler.setTransport(getTransport());
         rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     public void onExit(){
-        LOGGER.info("Exited NoMediaPresent state");
+        LOGGER.fine("Exited NoMediaPresent state");
     }
 
 
