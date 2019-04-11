@@ -8,7 +8,7 @@
    <children>
       <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: black;" StackPane.alignment="CENTER" />
       <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" StackPane.alignment="CENTER" />
-      <MenuBar fx:id="menuBar" maxHeight="-Infinity" StackPane.alignment="TOP_CENTER" useSystemMenuBar="true">
+      <MenuBar fx:id="menuBar" maxHeight="-Infinity" useSystemMenuBar="true" StackPane.alignment="TOP_CENTER">
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>

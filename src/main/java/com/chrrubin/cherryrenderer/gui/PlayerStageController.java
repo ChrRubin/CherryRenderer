@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Region;
@@ -55,6 +56,8 @@ public class PlayerStageController implements BaseController {
     private Slider volumeSlider;
     @FXML
     private VBox bottomBarVBox;
+    @FXML
+    private MenuBar menuBar;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -469,10 +472,12 @@ public class PlayerStageController implements BaseController {
             bottomBarVBox.setMaxWidth(Region.USE_PREF_SIZE);
             bottomBarVBox.setOpacity(0);
             getStage().getScene().setCursor(Cursor.NONE);
+            menuBar.setOpacity(0);
 
             mouseIdle.setOnFinished(event -> {
                 getStage().getScene().setCursor(Cursor.NONE);
                 bottomBarVBox.setOpacity(0);
+                menuBar.setOpacity(0);
             });
 
             videoMediaView.setOnMouseMoved(event -> {
@@ -482,23 +487,31 @@ public class PlayerStageController implements BaseController {
             });
 
             bottomBarVBox.setOnMouseEntered(event -> mouseIdle.pause());
+
+            menuBar.setOnMouseEntered(event -> {
+                mouseIdle.pause();
+                menuBar.setOpacity(1);
+            });
         }
         else {
             mouseIdle.setOnFinished(null);
             videoMediaView.setOnMouseMoved(null);
             bottomBarVBox.setOnMouseEntered(null);
+            menuBar.setOnMouseEntered(null);
 
             double bottomBarHeight = bottomBarVBox.getHeight();
-            StackPane.setMargin(videoMediaView, new Insets(0,0, bottomBarHeight,0));
+            double menuBarHeight = menuBar.getHeight();
+            StackPane.setMargin(videoMediaView, new Insets(menuBarHeight,0, bottomBarHeight,0));
 
-            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract(bottomBarHeight * 1.65));
-            // I don't understand why multiplying by 2 works but it works. There's still a top/bottom black bar but I don't feel like fidgeting with the math /shrug
-            videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+            // TBF I don't understand how this math works /shrug
+            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract((bottomBarHeight + menuBarHeight) * 1.45));
+            videoMediaView.fitWidthProperty().bind(getStage().widthProperty().subtract(10));
 
             bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
 
             getStage().getScene().setCursor(Cursor.DEFAULT);
             bottomBarVBox.setOpacity(1);
+            menuBar.setOpacity(1);
         }
     }
 
