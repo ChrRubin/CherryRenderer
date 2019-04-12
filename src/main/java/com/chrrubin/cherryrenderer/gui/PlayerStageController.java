@@ -8,10 +8,14 @@ import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.animation.PauseTransition;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
@@ -19,6 +23,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -60,6 +65,10 @@ public class PlayerStageController implements BaseController {
     private VBox bottomBarVBox;
     @FXML
     private MenuBar menuBar;
+    @FXML
+    private VBox tooltipVbox;
+    @FXML
+    private Label tooltipLabel;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -218,6 +227,46 @@ public class PlayerStageController implements BaseController {
         getStage().fullScreenProperty().addListener(isFullScreenListener);
 
         /*
+        Shows tooltip when dragging the thumb of timeSlider
+         */
+        tooltipVbox.setManaged(false);
+        final ObjectProperty<Duration> currentTimeProperty = new SimpleObjectProperty<>();
+        EventHandler<MouseEvent> timeMouseDraggedEvent = event -> {
+            if(currentTimeProperty.get() == null){
+                currentTimeProperty.set(player.getCurrentTime());
+            }
+
+            double sliderValue = timeSlider.getValue();
+            Duration sliderDragTime = player.getTotalDuration().multiply(sliderValue / 100.0);
+            Duration timeDifference = sliderDragTime.subtract(currentTimeProperty.get());
+            String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
+                    "[" + CherryUtil.durationToString(timeDifference) + "]";
+
+            tooltipLabel.setText(output);
+
+            tooltipVbox.setVisible(true);
+
+            Bounds timeSliderBounds = timeSlider.localToScene(timeSlider.getBoundsInLocal());
+            if(event.getSceneX() < timeSliderBounds.getMinX()){
+                tooltipVbox.setLayoutX(timeSliderBounds.getMinX() - (tooltipVbox.getWidth() / 2));
+            }
+            else if(event.getSceneX() > timeSliderBounds.getMaxX()){
+                tooltipVbox.setLayoutX(timeSliderBounds.getMaxX() - (tooltipVbox.getWidth() / 2));
+            }
+            else{
+                tooltipVbox.setLayoutX(event.getSceneX() - (tooltipVbox.getWidth() / 2));
+            }
+            tooltipVbox.setLayoutY(timeSliderBounds.getMinY() - 40);
+        };
+        timeSlider.setOnMouseDragged(timeMouseDraggedEvent);
+
+        EventHandler<MouseEvent> timeMouseReleaseEvent = event -> {
+            tooltipVbox.setVisible(false);
+            currentTimeProperty.set(null);
+        };
+        timeSlider.setOnMouseReleased(timeMouseReleaseEvent);
+
+        /*
         Properly removes property listeners during onEndOfMedia and onStopped
          */
         player.setOnEndOfMedia(() -> {
@@ -227,6 +276,8 @@ public class PlayerStageController implements BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            timeSlider.setOnMouseDragged(null);
+            timeSlider.setOnMouseReleased(null);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
@@ -239,6 +290,8 @@ public class PlayerStageController implements BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
+            timeSlider.setOnMouseDragged(null);
+            timeSlider.setOnMouseReleased(null);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
@@ -286,8 +339,8 @@ public class PlayerStageController implements BaseController {
         }
 
         playButton.setText(">");
-        currentTimeLabel.setText("--:--");
-        totalTimeLabel.setText("--:--");
+        currentTimeLabel.setText("--:--:--");
+        totalTimeLabel.setText("--:--:--");
         timeSlider.setValue(0);
         volumeSlider.setValue(100);
 

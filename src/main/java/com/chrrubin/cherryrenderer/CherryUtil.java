@@ -9,13 +9,20 @@ public class CherryUtil {
     public static String durationToString(Duration duration){
         int intSeconds = (int)Math.floor(duration.toSeconds());
         int hours = intSeconds / 60 / 60;
-        if(hours > 0){
+
+        if(hours != 0){
             intSeconds -= (hours * 60 * 60);
         }
+
         int minutes = intSeconds / 60;
         int seconds = intSeconds - (minutes * 60);
 
-        return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        if(duration.greaterThanOrEqualTo(Duration.ZERO)){
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        }
+        else{
+            return String.format("-%d:%02d:%02d",-hours, -minutes, -seconds);
+        }
     }
 
     public static Duration stringToDuration(String strTime){
