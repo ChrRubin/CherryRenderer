@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
+import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 public class PlayerStageController implements BaseController {
     @FXML
@@ -73,7 +75,11 @@ public class PlayerStageController implements BaseController {
     }
 
     public void initialize(){
-        RendererService handler = new RendererService("CherryRenderer");
+        Preferences preferences = Preferences.userNodeForPackage(CherryRenderer.class);
+
+        String friendlyName = preferences.get("friendlyName", "CherryRenderer");
+        LOGGER.info("Current device friendly name is " + friendlyName);
+        RendererService handler = new RendererService(friendlyName);
         handler.startService();
 
         rendererHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
@@ -132,24 +138,25 @@ public class PlayerStageController implements BaseController {
         player.setOnStalled(() ->
                 LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering."));
 
-        ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
+        player.statusProperty().addListener((observable, oldStatus, newStatus) -> {
+            if(oldStatus == null){
+                return;
+            }
+
+            LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
+
             if(newStatus == Status.STALLED){
                 LOGGER.fine("(Caught by listener) Media player in STALLED status. Video is currently buffering.");
             }
-            else if(oldStatus == Status.STALLED){
-                LOGGER.finer("Media player exited STALLED status, going into " + newStatus.name() + " status.");
-            }
-        };
-        player.statusProperty().addListener(playerStatusListener);
+        });
 
         // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
-        ChangeListener<Duration> currentTimeChangeListener = (observable, oldValue, newValue) -> {
+        player.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
             currentTimeLabel.setText(CherryUtil.durationToString(newValue));
             if(!timeSlider.isValueChanging()){
                 timeSlider.setValue(newValue.divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
             }
-        };
-        player.currentTimeProperty().addListener(currentTimeChangeListener);
+        });
 
         /*
         timeSlider and volumeSlider property listeners.
@@ -220,8 +227,6 @@ public class PlayerStageController implements BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
-            player.currentTimeProperty().removeListener(currentTimeChangeListener);
-            player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);
@@ -234,8 +239,6 @@ public class PlayerStageController implements BaseController {
                     timeSlider, timeChangingListener, timeChangeListener,
                     volumeSlider, volumeChangingListener, volumeInvalidationListener
             );
-            player.currentTimeProperty().removeListener(currentTimeChangeListener);
-            player.statusProperty().removeListener(playerStatusListener);
 
             endOfMedia();
             getStage().fullScreenProperty().removeListener(isFullScreenListener);

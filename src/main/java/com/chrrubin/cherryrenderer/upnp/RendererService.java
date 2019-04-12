@@ -96,6 +96,7 @@ public class RendererService {
                 Runtime.getRuntime().addShutdownHook(new Thread(() ->{
                     // TODO: The service doesn't shutdown properly? It's not showing signs of it in the output/log
                     //  Pretty sure it doesn't, since the control point doesn't get notified
+                    LOGGER.info("Running shutdown hooks");
                     upnpService.shutdown();
                     lastChangeExecutor.shutdown();
                 }));
