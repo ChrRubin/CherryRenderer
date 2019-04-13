@@ -455,6 +455,11 @@ public class PlayerStageController implements BaseController {
     @FXML
     private void onPlay(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null){
+            LOGGER.warning("MediaPlayer is null when tried to play/pause.");
+            return;
+        }
+
         Status status = player.getStatus();
 
         if(status == Status.UNKNOWN){
@@ -477,6 +482,11 @@ public class PlayerStageController implements BaseController {
     @FXML
     private void onRewind(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null){
+            LOGGER.warning("MediaPlayer is null when tried to rewind.");
+            return;
+        }
+
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.greaterThanOrEqualTo(Duration.seconds(10))){
@@ -492,6 +502,11 @@ public class PlayerStageController implements BaseController {
     @FXML
     private void onStop(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null){
+            LOGGER.warning("MediaPlayer is null when tried to stop.");
+            return;
+        }
+
         Status status = player.getStatus();
 
         if(status == Status.PAUSED || status == Status.PLAYING || status == Status.STALLED){
@@ -499,7 +514,7 @@ public class PlayerStageController implements BaseController {
             player.stop();
         }
         else if(status == Status.UNKNOWN){
-            LOGGER.warning("Attempted to stop while player is still initializing. Will run stop() after player is done initializing");
+            LOGGER.warning("Attempted to stop while player is still initializing. Will stop after finish initializing");
             player.stop();
         }
         else{
@@ -511,6 +526,11 @@ public class PlayerStageController implements BaseController {
     @FXML
     private void onForward(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null){
+            LOGGER.warning("MediaPlayer is null when tried to fast forward.");
+            return;
+        }
+
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.add(Duration.seconds(10)).lessThanOrEqualTo(player.getTotalDuration())){
@@ -569,6 +589,11 @@ public class PlayerStageController implements BaseController {
                 break;
             case PLAYING:
                 if(!rendererHandler.getUri().equals(currentUri)) {
+                    if(player != null && player.getStatus() != Status.DISPOSED){
+                        LOGGER.warning("Tried to create new player while existing player still running. Stopping current player.");
+                        onStop();
+                    }
+
                     LOGGER.finer("Creating new player for URI " + rendererHandler.getUri().toString());
                     currentUri = rendererHandler.getUri();
 

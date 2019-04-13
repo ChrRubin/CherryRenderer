@@ -52,14 +52,6 @@ public class TransportHandler {
                 2147483647,
                 2147483647
         ));
-
-        // There's no need to update these via LastChange according to AVTransport specs
-//        transport.getLastChange().setEventedValue(
-//                transport.getInstanceId(),
-//                new AVTransportVariable.RelativeTimePosition(CherryUtil.durationToString(currentTime)),
-//                new AVTransportVariable.AbsoluteTimePosition(CherryUtil.durationToString(currentTime)),
-//                new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(totalTime))
-//        );
     }
 
     public synchronized void sendLastChangeMediaDuration(Duration currentTime){
