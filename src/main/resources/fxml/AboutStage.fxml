@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <GridPane fx:id="rootGridPane" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.AboutStageController">
-
+   <rowConstraints>
+      <RowConstraints />
+   </rowConstraints>
+   <children>
+      <Label text="This is just a scaffolding.&#10;&#10;(BTW thx for testing my buggy shit guys)" textAlignment="CENTER" />
+   </children>
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+   </padding>
 </GridPane>

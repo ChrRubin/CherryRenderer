@@ -20,6 +20,8 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
@@ -59,23 +61,23 @@ public class PlayerStageController implements BaseController {
     @FXML
     private Label totalTimeLabel;
     @FXML
-    private Button playButton;
-    @FXML
-    private Button rewindButton;
-    @FXML
-    private Button stopButton;
-    @FXML
-    private Button forwardButton;
-    @FXML
     private Slider volumeSlider;
     @FXML
     private VBox bottomBarVBox;
     @FXML
     private MenuBar menuBar;
     @FXML
-    private VBox tooltipVBox;
+    private VBox timeTooltipVBox;
     @FXML
-    private Label tooltipLabel;
+    private Label timeTooltipLabel;
+    @FXML
+    private ImageView playPauseImageView;
+    @FXML
+    private ImageView volumeImageView;
+    @FXML
+    private VBox volumeTooltipVBox;
+    @FXML
+    private Label volumeTooltipLabel;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -215,21 +217,21 @@ public class PlayerStageController implements BaseController {
         String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
                 "[" + CherryUtil.durationToString(timeDifference) + "]";
 
-        tooltipLabel.setText(output);
+        timeTooltipLabel.setText(output);
 
-        tooltipVBox.setVisible(true);
+        timeTooltipVBox.setVisible(true);
 
         Bounds timeSliderBounds = timeSlider.localToScene(timeSlider.getBoundsInLocal());
         if(event.getSceneX() < timeSliderBounds.getMinX()){
-            tooltipVBox.setLayoutX(timeSliderBounds.getMinX() - (tooltipVBox.getWidth() / 2));
+            timeTooltipVBox.setLayoutX(timeSliderBounds.getMinX() - (timeTooltipVBox.getWidth() / 2));
         }
         else if(event.getSceneX() > timeSliderBounds.getMaxX()){
-            tooltipVBox.setLayoutX(timeSliderBounds.getMaxX() - (tooltipVBox.getWidth() / 2));
+            timeTooltipVBox.setLayoutX(timeSliderBounds.getMaxX() - (timeTooltipVBox.getWidth() / 2));
         }
         else{
-            tooltipVBox.setLayoutX(event.getSceneX() - (tooltipVBox.getWidth() / 2));
+            timeTooltipVBox.setLayoutX(event.getSceneX() - (timeTooltipVBox.getWidth() / 2));
         }
-        tooltipVBox.setLayoutY(timeSliderBounds.getMinY() - 40);
+        timeTooltipVBox.setLayoutY(timeSliderBounds.getMinY() - 40);
     };
 
     /**
@@ -237,8 +239,40 @@ public class PlayerStageController implements BaseController {
      * Hides the tooltip when user releases mouse click.
      */
     private EventHandler<MouseEvent> timeMouseReleasedEvent = event -> {
-        tooltipVBox.setVisible(false);
+        timeTooltipVBox.setVisible(false);
         currentTimeCalcProperty.set(null);
+    };
+
+    /**
+     * EventHandler for onMouseDragged of volumeSlider
+     * Shows a tooltip containing seek info when user drags on volumeSlider.
+     */
+    private EventHandler<MouseEvent> volumeMouseDraggedEvent = event -> {
+        int sliderValue = (int)Math.round(volumeSlider.getValue());
+
+        volumeTooltipLabel.setText(sliderValue + "%");
+
+        volumeTooltipVBox.setVisible(true);
+
+        Bounds volumeSliderBounds = volumeSlider.localToScene(volumeSlider.getBoundsInLocal());
+        if(event.getSceneX() < volumeSliderBounds.getMinX()){
+            volumeTooltipVBox.setLayoutX(volumeSliderBounds.getMinX() - (volumeTooltipVBox.getWidth() / 2));
+        }
+        else if(event.getSceneX() > volumeSliderBounds.getMaxX()){
+            volumeTooltipVBox.setLayoutX(volumeSliderBounds.getMaxX() - (volumeTooltipVBox.getWidth() / 2));
+        }
+        else{
+            volumeTooltipVBox.setLayoutX(event.getSceneX() - (volumeTooltipVBox.getWidth() / 2));
+        }
+        volumeTooltipVBox.setLayoutY(volumeSliderBounds.getMinY() - 25);
+    };
+
+    /**
+     * EventHandler for onMouseReleased of volumeSlider
+     * Hides the tooltip when user releases mouse click.
+     */
+    private EventHandler<MouseEvent> volumeMouseReleasedEvent = event -> {
+        volumeTooltipVBox.setVisible(false);
     };
     /*
     End of property listeners and event handlers
@@ -274,11 +308,11 @@ public class PlayerStageController implements BaseController {
         player.setAutoPlay(true);
 
         player.setOnPlaying(() -> {
-            playButton.setText("||");
+            playPauseImageView.setImage(new Image("icons/pause.png"));
         });
 
         player.setOnPaused(() -> {
-            playButton.setText(">");
+            playPauseImageView.setImage(new Image("icons/play.png"));
         });
 
         player.setOnReady(() -> {
@@ -300,7 +334,7 @@ public class PlayerStageController implements BaseController {
             transportHandler.sendLastChangeMediaDuration(totalDuration);
 
             String title = getTitle(rendererHandler.getMetadata());
-            if(title != null){
+            if(title != null && !title.equals("")){
                 LOGGER.finer("Video title is " + title);
 
                 getStage().setTitle("CherryRenderer - " + title);
@@ -309,12 +343,8 @@ public class PlayerStageController implements BaseController {
                 LOGGER.finer("Video title was not detected.");
             }
 
-            timeSlider.setDisable(false);
-            playButton.setDisable(false);
-            rewindButton.setDisable(false);
-            stopButton.setDisable(false);
-            forwardButton.setDisable(false);
-            volumeSlider.setDisable(false);
+            bottomBarVBox.setDisable(false);
+            volumeImageView.setOpacity(1);
         });
 
         // TODO: Handle player errors better (media not supported, player halted etc)
@@ -366,11 +396,20 @@ public class PlayerStageController implements BaseController {
         /*
         Shows tooltip when dragging the thumb of timeSlider
          */
-        tooltipVBox.setManaged(false);
+        timeTooltipVBox.setManaged(false);
 
         timeSlider.setOnMouseDragged(timeMouseDraggedEvent);
 
         timeSlider.setOnMouseReleased(timeMouseReleasedEvent);
+
+        /*
+        Shows tooltip when dragging the thumb of volumeSlider
+         */
+        volumeTooltipVBox.setManaged(false);
+
+        volumeSlider.setOnMouseDragged(volumeMouseDraggedEvent);
+
+        volumeSlider.setOnMouseReleased(volumeMouseReleasedEvent);
 
         player.setOnEndOfMedia(() -> {
             LOGGER.finest("player.setOnEndOfMedia triggered");
@@ -416,6 +455,8 @@ public class PlayerStageController implements BaseController {
         volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
         timeSlider.setOnMouseDragged(null);
         timeSlider.setOnMouseReleased(null);
+        volumeSlider.setOnMouseDragged(null);
+        volumeSlider.setOnMouseReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
 
         if(updateTimeService != null){
@@ -428,18 +469,13 @@ public class PlayerStageController implements BaseController {
             videoMediaView.getMediaPlayer().dispose();
         }
 
-        playButton.setText(">");
         currentTimeLabel.setText("--:--:--");
         totalTimeLabel.setText("--:--:--");
         timeSlider.setValue(0);
         volumeSlider.setValue(100);
 
-        timeSlider.setDisable(true);
-        playButton.setDisable(true);
-        rewindButton.setDisable(true);
-        stopButton.setDisable(true);
-        forwardButton.setDisable(true);
-        volumeSlider.setDisable(true);
+        bottomBarVBox.setDisable(true);
+        volumeImageView.setOpacity(0.5);
 
         currentUri = null;
 
@@ -490,9 +526,11 @@ public class PlayerStageController implements BaseController {
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.greaterThanOrEqualTo(Duration.seconds(10))){
+            LOGGER.finest("Rewinding 10 seconds backwards");
             player.seek(currentTime.subtract(Duration.seconds(10)));
         }
         else{
+            LOGGER.finest("Rewinding to start of media");
             player.seek(Duration.ZERO);
         }
 
@@ -534,11 +572,11 @@ public class PlayerStageController implements BaseController {
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.add(Duration.seconds(10)).lessThanOrEqualTo(player.getTotalDuration())){
-            LOGGER.finer("Seeking 10 seconds forward");
+            LOGGER.finest("Seeking 10 seconds forward");
             player.seek(currentTime.add(Duration.seconds(10)));
         }
         else{
-            LOGGER.finer("Seeking to end of media");
+            LOGGER.finest("Seeking to end of media");
             player.seek(player.getTotalDuration());
         }
 
@@ -560,6 +598,14 @@ public class PlayerStageController implements BaseController {
 
     @FXML
     private void onMenuAbout(){
+        AboutStage aboutStage = new AboutStage(getStage());
+        try{
+            aboutStage.prepareStage();
+            aboutStage.show();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
 
     }
 

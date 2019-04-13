@@ -101,8 +101,6 @@ public class TransportHandler {
      * @param transportState Current TransportState of the MediaRenderer.
      */
     public synchronized void setTransportInfo(TransportState transportState){
-        // FIXME: Control point doesn't get notified after the first video???
-        //  As with a lot of other uPnP stuff I'm not sure if it's cling or me or the control point causing this
         if(transport == null){
             return;
         }
@@ -141,6 +139,7 @@ public class TransportHandler {
     }
 
     public synchronized void clearInfo(){
+        LOGGER.fine("Clearing MediaInfo and PositionInfo");
         transport.setMediaInfo(new MediaInfo());
         transport.setPositionInfo(new PositionInfo());
     }
