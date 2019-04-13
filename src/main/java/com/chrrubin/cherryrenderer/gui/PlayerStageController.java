@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
+import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.RendererHandler;
@@ -86,7 +87,7 @@ public class PlayerStageController implements BaseController {
     public void initialize(){
         Preferences preferences = Preferences.userNodeForPackage(CherryRenderer.class);
 
-        String friendlyName = preferences.get("friendlyName", "CherryRenderer");
+        String friendlyName = preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT);
         LOGGER.info("Current device friendly name is " + friendlyName);
         RendererService handler = new RendererService(friendlyName);
         handler.startService();

@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
+import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryRenderer;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -32,14 +33,26 @@ public class PreferencesStageController implements BaseController {
     }
 
     public void prepareControls(){
-        nameTextField.setText(preferences.get("friendlyName", "CherryRenderer"));
+        nameTextField.setText(preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT));
 
         logLevelCombobox.getItems().add("INFO");
         logLevelCombobox.getItems().add("DEBUG");
         logLevelCombobox.getItems().add("DEBUG+");
         logLevelCombobox.getItems().add("ALL");
 
-        logLevelCombobox.setValue("DEBUG");
+        logLevelCombobox.setValue(preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT));
+    }
+
+    @FXML
+    private void onLogLevelSelect(){
+        switch(logLevelCombobox.getValue()){
+            case "DEBUG+":
+                // TODO: Show warning
+                break;
+            case "ALL":
+                // TODO: Show VERY CLEAR WARNINGS that this will completely fill up log files. LAST RESORT ONLY.
+                break;
+        }
     }
 
     @FXML
@@ -70,8 +83,10 @@ public class PreferencesStageController implements BaseController {
         alert.showAndWait();
 
         if(alert.getResult() == ButtonType.YES){
-            preferences.put("friendlyName", "CherryRenderer");
-            preferences.put("logLevel", "DEBUG");
+            preferences.put(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT);
+            preferences.put(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT);
+
+            LOGGER.fine("User preferences have been reset to their default values");
 
             Alert alertOk = new Alert(Alert.AlertType.INFORMATION, "Preferences have been reset to their default values.", ButtonType.OK);
             alertOk.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
@@ -92,8 +107,12 @@ public class PreferencesStageController implements BaseController {
         String logLevel = logLevelCombobox.getValue();
 
         if(!friendlyName.equals("") && friendlyName.length() < 64) {
-            preferences.put("friendlyName", friendlyName);
-            preferences.put("logLevel", logLevel);
+            preferences.put(CherryPrefs.FriendlyName.KEY, friendlyName);
+            preferences.put(CherryPrefs.LogLevel.KEY, logLevel);
+
+            LOGGER.fine("User preferences have been saved.");
+            LOGGER.finer("friendlyName has been set to " + friendlyName);
+            LOGGER.finer("logLevel has been set to " + logLevel);
 
             Alert alert = new Alert(
                     Alert.AlertType.INFORMATION,
