@@ -297,8 +297,24 @@ public class PlayerStageController implements BaseController {
                     totalDuration,
                     new Duration(0)
             );
-            transportHandler.sendLastChangeMediaDuration(player.getTotalDuration());
-            startOfMedia();
+            transportHandler.sendLastChangeMediaDuration(totalDuration);
+
+            String title = getTitle(rendererHandler.getMetadata());
+            if(title != null){
+                LOGGER.finer("Video title is " + title);
+
+                getStage().setTitle("CherryRenderer - " + title);
+            }
+            else{
+                LOGGER.finer("Video title was not detected.");
+            }
+
+            timeSlider.setDisable(false);
+            playButton.setDisable(false);
+            rewindButton.setDisable(false);
+            stopButton.setDisable(false);
+            forwardButton.setDisable(false);
+            volumeSlider.setDisable(false);
         });
 
         // TODO: Handle player errors better (media not supported, player halted etc)
@@ -389,7 +405,9 @@ public class PlayerStageController implements BaseController {
      * Disables and resets UI elements.
      */
     private void endOfMedia(){
-        LOGGER.finer("Running end of media function");
+        LOGGER.fine("Running end of media function");
+
+        getStage().setTitle("CherryRenderer");
 
         LOGGER.finer("Clearing property listeners & event handlers");
         timeSlider.valueChangingProperty().removeListener(timeIsChangingListener);
@@ -667,5 +685,23 @@ public class PlayerStageController implements BaseController {
                 totalTime,
                 currentTime
         );
+    }
+
+    private String getTitle(String xml){
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new InputSource(new StringReader(xml)));
+
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            XPathExpression expr = xpath.compile("/DIDL-Lite/item/*[local-name() = 'title']");
+
+            return (String)expr.evaluate(document, XPathConstants.STRING);
+        }
+        catch (Exception e){
+            // TODO: Please don't forget about this...
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
     }
 }
