@@ -147,4 +147,9 @@ public class TransportHandler {
                 new AVTransportVariable.CurrentTransportActions(transportActions)
         );
     }
+
+    public synchronized void clearInfo(){
+        transport.setMediaInfo(new MediaInfo());
+        transport.setPositionInfo(new PositionInfo());
+    }
 }

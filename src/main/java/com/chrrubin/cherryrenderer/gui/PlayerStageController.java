@@ -19,10 +19,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
@@ -34,8 +31,17 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +73,7 @@ public class PlayerStageController implements BaseController {
     @FXML
     private MenuBar menuBar;
     @FXML
-    private VBox tooltipVbox;
+    private VBox tooltipVBox;
     @FXML
     private Label tooltipLabel;
 
@@ -76,9 +82,168 @@ public class PlayerStageController implements BaseController {
     private URI currentUri = null;
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
-    private ScheduledService<Void> eventService = null;
+    private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
 
-    private PauseTransition mouseIdle = new PauseTransition(Duration.seconds(1));
+    /**
+     * ScheduledService that updates PositionInfo every X seconds.
+     */
+    private ScheduledService<Void> updateTimeService = new ScheduledService<Void>(){
+        @Override
+        protected Task<Void> createTask() {
+            return new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
+                        updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
+                    }
+                    return null;
+                }
+            };
+        }
+    };
+
+    /*
+    Start of property listeners and event handlers
+     */
+    /**
+     * Listener for statusProperty of videoMediaView.getPlayer()
+     */
+    private ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
+        if(oldStatus == null){
+            return;
+        }
+
+        LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
+
+        if(newStatus == Status.STALLED){
+            LOGGER.fine("(Caught by listener) Media player in STALLED status. Video is currently buffering.");
+        }
+    };
+
+    /**
+     * Listener for currentTimeProperty of videoMediaView.getPlayer()
+     * Updates currentTimeLabel and timeSlider based on the current time of the media player.
+     */
+    // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
+    private ChangeListener<Duration> playerCurrentTimeListener = (observable, oldValue, newValue) -> {
+        currentTimeLabel.setText(CherryUtil.durationToString(newValue));
+        if(!timeSlider.isValueChanging()){
+            timeSlider.setValue(newValue.divide(videoMediaView.getMediaPlayer().getTotalDuration().toMillis()).toMillis() * 100.0);
+        }
+    };
+
+    /**
+     * Listener for isChangingProperty of timeSlider.
+     */
+    private ChangeListener<Boolean> timeIsChangingListener = (observable, wasChanging, isChanging) -> {
+        if(!isChanging){
+            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(timeSlider.getValue() / 100.0));
+            updateCurrentTime();
+        }
+    };
+
+    /**
+     * Listener for valueProperty of timeSlider.
+     */
+    private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
+        if(!timeSlider.isValueChanging()){
+            double currentTime = oldValue.doubleValue();
+            double newTime = newValue.doubleValue();
+            if(Math.abs(newTime - currentTime) > 0.5) {
+
+                videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
+                updateCurrentTime();
+            }
+        }
+    };
+
+    /**
+     * Listener for isChangingProperty of volumeSlider,
+     */
+    private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
+        if(!isChanging){
+            videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+        }
+    };
+
+    /**
+     * Listener for valueProperty of volumeSlider
+     */
+    private InvalidationListener volumeInvalidationListener = observable -> {
+        if(!volumeSlider.isValueChanging()){
+            videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+        }
+    };
+
+    /**
+     * EventHandler for onMouseClicked of videoMediaView
+     * Toggles fullscreen when user double clicks on videoMediaView
+     */
+    private EventHandler<MouseEvent> mediaViewClickEvent = event -> {
+        if(event.getButton().equals(MouseButton.PRIMARY)){
+            if(event.getClickCount() == 2){
+                if(!getStage().isFullScreen()){
+                    getStage().setFullScreen(true);
+                }
+                else{
+                    getStage().setFullScreen(false);
+                }
+            }
+        }
+    };
+
+    /**
+     * Listener for fullScreenProperty of getStage()
+     */
+    private ChangeListener<Boolean> isFullScreenListener = (observable, wasFullScreen, isFullScreen) ->
+            prepareFullScreen(isFullScreen);
+
+    private final ObjectProperty<Duration> currentTimeCalcProperty = new SimpleObjectProperty<>();
+
+    /**
+     * EventHandler for onMouseDragged of timeSlider
+     * Shows a tooltip containing seek info when user drags on timeSlider.
+     */
+    private EventHandler<MouseEvent> timeMouseDraggedEvent = event -> {
+        if(currentTimeCalcProperty.get() == null){
+            currentTimeCalcProperty.set(videoMediaView.getMediaPlayer().getCurrentTime());
+        }
+
+        double sliderValue = timeSlider.getValue();
+        Duration sliderDragTime = videoMediaView.getMediaPlayer().getTotalDuration().multiply(sliderValue / 100.0);
+        Duration timeDifference = sliderDragTime.subtract(currentTimeCalcProperty.get());
+        String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
+                "[" + CherryUtil.durationToString(timeDifference) + "]";
+
+        tooltipLabel.setText(output);
+
+        tooltipVBox.setVisible(true);
+
+        Bounds timeSliderBounds = timeSlider.localToScene(timeSlider.getBoundsInLocal());
+        if(event.getSceneX() < timeSliderBounds.getMinX()){
+            tooltipVBox.setLayoutX(timeSliderBounds.getMinX() - (tooltipVBox.getWidth() / 2));
+        }
+        else if(event.getSceneX() > timeSliderBounds.getMaxX()){
+            tooltipVBox.setLayoutX(timeSliderBounds.getMaxX() - (tooltipVBox.getWidth() / 2));
+        }
+        else{
+            tooltipVBox.setLayoutX(event.getSceneX() - (tooltipVBox.getWidth() / 2));
+        }
+        tooltipVBox.setLayoutY(timeSliderBounds.getMinY() - 40);
+    };
+
+    /**
+     * EventHandler for onMouseReleased of timeSlider
+     * Hides the tooltip when user releases mouse click.
+     */
+    private EventHandler<MouseEvent> timeMouseReleasedEvent = event -> {
+        tooltipVBox.setVisible(false);
+        currentTimeCalcProperty.set(null);
+    };
+    /*
+    End of property listeners and event handlers
+     */
+
 
     public BaseStage getStage() {
         return (BaseStage) rootStackPane.getScene().getWindow();
@@ -97,9 +262,9 @@ public class PlayerStageController implements BaseController {
 
     /**
      * Prepares MediaPlayer for video playing.
-     * Creates required property listeners and event handlers that are used during video playback.
+     * Attaches required property listeners and event handlers that are used during video playback.
      */
-    private void prepareMediaPlayer(){
+    private void prepareMediaPlayback(){
         LOGGER.finer("Preparing Media Player for playback");
 
         prepareFullScreen(false);
@@ -117,17 +282,19 @@ public class PlayerStageController implements BaseController {
         });
 
         player.setOnReady(() -> {
-            totalTimeLabel.setText(CherryUtil.durationToString(player.getTotalDuration()));
-            rendererHandler.setVideoTotalTime(player.getTotalDuration());
+            Duration totalDuration = player.getTotalDuration();
+
+            totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
+            rendererHandler.setVideoTotalTime(totalDuration);
             transportHandler.setMediaInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
-                    player.getTotalDuration()
+                    totalDuration
             );
             transportHandler.setPositionInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
-                    player.getTotalDuration(),
+                    totalDuration,
                     new Duration(0)
             );
             transportHandler.sendLastChangeMediaDuration(player.getTotalDuration());
@@ -135,8 +302,18 @@ public class PlayerStageController implements BaseController {
         });
 
         // TODO: Handle player errors better (media not supported, player halted etc)
-        player.setOnError(() ->
-                LOGGER.log(Level.SEVERE, player.getError().toString(), player.getError()));
+        player.setOnError(() -> {
+            String error = player.getError().toString();
+
+            LOGGER.log(Level.SEVERE, error, player.getError());
+            Alert alert = new Alert(
+                    Alert.AlertType.ERROR,
+                    "An error has occured: " + System.lineSeparator() + error + System.lineSeparator() +
+                    "Please refer to logs for more detail.",
+                    ButtonType.OK);
+            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            alert.showAndWait();
+        });
 
         player.setOnHalted(() -> {
             LOGGER.warning("Media player reached HALTED status. Disposing media player...");
@@ -148,172 +325,49 @@ public class PlayerStageController implements BaseController {
         player.setOnStalled(() ->
                 LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering."));
 
-        player.statusProperty().addListener((observable, oldStatus, newStatus) -> {
-            if(oldStatus == null){
-                return;
-            }
+        player.statusProperty().addListener(playerStatusListener);
 
-            LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
-
-            if(newStatus == Status.STALLED){
-                LOGGER.fine("(Caught by listener) Media player in STALLED status. Video is currently buffering.");
-            }
-        });
-
-        // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
-        player.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
-            currentTimeLabel.setText(CherryUtil.durationToString(newValue));
-            if(!timeSlider.isValueChanging()){
-                timeSlider.setValue(newValue.divide(player.getTotalDuration().toMillis()).toMillis() * 100.0);
-            }
-        });
+        player.currentTimeProperty().addListener(playerCurrentTimeListener);
 
         /*
-        timeSlider and volumeSlider property listeners.
-        Allows video time and volume to be manipulated via the respective sliders.
+        Allow manipulation of video via timeSlider & volumeSlider
          */
-        ChangeListener<Boolean> timeChangingListener = (observable, wasChanging, isChanging) -> {
-            if(!isChanging){
-                player.seek(player.getTotalDuration().multiply(timeSlider.getValue() / 100.0));
-                updateCurrentTime();
-            }
-        };
-        timeSlider.valueChangingProperty().addListener(timeChangingListener);
+        timeSlider.valueChangingProperty().addListener(timeIsChangingListener);
 
-        ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
-            if(!timeSlider.isValueChanging()){
-                double currentTime = oldValue.doubleValue();
-                double newTime = newValue.doubleValue();
-                if(Math.abs(newTime - currentTime) > 0.5) {
-
-                    player.seek(player.getTotalDuration().multiply(newTime / 100.0));
-                    updateCurrentTime();
-                }
-            }
-        };
         timeSlider.valueProperty().addListener(timeChangeListener);
 
-        ChangeListener<Boolean> volumeChangingListener = (observable, wasChanging, isChanging) -> {
-            if(!isChanging){
-                player.setVolume(volumeSlider.getValue() / 100.0);
-            }
-        };
-        volumeSlider.valueChangingProperty().addListener(volumeChangingListener);
+        volumeSlider.valueChangingProperty().addListener(volumeIsChangingListener);
 
-        InvalidationListener volumeInvalidationListener = observable -> {
-            if(!volumeSlider.isValueChanging()){
-                player.setVolume(volumeSlider.getValue() / 100.0);
-            }
-        };
         volumeSlider.valueProperty().addListener(volumeInvalidationListener);
 
         /*
         Toggle fullscreen via double click
          */
-        videoMediaView.setOnMouseClicked(mouseEvent -> {
-            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
-                if(mouseEvent.getClickCount() == 2){
-                    if(!getStage().isFullScreen()){
-                        getStage().setFullScreen(true);
-                    }
-                    else{
-                        getStage().setFullScreen(false);
-                    }
-                }
-            }
-        });
+        videoMediaView.setOnMouseClicked(mediaViewClickEvent);
 
-        ChangeListener<Boolean> isFullScreenListener =
-                (observable, wasFullScreen, isFullScreen) -> prepareFullScreen(isFullScreen);
         getStage().fullScreenProperty().addListener(isFullScreenListener);
 
         /*
         Shows tooltip when dragging the thumb of timeSlider
          */
-        tooltipVbox.setManaged(false);
-        final ObjectProperty<Duration> currentTimeProperty = new SimpleObjectProperty<>();
-        EventHandler<MouseEvent> timeMouseDraggedEvent = event -> {
-            if(currentTimeProperty.get() == null){
-                currentTimeProperty.set(player.getCurrentTime());
-            }
+        tooltipVBox.setManaged(false);
 
-            double sliderValue = timeSlider.getValue();
-            Duration sliderDragTime = player.getTotalDuration().multiply(sliderValue / 100.0);
-            Duration timeDifference = sliderDragTime.subtract(currentTimeProperty.get());
-            String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
-                    "[" + CherryUtil.durationToString(timeDifference) + "]";
-
-            tooltipLabel.setText(output);
-
-            tooltipVbox.setVisible(true);
-
-            Bounds timeSliderBounds = timeSlider.localToScene(timeSlider.getBoundsInLocal());
-            if(event.getSceneX() < timeSliderBounds.getMinX()){
-                tooltipVbox.setLayoutX(timeSliderBounds.getMinX() - (tooltipVbox.getWidth() / 2));
-            }
-            else if(event.getSceneX() > timeSliderBounds.getMaxX()){
-                tooltipVbox.setLayoutX(timeSliderBounds.getMaxX() - (tooltipVbox.getWidth() / 2));
-            }
-            else{
-                tooltipVbox.setLayoutX(event.getSceneX() - (tooltipVbox.getWidth() / 2));
-            }
-            tooltipVbox.setLayoutY(timeSliderBounds.getMinY() - 40);
-        };
         timeSlider.setOnMouseDragged(timeMouseDraggedEvent);
 
-        EventHandler<MouseEvent> timeMouseReleaseEvent = event -> {
-            tooltipVbox.setVisible(false);
-            currentTimeProperty.set(null);
-        };
-        timeSlider.setOnMouseReleased(timeMouseReleaseEvent);
+        timeSlider.setOnMouseReleased(timeMouseReleasedEvent);
 
-        /*
-        Properly removes property listeners during onEndOfMedia and onStopped
-         */
         player.setOnEndOfMedia(() -> {
             LOGGER.finest("player.setOnEndOfMedia triggered");
-
-            clearSliderListeners(
-                    timeSlider, timeChangingListener, timeChangeListener,
-                    volumeSlider, volumeChangingListener, volumeInvalidationListener
-            );
-            timeSlider.setOnMouseDragged(null);
-            timeSlider.setOnMouseReleased(null);
-
             endOfMedia();
-            getStage().fullScreenProperty().removeListener(isFullScreenListener);
         });
 
         player.setOnStopped(() -> {
             LOGGER.finest("player.setOnStopped triggered");
-
-            clearSliderListeners(
-                    timeSlider, timeChangingListener, timeChangeListener,
-                    volumeSlider, volumeChangingListener, volumeInvalidationListener
-            );
-            timeSlider.setOnMouseDragged(null);
-            timeSlider.setOnMouseReleased(null);
-
             endOfMedia();
-            getStage().fullScreenProperty().removeListener(isFullScreenListener);
         });
 
-        eventService = new ScheduledService<Void>(){
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
-                            updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
-                        }
-                        return null;
-                    }
-                };
-            }
-        };
-        eventService.setPeriod(Duration.seconds(1));
-        eventService.start();
+        updateTimeService.setPeriod(Duration.seconds(1));
+        updateTimeService.start();
 
         /*
         Seeks video when VideoSeekEvent is triggered by control point
@@ -327,11 +381,28 @@ public class PlayerStageController implements BaseController {
 
     }
 
+    /**
+     * Runs the following cleanup tasks after video playback is done:
+     * Properly removes property listeners and event handlers that should only be applied during playback.
+     * Stops the service that auto updates PositionInfo
+     * Disposes media player.
+     * Disables and resets UI elements.
+     */
     private void endOfMedia(){
         LOGGER.finer("Running end of media function");
 
-        if(eventService != null){
-            eventService.cancel();
+        LOGGER.finer("Clearing property listeners & event handlers");
+        timeSlider.valueChangingProperty().removeListener(timeIsChangingListener);
+        timeSlider.valueProperty().removeListener(timeChangeListener);
+        volumeSlider.valueChangingProperty().removeListener(volumeIsChangingListener);
+        volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
+        timeSlider.setOnMouseDragged(null);
+        timeSlider.setOnMouseReleased(null);
+        getStage().fullScreenProperty().removeListener(isFullScreenListener);
+
+        if(updateTimeService != null){
+            LOGGER.finer("Stopping auto update of PositionInfo service");
+            updateTimeService.cancel();
         }
 
         if(videoMediaView.getMediaPlayer() != null){
@@ -360,15 +431,7 @@ public class PlayerStageController implements BaseController {
         }
 
         transportHandler.setTransportInfo(TransportState.STOPPED);
-    }
-
-    private void startOfMedia(){
-        timeSlider.setDisable(false);
-        playButton.setDisable(false);
-        rewindButton.setDisable(false);
-        stopButton.setDisable(false);
-        forwardButton.setDisable(false);
-        volumeSlider.setDisable(false);
+        transportHandler.clearInfo();
     }
 
     @FXML
@@ -421,6 +484,10 @@ public class PlayerStageController implements BaseController {
             LOGGER.warning("Attempted to stop while player is still initializing. Will run stop() after player is done initializing");
             player.stop();
         }
+        else{
+            LOGGER.warning("Attempted to stop while player has no status. Yes apparently this is a thing even though THERE IS A STATUS CALLED UNKNOWN THAT YOU'RE SUPPOSED TO USE");
+            player.stop();
+        }
     }
 
     @FXML
@@ -464,7 +531,7 @@ public class PlayerStageController implements BaseController {
     }
 
     /**
-     * Handles RendererStateChanged events, triggered by uPnP state classes.
+     * Handles RendererStateChanged events, triggered by uPnP state classes via eventing thru RendererHandler.
      * @param rendererState Current RendererState of MediaRenderer
      */
     private void onRendererStateChanged(RendererState rendererState){
@@ -491,7 +558,7 @@ public class PlayerStageController implements BaseController {
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
 
                     rendererHandler.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
-                    prepareMediaPlayer();
+                    prepareMediaPlayback();
                 }
                 else{
                     if(player != null && player.getStatus() == Status.PAUSED){
@@ -531,7 +598,7 @@ public class PlayerStageController implements BaseController {
             getStage().getScene().setCursor(Cursor.NONE);
             menuBar.setOpacity(0);
 
-            mouseIdle.setOnFinished(event -> {
+            mouseIdleTimer.setOnFinished(event -> {
                 getStage().getScene().setCursor(Cursor.NONE);
                 bottomBarVBox.setOpacity(0);
                 menuBar.setOpacity(0);
@@ -540,18 +607,18 @@ public class PlayerStageController implements BaseController {
             videoMediaView.setOnMouseMoved(event -> {
                 getStage().getScene().setCursor(Cursor.DEFAULT);
                 bottomBarVBox.setOpacity(1);
-                mouseIdle.playFromStart();
+                mouseIdleTimer.playFromStart();
             });
 
-            bottomBarVBox.setOnMouseEntered(event -> mouseIdle.pause());
+            bottomBarVBox.setOnMouseEntered(event -> mouseIdleTimer.pause());
 
             menuBar.setOnMouseEntered(event -> {
-                mouseIdle.pause();
+                mouseIdleTimer.pause();
                 menuBar.setOpacity(1);
             });
         }
         else {
-            mouseIdle.setOnFinished(null);
+            mouseIdleTimer.setOnFinished(null);
             videoMediaView.setOnMouseMoved(null);
             bottomBarVBox.setOnMouseEntered(null);
             menuBar.setOnMouseEntered(null);
@@ -560,7 +627,7 @@ public class PlayerStageController implements BaseController {
             double menuBarHeight = menuBar.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(menuBarHeight,0, bottomBarHeight,0));
 
-            // TBF I don't understand how this math works /shrug
+            // Frankly I don't understand how this math works /shrug
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract((bottomBarHeight + menuBarHeight) * 1.45));
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty().subtract(10));
 
@@ -570,16 +637,6 @@ public class PlayerStageController implements BaseController {
             bottomBarVBox.setOpacity(1);
             menuBar.setOpacity(1);
         }
-    }
-
-    private void clearSliderListeners(Slider timeSlider, ChangeListener<Boolean> timeChangingListener, ChangeListener<Number> timeChangeListener,
-                                      Slider volumeSlider, ChangeListener<Boolean> volumeChangingListener, InvalidationListener volumeInvalidationListener){
-        LOGGER.finest("Clearing media player slider listeners");
-
-        timeSlider.valueChangingProperty().removeListener(timeChangingListener);
-        timeSlider.valueProperty().removeListener(timeChangeListener);
-        volumeSlider.valueChangingProperty().removeListener(volumeChangingListener);
-        volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
     }
 
     /**

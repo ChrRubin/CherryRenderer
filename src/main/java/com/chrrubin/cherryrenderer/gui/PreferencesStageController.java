@@ -78,7 +78,7 @@ public class PreferencesStageController implements BaseController {
         Alert alert = new Alert(
                 Alert.AlertType.CONFIRMATION,
                 "Are you sure you want to reset to default preferences? This cannot be undone!",
-                ButtonType.CANCEL, ButtonType.YES);
+                ButtonType.NO, ButtonType.YES);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
 

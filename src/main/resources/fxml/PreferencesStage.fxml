@@ -50,7 +50,7 @@
               </rowConstraints>
                <children>
                   <Label text="Logging Level:" GridPane.halignment="RIGHT" />
-                  <ComboBox fx:id="logLevelCombobox" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" />
+                  <ComboBox fx:id="logLevelCombobox" disable="true" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" />
                   <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
                   <Label style="-fx-font-style: italic;" text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
                </children>
