@@ -62,6 +62,8 @@ public class RendererStopped extends Stopped {
         LOGGER.finer("Play invoked");
         // TODO: Sometimes program goes into a Stop.SetURI - Stop.Play - Play.Stop - Stop.SetURI... cycle.
         //  Not sure if it's the control point or program, further investigation required
+
+        // TODO: All Screen queue function getting 701 errors going from Stopped to Playing when playing next on queue
         return RendererPlaying.class;
     }
 

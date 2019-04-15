@@ -92,24 +92,7 @@ public class PlayerStageController implements BaseController {
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
     private Image volumeFullImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume.png"));
     private Image volumeMuteImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume-mute.png"));
-
-    /**
-     * ScheduledService that updates PositionInfo every X seconds.
-     */
-    private ScheduledService<Void> updateTimeService = new ScheduledService<Void>(){
-        @Override
-        protected Task<Void> createTask() {
-            return new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
-                        updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
-                    }
-                    return null;
-                }
-            };
-        }
-    };
+    private ScheduledService<Void> updateTimeService;
 
     /*
     Start of property listeners and event handlers
@@ -358,7 +341,7 @@ public class PlayerStageController implements BaseController {
             Duration totalDuration = player.getTotalDuration();
 
             totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
-            rendererHandler.setVideoTotalTime(totalDuration);
+//            rendererHandler.setVideoTotalTime(totalDuration);
             transportHandler.setMediaInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
@@ -371,6 +354,7 @@ public class PlayerStageController implements BaseController {
                     new Duration(0)
             );
             transportHandler.sendLastChangeMediaDuration(totalDuration);
+            transportHandler.setTransportInfo(TransportState.PLAYING);
 
             String title = getTitle(rendererHandler.getMetadata());
             if(title != null && !title.equals("")){
@@ -459,6 +443,22 @@ public class PlayerStageController implements BaseController {
             endOfMedia();
         });
 
+        // FIXME: Sometimes 2 services are running simultaneously?
+        updateTimeService = new ScheduledService<Void>(){
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
+                            updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
+                        }
+                        return null;
+                    }
+                };
+            }
+        };
+
         updateTimeService.setPeriod(Duration.seconds(1));
         updateTimeService.start();
 
@@ -486,6 +486,9 @@ public class PlayerStageController implements BaseController {
     private void endOfMedia(){
         LOGGER.fine("Running end of media function");
 
+        transportHandler.clearInfo();
+        transportHandler.setTransportInfo(TransportState.STOPPED);
+
         getStage().setTitle("CherryRenderer");
 
         LOGGER.finer("Clearing property listeners & event handlers");
@@ -497,7 +500,6 @@ public class PlayerStageController implements BaseController {
         timeSlider.setOnMouseReleased(null);
         volumeSlider.setOnMouseDragged(null);
         volumeSlider.setOnMouseReleased(null);
-//        volumeImageView.setOnMouseReleased(null);
         rootStackPane.setOnKeyReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
 
@@ -525,9 +527,6 @@ public class PlayerStageController implements BaseController {
         if(getStage().isFullScreen()){
             getStage().setFullScreen(false);
         }
-
-        transportHandler.setTransportInfo(TransportState.STOPPED);
-        transportHandler.clearInfo();
     }
 
     @FXML
@@ -683,7 +682,7 @@ public class PlayerStageController implements BaseController {
                 }
                 break;
             case STOPPED:
-                if(player != null){
+                if(player != null && player.getStatus() != Status.DISPOSED){
                     onStop();
                 }
                 break;
@@ -700,7 +699,9 @@ public class PlayerStageController implements BaseController {
                     Media media = new Media(rendererHandler.getUri().toString());
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
 
-                    rendererHandler.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
+                    transportHandler.setTransportInfo(TransportState.TRANSITIONING);
+
+//                    rendererHandler.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
                     prepareMediaPlayback();
                 }
                 else{
@@ -809,7 +810,7 @@ public class PlayerStageController implements BaseController {
             return;
         }
 
-        rendererHandler.setVideoCurrentTime(player.getCurrentTime());
+//        rendererHandler.setVideoCurrentTime(player.getCurrentTime());
 
         transportHandler.setPositionInfo(
                 rendererHandler.getUri(),
@@ -820,7 +821,7 @@ public class PlayerStageController implements BaseController {
     }
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
-        rendererHandler.setVideoCurrentTime(currentTime);
+//        rendererHandler.setVideoCurrentTime(currentTime);
 
         transportHandler.setPositionInfo(
                 rendererHandler.getUri(),

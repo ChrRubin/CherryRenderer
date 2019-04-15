@@ -126,6 +126,9 @@ public class TransportHandler {
             case PAUSED_PLAYBACK:
                 transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play};
                 break;
+            case TRANSITIONING:
+                transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play, TransportAction.Pause, TransportAction.Next, TransportAction.Previous, TransportAction.Seek};
+                break;
             default:
                 transportActions = new TransportAction[]{};
                 break;

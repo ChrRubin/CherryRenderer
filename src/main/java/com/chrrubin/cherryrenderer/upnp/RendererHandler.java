@@ -6,9 +6,6 @@ import com.pploder.events.SimpleEvent;
 import javafx.util.Duration;
 
 import java.net.URI;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
 public class RendererHandler {
@@ -18,12 +15,12 @@ public class RendererHandler {
 
     private URI uri = null;
     private String metadata = null;
-    private Duration videoCurrentTime = null;
-    private Duration videoTotalTime = null;
-
-    private ReadWriteLock currentTimeLock = new ReentrantReadWriteLock();
-    private Lock readCurrentTimeLock = currentTimeLock.readLock();
-    private Lock writeCurrentTimeLock = currentTimeLock.writeLock();
+//    private Duration videoCurrentTime = null;
+//    private Duration videoTotalTime = null;
+//
+//    private ReadWriteLock currentTimeLock = new ReentrantReadWriteLock();
+//    private Lock readCurrentTimeLock = currentTimeLock.readLock();
+//    private Lock writeCurrentTimeLock = currentTimeLock.writeLock();
 
     private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
     private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
@@ -63,33 +60,33 @@ public class RendererHandler {
         this.metadata = metadata;
     }
 
-    public Duration getVideoCurrentTime() {
-        try {
-            readCurrentTimeLock.lock();
-            return videoCurrentTime;
-        }
-        finally {
-            readCurrentTimeLock.unlock();
-        }
-    }
-
-    public void setVideoCurrentTime(Duration duration){
-        try {
-            writeCurrentTimeLock.lock();
-            this.videoCurrentTime = duration;
-        }
-        finally {
-            writeCurrentTimeLock.unlock();
-        }
-    }
-
-    public Duration getVideoTotalTime() {
-        return videoTotalTime;
-    }
-
-    public void setVideoTotalTime(Duration duration){
-        this.videoTotalTime = duration;
-    }
+//    public Duration getVideoCurrentTime() {
+//        try {
+//            readCurrentTimeLock.lock();
+//            return videoCurrentTime;
+//        }
+//        finally {
+//            readCurrentTimeLock.unlock();
+//        }
+//    }
+//
+//    public void setVideoCurrentTime(Duration duration){
+//        try {
+//            writeCurrentTimeLock.lock();
+//            this.videoCurrentTime = duration;
+//        }
+//        finally {
+//            writeCurrentTimeLock.unlock();
+//        }
+//    }
+//
+//    public Duration getVideoTotalTime() {
+//        return videoTotalTime;
+//    }
+//
+//    public void setVideoTotalTime(Duration duration){
+//        this.videoTotalTime = duration;
+//    }
 
     public void setVideoSeek(Duration duration){
         videoSeekEvent.trigger(duration);
