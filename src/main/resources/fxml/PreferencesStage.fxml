@@ -58,7 +58,7 @@
                   <Label text="Hardware Acceleration:" />
                   <CheckBox fx:id="hardwareCheckBox" mnemonicParsing="false" selected="true" text="Use hardware acceleration" GridPane.columnIndex="1" />
                   <Label text="Logging Level:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-                  <ComboBox fx:id="logLevelComboBox" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <ComboBox fx:id="logLevelComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
                   <Label text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
                      <font>

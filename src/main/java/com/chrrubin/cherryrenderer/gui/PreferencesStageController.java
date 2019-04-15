@@ -36,22 +36,31 @@ public class PreferencesStageController implements BaseController {
 
         hardwareCheckBox.setSelected(preferences.getBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT));
 
-        logLevelComboBox.getItems().add("INFO");
         logLevelComboBox.getItems().add("DEBUG");
         logLevelComboBox.getItems().add("DEBUG+");
         logLevelComboBox.getItems().add("ALL");
 
         logLevelComboBox.setValue(preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT));
+
+        logLevelComboBox.setOnAction(event -> onLogLevelSelect());
     }
 
-    @FXML
     private void onLogLevelSelect(){
+        Alert alert;
         switch(logLevelComboBox.getValue()){
             case "DEBUG+":
-                // TODO: Show warning
+                alert = getStage().createInfoAlert("DEBUG+ generates a more detailed debug log that includes UPnP's SOAP protocol contents and JavaFX logs." +
+                        System.lineSeparator() + System.lineSeparator() +
+                        "You should only enable this if DEBUG does not provide the necessary logging required.");
+                alert.showAndWait();
                 break;
             case "ALL":
-                // TODO: Show VERY CLEAR WARNINGS that this will completely fill up log files. LAST RESORT ONLY.
+                alert = getStage().createWarningAlert(
+                        "ALL is an extremely verbose debug level that will fill up the debug logs in a matter of minutes." +
+                        System.lineSeparator() + System.lineSeparator() +
+                        "The only reason this exists is as a LAST RESORT ONLY." + System.lineSeparator() + System.lineSeparator() +
+                        "Unless I specifically tell you to enable this logging level I will almost always ignore any bug requests accompanied by logs with this logging level.");
+                alert.showAndWait();
                 break;
         }
     }
