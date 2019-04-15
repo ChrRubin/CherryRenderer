@@ -3,10 +3,8 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryRenderer;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
 import java.awt.*;
@@ -26,6 +24,8 @@ public class PreferencesStageController implements BaseController {
     private TextField nameTextField;
     @FXML
     private ComboBox<String> logLevelComboBox;
+    @FXML
+    private CheckBox hardwareCheckBox;
 
     public BaseStage getStage() {
         return (BaseStage)rootGridPane.getScene().getWindow();
@@ -33,6 +33,8 @@ public class PreferencesStageController implements BaseController {
 
     public void prepareControls(){
         nameTextField.setText(preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT));
+
+        hardwareCheckBox.setSelected(preferences.getBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT));
 
         logLevelComboBox.getItems().add("INFO");
         logLevelComboBox.getItems().add("DEBUG");
@@ -82,6 +84,7 @@ public class PreferencesStageController implements BaseController {
         if(alert.getResult() == ButtonType.YES){
             preferences.put(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT);
             preferences.put(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT);
+            preferences.putBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT);
 
             LOGGER.fine("User preferences have been reset to their default values");
 
@@ -105,10 +108,12 @@ public class PreferencesStageController implements BaseController {
         if(!friendlyName.equals("") && friendlyName.length() < 64) {
             preferences.put(CherryPrefs.FriendlyName.KEY, friendlyName);
             preferences.put(CherryPrefs.LogLevel.KEY, logLevel);
+            preferences.putBoolean(CherryPrefs.HardwareAcceleration.KEY, hardwareCheckBox.isSelected());
 
             LOGGER.fine("User preferences have been saved.");
-            LOGGER.finer("friendlyName has been set to " + friendlyName);
-            LOGGER.finer("logLevel has been set to " + logLevel);
+            LOGGER.finer(CherryPrefs.FriendlyName.KEY + " has been set to " + friendlyName);
+            LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
+            LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
 
             Alert alert = getStage().createInfoAlert("Preferences have been saved.");
             alert.showAndWait();

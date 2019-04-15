@@ -40,7 +40,7 @@
             </GridPane>
          </content>
       </TitledPane>
-      <TitledPane animated="false" collapsible="false" text="Debug" GridPane.rowIndex="1">
+      <TitledPane animated="false" collapsible="false" text="Advanced" GridPane.rowIndex="1">
          <content>
             <GridPane hgap="10.0" vgap="5.0">
               <columnConstraints>
@@ -48,18 +48,30 @@
                 <ColumnConstraints hgrow="SOMETIMES" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
                   <RowConstraints vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label text="Logging Level:" GridPane.halignment="RIGHT" />
-                  <ComboBox fx:id="logLevelComboBox" disable="true" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" />
-                  <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-                  <Label text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                  <Label text="Hardware Acceleration:" />
+                  <CheckBox fx:id="hardwareCheckBox" mnemonicParsing="false" selected="true" text="Use hardware acceleration" GridPane.columnIndex="1" />
+                  <Label text="Logging Level:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                  <ComboBox fx:id="logLevelComboBox" disable="true" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+                  <Label text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
                      <font>
                         <Font name="System Italic" size="13.0" />
                      </font></Label>
+                  <Label text="(Disabling hardware acceleration may fix certain visual glitches.&#10;It may also slow down UI rendering significantly. Use with care.)" textAlignment="RIGHT" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                     <font>
+                        <Font name="System Italic" size="13.0" />
+                     </font>
+                     <GridPane.margin>
+                        <Insets bottom="10.0" />
+                     </GridPane.margin>
+                  </Label>
                </children>
             </GridPane>
          </content>

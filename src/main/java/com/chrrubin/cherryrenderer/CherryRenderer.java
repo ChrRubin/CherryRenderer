@@ -40,6 +40,11 @@ public class CherryRenderer extends Application {
             LogManager.getLogManager().readConfiguration(inputStream);
             LOGGER.fine("Loaded logger properties from " + propertiesFileName);
 
+            if(!preferences.getBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT)){
+                LOGGER.fine("Using software acceleration.");
+                System.setProperty("prism.order", "sw");
+            }
+
             PlayerStage stage = new PlayerStage();
             stage.prepareStage();
             stage.show();
