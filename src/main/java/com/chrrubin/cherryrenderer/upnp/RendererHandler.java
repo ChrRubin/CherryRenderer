@@ -15,12 +15,6 @@ public class RendererHandler {
 
     private URI uri = null;
     private String metadata = null;
-//    private Duration videoCurrentTime = null;
-//    private Duration videoTotalTime = null;
-//
-//    private ReadWriteLock currentTimeLock = new ReentrantReadWriteLock();
-//    private Lock readCurrentTimeLock = currentTimeLock.readLock();
-//    private Lock writeCurrentTimeLock = currentTimeLock.writeLock();
 
     private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
     private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
@@ -59,34 +53,6 @@ public class RendererHandler {
     public void setMetadata(String metadata){
         this.metadata = metadata;
     }
-
-//    public Duration getVideoCurrentTime() {
-//        try {
-//            readCurrentTimeLock.lock();
-//            return videoCurrentTime;
-//        }
-//        finally {
-//            readCurrentTimeLock.unlock();
-//        }
-//    }
-//
-//    public void setVideoCurrentTime(Duration duration){
-//        try {
-//            writeCurrentTimeLock.lock();
-//            this.videoCurrentTime = duration;
-//        }
-//        finally {
-//            writeCurrentTimeLock.unlock();
-//        }
-//    }
-//
-//    public Duration getVideoTotalTime() {
-//        return videoTotalTime;
-//    }
-//
-//    public void setVideoTotalTime(Duration duration){
-//        this.videoTotalTime = duration;
-//    }
 
     public void setVideoSeek(Duration duration){
         videoSeekEvent.trigger(duration);

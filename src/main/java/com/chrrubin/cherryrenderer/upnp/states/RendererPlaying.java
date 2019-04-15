@@ -28,20 +28,6 @@ public class RendererPlaying extends Playing {
 
         transportHandler.setTransport(getTransport());
 
-//        if(rendererHandler.getVideoTotalTime() != null && rendererHandler.getVideoCurrentTime() != null){
-//            transportHandler.setMediaInfo(
-//                    rendererHandler.getUri(),
-//                    rendererHandler.getMetadata(),
-//                    rendererHandler.getVideoTotalTime()
-//            );
-//            transportHandler.setPositionInfo(
-//                    rendererHandler.getUri(),
-//                    rendererHandler.getMetadata(),
-//                    rendererHandler.getVideoTotalTime(),
-//                    rendererHandler.getVideoCurrentTime()
-//            );
-//        }
-
         rendererHandler.setRendererState(RendererState.PLAYING);
 
     }

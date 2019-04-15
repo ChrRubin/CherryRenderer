@@ -329,19 +329,14 @@ public class PlayerStageController implements BaseController {
 
         player.setAutoPlay(true);
 
-        player.setOnPlaying(() -> {
-            playPauseImageView.setImage(new Image("icons/pause.png"));
-        });
+        player.setOnPlaying(() -> playPauseImageView.setImage(new Image("icons/pause.png")));
 
-        player.setOnPaused(() -> {
-            playPauseImageView.setImage(new Image("icons/play.png"));
-        });
+        player.setOnPaused(() -> playPauseImageView.setImage(new Image("icons/play.png")));
 
         player.setOnReady(() -> {
             Duration totalDuration = player.getTotalDuration();
 
             totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
-//            rendererHandler.setVideoTotalTime(totalDuration);
             transportHandler.setMediaInfo(
                     rendererHandler.getUri(),
                     rendererHandler.getMetadata(),
@@ -428,8 +423,6 @@ public class PlayerStageController implements BaseController {
         volumeSlider.setOnMouseDragged(volumeMouseDraggedEvent);
 
         volumeSlider.setOnMouseReleased(volumeMouseReleasedEvent);
-
-//        volumeImageView.setOnMouseReleased(event -> toggleMute());
 
         videoMediaView.setOnKeyReleased(videoKeyReleasedEvent);
 
@@ -701,7 +694,6 @@ public class PlayerStageController implements BaseController {
 
                     transportHandler.setTransportInfo(TransportState.TRANSITIONING);
 
-//                    rendererHandler.setVideoTotalTime(videoMediaView.getMediaPlayer().getTotalDuration());
                     prepareMediaPlayback();
                 }
                 else{
@@ -810,8 +802,6 @@ public class PlayerStageController implements BaseController {
             return;
         }
 
-//        rendererHandler.setVideoCurrentTime(player.getCurrentTime());
-
         transportHandler.setPositionInfo(
                 rendererHandler.getUri(),
                 rendererHandler.getMetadata(),
@@ -821,7 +811,6 @@ public class PlayerStageController implements BaseController {
     }
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
-//        rendererHandler.setVideoCurrentTime(currentTime);
 
         transportHandler.setPositionInfo(
                 rendererHandler.getUri(),
