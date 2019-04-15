@@ -49,4 +49,9 @@ public class AboutStageController implements BaseController {
             }
         }).start();
     }
+
+    @FXML
+    private void onClose(){
+        getStage().close();
+    }
 }

@@ -25,6 +25,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
@@ -85,9 +86,12 @@ public class PlayerStageController implements BaseController {
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
     private URI currentUri = null;
+    private double volumeSavedValue = 0;
     private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
+    private Image volumeFullImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume.png"));
+    private Image volumeMuteImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume-mute.png"));
 
     /**
      * ScheduledService that updates PositionInfo every X seconds.
@@ -168,6 +172,7 @@ public class PlayerStageController implements BaseController {
     private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
             videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+            changeVolumeImage(volumeSlider.getValue());
         }
     };
 
@@ -177,6 +182,7 @@ public class PlayerStageController implements BaseController {
     private InvalidationListener volumeInvalidationListener = observable -> {
         if(!volumeSlider.isValueChanging()){
             videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+            changeVolumeImage(volumeSlider.getValue());
         }
     };
 
@@ -187,12 +193,7 @@ public class PlayerStageController implements BaseController {
     private EventHandler<MouseEvent> mediaViewClickEvent = event -> {
         if(event.getButton().equals(MouseButton.PRIMARY)){
             if(event.getClickCount() == 2){
-                if(!getStage().isFullScreen()){
-                    getStage().setFullScreen(true);
-                }
-                else{
-                    getStage().setFullScreen(false);
-                }
+                toggleFullscreen();
             }
         }
     };
@@ -244,6 +245,7 @@ public class PlayerStageController implements BaseController {
     private EventHandler<MouseEvent> timeMouseReleasedEvent = event -> {
         timeTooltipVBox.setVisible(false);
         currentTimeCalcProperty.set(null);
+        videoMediaView.requestFocus();
     };
 
     /**
@@ -276,6 +278,40 @@ public class PlayerStageController implements BaseController {
      */
     private EventHandler<MouseEvent> volumeMouseReleasedEvent = event -> {
         volumeTooltipVBox.setVisible(false);
+        videoMediaView.requestFocus();
+    };
+
+    /**
+     * EventHandler for onKeyReleased of videoMediaView
+     * Allows keyboard interactions with media playback.
+     */
+    private EventHandler<KeyEvent> videoKeyReleasedEvent = event -> {
+        switch (event.getCode()){
+            case SPACE:
+                onPlay();
+                break;
+            case S:
+                onStop();
+                break;
+            case F:
+                toggleFullscreen();
+                break;
+            case M:
+                toggleMute();
+                break;
+            case LEFT:
+                onRewind();
+                break;
+            case RIGHT:
+                onForward();
+                break;
+            case UP:
+                volumeSlider.increment();
+                break;
+            case DOWN:
+                volumeSlider.decrement();
+                break;
+        }
     };
     /*
     End of property listeners and event handlers
@@ -409,6 +445,10 @@ public class PlayerStageController implements BaseController {
 
         volumeSlider.setOnMouseReleased(volumeMouseReleasedEvent);
 
+//        volumeImageView.setOnMouseReleased(event -> toggleMute());
+
+        videoMediaView.setOnKeyReleased(videoKeyReleasedEvent);
+
         player.setOnEndOfMedia(() -> {
             LOGGER.finest("player.setOnEndOfMedia triggered");
             endOfMedia();
@@ -431,6 +471,8 @@ public class PlayerStageController implements BaseController {
                 updateCurrentTime();
             }
         });
+
+        videoMediaView.requestFocus();
 
     }
 
@@ -455,6 +497,8 @@ public class PlayerStageController implements BaseController {
         timeSlider.setOnMouseReleased(null);
         volumeSlider.setOnMouseDragged(null);
         volumeSlider.setOnMouseReleased(null);
+//        volumeImageView.setOnMouseReleased(null);
+        rootStackPane.setOnKeyReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
 
         if(updateTimeService != null){
@@ -612,6 +656,18 @@ public class PlayerStageController implements BaseController {
         System.exit(0);
     }
 
+    @FXML
+    private void toggleMute(){
+        if(volumeSavedValue == 0){
+            volumeSavedValue = volumeSlider.getValue();
+            volumeSlider.setValue(0);
+        }
+        else{
+            volumeSlider.setValue(volumeSavedValue);
+            volumeSavedValue = 0;
+        }
+    }
+
     /**
      * Handles RendererStateChanged events, triggered by uPnP state classes via eventing thru RendererHandler.
      * @param rendererState Current RendererState of MediaRenderer
@@ -662,6 +718,24 @@ public class PlayerStageController implements BaseController {
                     updateCurrentTime();
                 }
                 break;
+        }
+    }
+
+    private void changeVolumeImage(double volume){
+        if(volume == 0){
+            volumeImageView.setImage(volumeMuteImage);
+        }
+        else if(!volumeImageView.getImage().equals(volumeFullImage)){
+            volumeImageView.setImage(volumeFullImage);
+        }
+    }
+
+    private void toggleFullscreen() {
+        if(!getStage().isFullScreen()){
+            getStage().setFullScreen(true);
+        }
+        else{
+            getStage().setFullScreen(false);
         }
     }
 

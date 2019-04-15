@@ -11,7 +11,7 @@
    <stylesheets><URL value="@/fxml/PlayerStage.css" /></stylesheets>
    <children>
       <VBox id="backgroundVBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" StackPane.alignment="CENTER" />
-      <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" StackPane.alignment="CENTER" />
+      <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" focusTraversable="true" StackPane.alignment="CENTER" />
       <MenuBar id="menuBar" fx:id="menuBar" maxHeight="-Infinity" useSystemMenuBar="true" StackPane.alignment="TOP_CENTER">
         <menus>
           <Menu mnemonicParsing="false" text="Menu">
@@ -28,7 +28,7 @@
             <HBox alignment="BOTTOM_CENTER" spacing="5.0">
                <children>
                   <Label fx:id="currentTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" />
-                  <Slider fx:id="timeSlider" minWidth="500.0" HBox.hgrow="ALWAYS" />
+                  <Slider fx:id="timeSlider" focusTraversable="false" minWidth="500.0" HBox.hgrow="ALWAYS" />
                   <Label fx:id="totalTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" textAlignment="RIGHT" />
                </children>
                <opaqueInsets>
@@ -39,7 +39,7 @@
                <children>
                   <HBox alignment="CENTER" spacing="10.0">
                      <children>
-                        <Button minHeight="38.0" minWidth="38.0" mnemonicParsing="false" onAction="#onPlay">
+                        <Button focusTraversable="false" minHeight="38.0" minWidth="38.0" mnemonicParsing="false" onAction="#onPlay">
                            <tooltip>
                               <Tooltip text="Play/Pause" />
                            </tooltip>
@@ -54,7 +54,7 @@
                               </ImageView>
                            </graphic>
                         </Button>
-                        <Button minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onRewind">
+                        <Button focusTraversable="false" minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onRewind">
                            <tooltip>
                               <Tooltip text="Rewind" />
                            </tooltip>
@@ -66,7 +66,7 @@
                               </ImageView>
                            </graphic>
                         </Button>
-                        <Button minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onStop">
+                        <Button focusTraversable="false" minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onStop">
                            <tooltip>
                               <Tooltip text="Stop" />
                            </tooltip>
@@ -78,7 +78,7 @@
                               </ImageView>
                            </graphic>
                         </Button>
-                        <Button minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onForward">
+                        <Button focusTraversable="false" minHeight="33.0" minWidth="33.0" mnemonicParsing="false" onAction="#onForward">
                            <tooltip>
                               <Tooltip text="Fast Forward" />
                            </tooltip>
@@ -97,12 +97,12 @@
                   </HBox>
                   <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <ImageView fx:id="volumeImageView" disable="true" fitHeight="20.0" fitWidth="20.0" opacity="0.5" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="volumeImageView" fitHeight="20.0" fitWidth="20.0" onMouseReleased="#toggleMute" opacity="0.5" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@/icons/volume.png" />
                            </image>
                         </ImageView>
-                        <Slider fx:id="volumeSlider" maxWidth="100.0" value="100.0" />
+                        <Slider fx:id="volumeSlider" focusTraversable="false" maxWidth="100.0" value="100.0" />
                      </children>
                      <padding>
                         <Insets right="10.0" />
