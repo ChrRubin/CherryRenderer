@@ -62,23 +62,21 @@ public class PreferencesStageController implements BaseController {
                     Desktop.getDesktop().open(new File(System.getProperty("user.home")));
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
+                    Alert alert = getStage().createErrorAlert(e.toString());
+                    alert.showAndWait();
                 }
             }
             else{
                 LOGGER.warning("This desktop does not support opening file manager.");
+                Alert alert = getStage().createWarningAlert("This desktop does not support opening file manager.");
+                alert.showAndWait();
             }
         }).start();
     }
 
-    // TODO: Refactor alert dialogs
-
     @FXML
     private void onResetDefault(){
-        Alert alert = new Alert(
-                Alert.AlertType.CONFIRMATION,
-                "Are you sure you want to reset to default preferences? This cannot be undone!",
-                ButtonType.NO, ButtonType.YES);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        Alert alert = getStage().createConfirmAlert("Are you sure you want to reset to default preferences? This cannot be undone!");
         alert.showAndWait();
 
         if(alert.getResult() == ButtonType.YES){
@@ -87,8 +85,7 @@ public class PreferencesStageController implements BaseController {
 
             LOGGER.fine("User preferences have been reset to their default values");
 
-            Alert alertOk = new Alert(Alert.AlertType.INFORMATION, "Preferences have been reset to their default values.", ButtonType.OK);
-            alertOk.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            Alert alertOk = getStage().createInfoAlert("Preferences have been reset to their default values.");
             alertOk.showAndWait();
 
             getStage().close();
@@ -113,21 +110,13 @@ public class PreferencesStageController implements BaseController {
             LOGGER.finer("friendlyName has been set to " + friendlyName);
             LOGGER.finer("logLevel has been set to " + logLevel);
 
-            Alert alert = new Alert(
-                    Alert.AlertType.INFORMATION,
-                    "Preferences have been saved.",
-                    ButtonType.OK);
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            Alert alert = getStage().createInfoAlert("Preferences have been saved.");
             alert.showAndWait();
 
             getStage().close();
         }
         else{
-            Alert alert = new Alert(
-                    Alert.AlertType.WARNING,
-                    "Invalid device name entered! Please ensure it is not empty and has a max of 64 characters.",
-                    ButtonType.OK);
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            Alert alert = getStage().createWarningAlert("Invalid device name entered! Please ensure it is not empty and has a max of 64 characters.");
             alert.showAndWait();
         }
     }

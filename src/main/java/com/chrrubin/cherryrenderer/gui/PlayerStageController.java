@@ -19,7 +19,10 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -352,12 +355,7 @@ public class PlayerStageController implements BaseController {
             String error = player.getError().toString();
 
             LOGGER.log(Level.SEVERE, error, player.getError());
-            Alert alert = new Alert(
-                    Alert.AlertType.ERROR,
-                    "An error has occured: " + System.lineSeparator() + error + System.lineSeparator() +
-                    "Please refer to logs for more detail.",
-                    ButtonType.OK);
-            alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            Alert alert = getStage().createErrorAlert(error);
             alert.showAndWait();
         });
 
@@ -758,6 +756,11 @@ public class PlayerStageController implements BaseController {
         );
     }
 
+    /**
+     * Parses the metadata XML to get the title of the video playing
+     * @param xml XML metadata string
+     * @return Title string of video
+     */
     private String getTitle(String xml){
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -770,8 +773,9 @@ public class PlayerStageController implements BaseController {
             return (String)expr.evaluate(document, XPathConstants.STRING);
         }
         catch (Exception e){
-            // TODO: Please don't forget about this...
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
             return null;
         }
     }
