@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 <GridPane fx:id="rootGridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PreferencesStageController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" />
@@ -31,7 +32,10 @@
                <children>
                   <Label text="Device Name:" GridPane.halignment="RIGHT" />
                   <TextField fx:id="nameTextField" minWidth="200.0" GridPane.columnIndex="1" />
-                  <Label style="-fx-font-style: italic;" text="(This will be announced to UPnP control point apps)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+                  <Label text="(This will be announced to UPnP control point apps)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                     <font>
+                        <Font name="System Italic" size="13.0" />
+                     </font></Label>
                </children>
             </GridPane>
          </content>
@@ -50,9 +54,12 @@
               </rowConstraints>
                <children>
                   <Label text="Logging Level:" GridPane.halignment="RIGHT" />
-                  <ComboBox fx:id="logLevelCombobox" disable="true" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" />
+                  <ComboBox fx:id="logLevelComboBox" disable="true" minWidth="150.0" onAction="#onLogLevelSelect" GridPane.columnIndex="1" />
                   <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-                  <Label style="-fx-font-style: italic;" text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                  <Label text="(Opening the log file might stop the logging process)" textFill="GREY" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                     <font>
+                        <Font name="System Italic" size="13.0" />
+                     </font></Label>
                </children>
             </GridPane>
          </content>
@@ -67,7 +74,10 @@
             <Insets top="30.0" />
          </GridPane.margin>
       </HBox>
-      <Label style="-fx-font-style: italic;" text="(Preferences will be applied after the next restart)" textFill="GREY" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+      <Label text="(Preferences will be applied after the next restart)" textFill="GREY" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+         <font>
+            <Font name="System Italic" size="13.0" />
+         </font></Label>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

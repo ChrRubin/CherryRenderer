@@ -8,7 +8,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
 
 import java.awt.*;
 import java.io.File;
@@ -26,7 +25,7 @@ public class PreferencesStageController implements BaseController {
     @FXML
     private TextField nameTextField;
     @FXML
-    private ComboBox<String> logLevelCombobox;
+    private ComboBox<String> logLevelComboBox;
 
     public BaseStage getStage() {
         return (BaseStage)rootGridPane.getScene().getWindow();
@@ -35,17 +34,17 @@ public class PreferencesStageController implements BaseController {
     public void prepareControls(){
         nameTextField.setText(preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT));
 
-        logLevelCombobox.getItems().add("INFO");
-        logLevelCombobox.getItems().add("DEBUG");
-        logLevelCombobox.getItems().add("DEBUG+");
-        logLevelCombobox.getItems().add("ALL");
+        logLevelComboBox.getItems().add("INFO");
+        logLevelComboBox.getItems().add("DEBUG");
+        logLevelComboBox.getItems().add("DEBUG+");
+        logLevelComboBox.getItems().add("ALL");
 
-        logLevelCombobox.setValue(preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT));
+        logLevelComboBox.setValue(preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT));
     }
 
     @FXML
     private void onLogLevelSelect(){
-        switch(logLevelCombobox.getValue()){
+        switch(logLevelComboBox.getValue()){
             case "DEBUG+":
                 // TODO: Show warning
                 break;
@@ -104,7 +103,7 @@ public class PreferencesStageController implements BaseController {
     @FXML
     private void onSave(){
         String friendlyName = nameTextField.getText().trim();
-        String logLevel = logLevelCombobox.getValue();
+        String logLevel = logLevelComboBox.getValue();
 
         if(!friendlyName.equals("") && friendlyName.length() < 64) {
             preferences.put(CherryPrefs.FriendlyName.KEY, friendlyName);

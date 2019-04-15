@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp;
 
+import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.upnp.states.RendererNoMediaPresent;
 import com.chrrubin.cherryrenderer.upnp.states.RendererStateMachine;
 import org.fourthline.cling.UpnpService;
@@ -38,14 +39,6 @@ public class RendererService {
         this.friendlyName = friendlyName;
     }
 
-    public String getFriendlyName() {
-        return friendlyName;
-    }
-
-    public void setFriendlyName(String friendlyName) {
-        this.friendlyName = friendlyName;
-    }
-
     private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, URISyntaxException, IOException {
 
         DeviceIdentity identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("CherryRenderer"));
@@ -58,9 +51,12 @@ public class RendererService {
                 new ModelDetails(
                         "CherryRenderer",
                         "CherryRenderer - Standalone UPnP Media Renderer",
-                        "1"
+                        CherryPrefs.VERSION
                         )
         );
+
+        Icon icon = new Icon("image/png", 64, 64, 32, "CherryRendererIcon.png",
+                this.getClass().getClassLoader().getResourceAsStream("icons/cherry64.png"));
 
         LocalService<AVTransportService> service = new AnnotationLocalServiceBinder().read(AVTransportService.class);
 
@@ -84,7 +80,7 @@ public class RendererService {
             manager.fireLastChange();
         },0,500, TimeUnit.MILLISECONDS);
 
-        return new LocalDevice(identity, type, details, service);
+        return new LocalDevice(identity, type, details, icon, service);
     }
 
     public void startService() {
