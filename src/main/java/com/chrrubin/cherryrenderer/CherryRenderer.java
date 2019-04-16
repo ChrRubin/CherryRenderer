@@ -20,9 +20,6 @@ public class CherryRenderer extends Application {
         try {
             String propertiesFileName;
             switch (preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT)) {
-                case "INFO":
-                    propertiesFileName = "log-info.properties";
-                    break;
                 case "DEBUG":
                     propertiesFileName = "log-debug.properties";
                     break;
