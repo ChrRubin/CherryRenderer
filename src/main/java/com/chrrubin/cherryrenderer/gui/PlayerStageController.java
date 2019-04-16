@@ -430,7 +430,11 @@ public class PlayerStageController implements BaseController {
         /*
         ScheduledService that updates the current video time to control points every second.
          */
-        // FIXME: Sometimes 2 services are running simultaneously?
+        if(updateTimeService != null && updateTimeService.isRunning()){
+            LOGGER.warning("A previous updateTimeService was still running. Stopping it first.");
+            updateTimeService.cancel();
+        }
+
         updateTimeService = new ScheduledService<Void>(){
             @Override
             protected Task<Void> createTask() {
@@ -490,7 +494,7 @@ public class PlayerStageController implements BaseController {
         rootStackPane.setOnKeyReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
 
-        if(updateTimeService != null){
+        if(updateTimeService != null && updateTimeService.isRunning()){
             LOGGER.finer("Stopping auto update of PositionInfo service");
             updateTimeService.cancel();
         }
