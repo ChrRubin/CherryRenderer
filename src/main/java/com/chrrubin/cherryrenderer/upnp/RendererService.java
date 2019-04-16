@@ -75,7 +75,6 @@ public class RendererService {
         );
 
         lastChangeExecutor.scheduleWithFixedDelay(() ->{
-//            System.out.println("Flushing last change");
             LastChangeAwareServiceManager manager = (LastChangeAwareServiceManager)service.getManager();
             manager.fireLastChange();
         },0,500, TimeUnit.MILLISECONDS);
@@ -89,7 +88,7 @@ public class RendererService {
                 final UpnpService upnpService = new UpnpServiceImpl();
 
                 Runtime.getRuntime().addShutdownHook(new Thread(() ->{
-                    // TODO: The service doesn't shutdown properly? It's not showing signs of it in the output/log
+                    // TODO: The service doesn't shutdown properly? Sometimes it doesn't show signs of it in the output/log
                     LOGGER.info("Running shutdown hooks");
                     upnpService.shutdown();
                     lastChangeExecutor.shutdown();

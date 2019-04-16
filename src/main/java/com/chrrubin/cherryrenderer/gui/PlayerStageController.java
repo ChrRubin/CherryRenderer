@@ -412,6 +412,9 @@ public class PlayerStageController implements BaseController {
 
         volumeSlider.setOnMouseReleased(volumeMouseReleasedEvent);
 
+        /*
+        Allow key press handling on videoMediaView
+         */
         videoMediaView.setOnKeyReleased(videoKeyReleasedEvent);
 
         player.setOnEndOfMedia(() -> {
@@ -424,6 +427,9 @@ public class PlayerStageController implements BaseController {
             endOfMedia();
         });
 
+        /*
+        ScheduledService that updates the current video time to control points every second.
+         */
         // FIXME: Sometimes 2 services are running simultaneously?
         updateTimeService = new ScheduledService<Void>(){
             @Override
@@ -704,6 +710,10 @@ public class PlayerStageController implements BaseController {
         }
     }
 
+    /**
+     * Switches the volume image between volume.png and volume-mute.png based on the given volume.
+     * @param volume Volume value of the player
+     */
     private void changeVolumeImage(double volume){
         if(volume == 0){
             volumeImageView.setImage(volumeMuteImage);
