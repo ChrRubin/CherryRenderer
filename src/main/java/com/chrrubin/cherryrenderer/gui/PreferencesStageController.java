@@ -49,7 +49,7 @@ public class PreferencesStageController implements BaseController {
         Alert alert;
         switch(logLevelComboBox.getValue()){
             case "DEBUG+":
-                alert = getStage().createInfoAlert("DEBUG+ generates a more detailed debug log that includes UPnP's SOAP protocol contents and JavaFX logs." +
+                alert = getStage().createInfoAlert("DEBUG+ generates a more detailed debug log that includes UPnP's SOAP protocol contents." +
                         System.lineSeparator() + System.lineSeparator() +
                         "You should only enable this if DEBUG does not provide the necessary logging required.");
                 alert.showAndWait();
