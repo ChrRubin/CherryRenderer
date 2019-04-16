@@ -430,11 +430,6 @@ public class PlayerStageController implements BaseController {
         /*
         ScheduledService that updates the current video time to control points every second.
          */
-        if(updateTimeService != null && updateTimeService.isRunning()){
-            LOGGER.warning("A previous updateTimeService was still running. Stopping it first.");
-            updateTimeService.cancel();
-        }
-
         updateTimeService = new ScheduledService<Void>(){
             @Override
             protected Task<Void> createTask() {
