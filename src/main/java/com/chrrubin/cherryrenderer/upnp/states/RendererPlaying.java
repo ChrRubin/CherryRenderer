@@ -1,7 +1,5 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.CherryUtil;
-import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.Playing;
@@ -14,7 +12,6 @@ import java.util.logging.Logger;
 public class RendererPlaying extends Playing {
     final private Logger LOGGER = Logger.getLogger(RendererPlaying.class.getName());
 
-    private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
 
     public RendererPlaying(AVTransport transport) {
@@ -27,8 +24,7 @@ public class RendererPlaying extends Playing {
         LOGGER.fine("Entered Playing state");
 
         transportHandler.setTransport(getTransport());
-
-        rendererHandler.setRendererState(RendererState.PLAYING);
+        transportHandler.setRendererState(RendererState.PLAYING);
 
     }
 
@@ -39,15 +35,7 @@ public class RendererPlaying extends Playing {
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
         LOGGER.finer("Setting transport URI...");
-        LOGGER.finest("URI: " + uri.toString());
-        LOGGER.finest("Metadata: " + metaData);
-
-        rendererHandler.setUri(uri);
-        rendererHandler.setMetadata(metaData);
-
-        transportHandler.setMediaInfo(uri, metaData);
-        transportHandler.setPositionInfo(uri, metaData);
-
+        transportHandler.setTransportURI(uri, metaData);
         return RendererPlaying.class;
     }
 
@@ -78,19 +66,14 @@ public class RendererPlaying extends Playing {
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
         LOGGER.finer("Seek invoked");
-
-        if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
-            LOGGER.finer("Seeking to " + target + " with unit " + unit.name());
-            rendererHandler.setVideoSeek(CherryUtil.stringToDuration(target));
-        }
+        transportHandler.seek(unit, target);
         return RendererPlaying.class;
     }
 
     @Override
     public Class<? extends AbstractState> stop() {
         LOGGER.finer("Stop invoked");
-        // FIXME: Stopping within 2 seconds after video is ready freezes the program. Deadlock somewhere?
-        //  This shit is just inconsistent to reproduce for some reason
+
         return RendererStopped.class;
     }
 }

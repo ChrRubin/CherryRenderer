@@ -1,6 +1,5 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.NoMediaPresent;
@@ -12,7 +11,6 @@ import java.util.logging.Logger;
 public class RendererNoMediaPresent extends NoMediaPresent {
     final private Logger LOGGER = Logger.getLogger(RendererNoMediaPresent.class.getName());
 
-    private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
 
     public RendererNoMediaPresent(AVTransport avTransport){
@@ -25,7 +23,7 @@ public class RendererNoMediaPresent extends NoMediaPresent {
         LOGGER.fine("Entered NoMediaPresent state");
 
         transportHandler.setTransport(getTransport());
-        rendererHandler.setRendererState(RendererState.NOMEDIAPRESENT);
+        transportHandler.setRendererState(RendererState.NOMEDIAPRESENT);
     }
 
     public void onExit(){
@@ -35,17 +33,8 @@ public class RendererNoMediaPresent extends NoMediaPresent {
 
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
-
         LOGGER.finer("Setting transport URI...");
-        LOGGER.finest("URI: " + uri.toString());
-        LOGGER.finest("Metadata: " + metaData);
-
-        rendererHandler.setUri(uri);
-        rendererHandler.setMetadata(metaData);
-
-        transportHandler.setMediaInfo(uri, metaData);
-        transportHandler.setPositionInfo(uri, metaData);
-
+        transportHandler.setTransportURI(uri, metaData);
         return RendererStopped.class;
     }
 

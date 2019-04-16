@@ -3,7 +3,6 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.CherryUtil;
-import com.chrrubin.cherryrenderer.upnp.RendererHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.TransportHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
@@ -87,7 +86,6 @@ public class PlayerStageController implements BaseController {
 
     private URI currentUri = null;
     private double volumeSavedValue = 0;
-    private RendererHandler rendererHandler = RendererHandler.getInstance();
     private TransportHandler transportHandler = TransportHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
     private Image volumeFullImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume.png"));
@@ -313,7 +311,7 @@ public class PlayerStageController implements BaseController {
         RendererService handler = new RendererService(friendlyName);
         handler.startService();
 
-        rendererHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+        transportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
     }
 
     /**
@@ -337,21 +335,12 @@ public class PlayerStageController implements BaseController {
             Duration totalDuration = player.getTotalDuration();
 
             totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
-            transportHandler.setMediaInfo(
-                    rendererHandler.getUri(),
-                    rendererHandler.getMetadata(),
-                    totalDuration
-            );
-            transportHandler.setPositionInfo(
-                    rendererHandler.getUri(),
-                    rendererHandler.getMetadata(),
-                    totalDuration,
-                    new Duration(0)
-            );
+            transportHandler.setMediaInfoWithTotalTime(totalDuration);
+            transportHandler.setPositionInfoWithTimes(totalDuration, Duration.ZERO);
             transportHandler.sendLastChangeMediaDuration(totalDuration);
             transportHandler.setTransportInfo(TransportState.PLAYING);
 
-            String title = getTitle(rendererHandler.getMetadata());
+            String title = getTitle(transportHandler.getMetadata());
             if(title != null && !title.equals("")){
                 LOGGER.finer("Video title is " + title);
 
@@ -365,7 +354,6 @@ public class PlayerStageController implements BaseController {
             volumeImageView.setOpacity(1);
         });
 
-        // TODO: Handle player errors better (media not supported, player halted etc)
         player.setOnError(() -> {
             String error = player.getError().toString();
 
@@ -458,7 +446,7 @@ public class PlayerStageController implements BaseController {
         /*
         Seeks video when VideoSeekEvent is triggered by control point
          */
-        rendererHandler.getVideoSeekEvent().addListener(seekDuration -> {
+        transportHandler.getVideoSeekEvent().addListener(seekDuration -> {
             if(seekDuration != null) {
                 player.seek(seekDuration);
                 updateCurrentTime();
@@ -680,16 +668,18 @@ public class PlayerStageController implements BaseController {
                 }
                 break;
             case PLAYING:
-                if(!rendererHandler.getUri().equals(currentUri)) {
+                URI uri = transportHandler.getUri();
+
+                if(!uri.equals(currentUri)) {
                     if(player != null && player.getStatus() != Status.DISPOSED){
                         LOGGER.warning("Tried to create new player while existing player still running. Stopping current player.");
                         onStop();
                     }
 
-                    LOGGER.finer("Creating new player for URI " + rendererHandler.getUri().toString());
-                    currentUri = rendererHandler.getUri();
+                    LOGGER.finer("Creating new player for URI " + uri.toString());
+                    currentUri = uri;
 
-                    Media media = new Media(rendererHandler.getUri().toString());
+                    Media media = new Media(uri.toString());
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
 
                     transportHandler.setTransportInfo(TransportState.TRANSITIONING);
@@ -802,22 +792,11 @@ public class PlayerStageController implements BaseController {
             return;
         }
 
-        transportHandler.setPositionInfo(
-                rendererHandler.getUri(),
-                rendererHandler.getMetadata(),
-                player.getTotalDuration(),
-                player.getCurrentTime()
-        );
+        transportHandler.setPositionInfoWithTimes(player.getTotalDuration(), player.getCurrentTime());
     }
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
-
-        transportHandler.setPositionInfo(
-                rendererHandler.getUri(),
-                rendererHandler.getMetadata(),
-                totalTime,
-                currentTime
-        );
+        transportHandler.setPositionInfoWithTimes(totalTime, currentTime);
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.chrrubin.cherryrenderer.upnp;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.upnp.states.RendererState;
+import com.pploder.events.Event;
+import com.pploder.events.SimpleEvent;
 import javafx.util.Duration;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
@@ -15,6 +18,11 @@ public class TransportHandler {
     private static TransportHandler instance = new TransportHandler();
 
     private AVTransport transport = null;
+    private URI uri = null;
+    private String metadata = null;
+
+    private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
+    private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
 
     private TransportHandler(){}
 
@@ -26,15 +34,36 @@ public class TransportHandler {
         this.transport = transport;
     }
 
-    public synchronized void setPositionInfo(URI uri, String metadata){
+    public URI getUri() {
+        return uri;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public Event<RendererState> getRendererStateChangedEvent() {
+        return rendererStateChangedEvent;
+    }
+
+    public void setRendererState(RendererState rendererState){
+        LOGGER.info("RendererState set to " + rendererState.name());
+        rendererStateChangedEvent.trigger(rendererState);
+    }
+
+    public Event<Duration> getVideoSeekEvent() {
+        return videoSeekEvent;
+    }
+
+    private synchronized void setNewPositionInfo(){
         if(transport == null){
             return;
         }
 
-        transport.setPositionInfo(new PositionInfo(1, metadata, uri.toString()));
+        transport.setPositionInfo(new PositionInfo(1, this.metadata, this.uri.toString()));
     }
 
-    public synchronized void setPositionInfo(URI uri, String metadata, Duration totalTime, Duration currentTime){
+    public synchronized void setPositionInfoWithTimes(Duration totalTime, Duration currentTime){
         if(transport == null){
             return;
         }
@@ -45,8 +74,8 @@ public class TransportHandler {
 
         transport.setPositionInfo(new PositionInfo(1,
                 CherryUtil.durationToString(totalTime),
-                metadata,
-                uri.toString(),
+                this.metadata,
+                this.uri.toString(),
                 CherryUtil.durationToString(currentTime),
                 CherryUtil.durationToString(currentTime),
                 2147483647,
@@ -61,28 +90,28 @@ public class TransportHandler {
         );
     }
 
-    public synchronized void setMediaInfo(URI uri, String metadata){
+    private synchronized void setNewMediaInfo(){
         if(transport == null){
             return;
         }
 
-        transport.setMediaInfo(new MediaInfo(uri.toString(), metadata));
+        transport.setMediaInfo(new MediaInfo(this.uri.toString(), this.metadata));
 
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
-                new AVTransportVariable.AVTransportURI(uri),
-                new AVTransportVariable.CurrentTrackURI(uri)
+                new AVTransportVariable.AVTransportURI(this.uri),
+                new AVTransportVariable.CurrentTrackURI(this.uri)
         );
     }
 
-    public synchronized void setMediaInfo(URI uri, String metadata, Duration totalTime){
+    public synchronized void setMediaInfoWithTotalTime(Duration totalTime){
         if(transport == null){
             return;
         }
 
         transport.setMediaInfo(new MediaInfo(
-                uri.toString(),
-                metadata,
+                this.uri.toString(),
+                this.metadata,
                 new UnsignedIntegerFourBytes(0L),
                 CherryUtil.durationToString(totalTime),
                 StorageMedium.NOT_IMPLEMENTED
@@ -90,8 +119,8 @@ public class TransportHandler {
 
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
-                new AVTransportVariable.AVTransportURI(uri),
-                new AVTransportVariable.CurrentTrackURI(uri)
+                new AVTransportVariable.AVTransportURI(this.uri),
+                new AVTransportVariable.CurrentTrackURI(this.uri)
         );
     }
 
@@ -143,7 +172,27 @@ public class TransportHandler {
 
     public synchronized void clearInfo(){
         LOGGER.fine("Clearing MediaInfo and PositionInfo");
+        this.uri = null;
+        this.metadata = null;
         transport.setMediaInfo(new MediaInfo());
         transport.setPositionInfo(new PositionInfo());
+    }
+
+    public synchronized void setTransportURI(URI uri, String metadata){
+        LOGGER.finest("URI: " + uri.toString());
+        LOGGER.finest("Metadata: " + metadata);
+
+        this.uri = uri;
+        this.metadata = metadata;
+
+        setNewMediaInfo();
+        setNewPositionInfo();
+    }
+
+    public void seek(SeekMode unit, String target){
+        if(unit == SeekMode.ABS_TIME || unit == SeekMode.REL_TIME){
+            LOGGER.finer("Seeking to " + target + " with unit " + unit.name());
+            videoSeekEvent.trigger(CherryUtil.stringToDuration(target));
+        }
     }
 }
