@@ -30,28 +30,47 @@ public class AboutStageController implements BaseController {
     }
 
     @FXML
+    private void onClickVersion(){
+        new Thread(() -> openBrowser("https://github.com/ChrRubin/CherryRenderer/releases")).start();
+    }
+
+    @FXML
     private void onClickSite(){
-        new Thread(() -> {
-            if(Desktop.isDesktopSupported()){
-                try{
-                    Desktop.getDesktop().browse(new URI("https://github.com/ChrRubin"));
-                }
-                catch (URISyntaxException | IOException e){
-                    LOGGER.log(Level.SEVERE, e.toString(), e);
-                    Alert alert = getStage().createErrorAlert(e.toString());
-                    alert.showAndWait();
-                }
-            }
-            else{
-                LOGGER.warning("This desktop does not support opening web browser");
-                Alert alert = getStage().createWarningAlert("This desktop does not support opening web browser");
-                alert.showAndWait();
-            }
-        }).start();
+        new Thread(() -> openBrowser("https://github.com/ChrRubin")).start();
+    }
+
+    @FXML
+    private void onLicense(){
+        LicenseStage licenseStage = new LicenseStage(getStage());
+        try{
+            licenseStage.prepareStage();
+            licenseStage.show();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
     }
 
     @FXML
     private void onClose(){
         getStage().close();
+    }
+
+    private void openBrowser(String uriString){
+        if(Desktop.isDesktopSupported()){
+            try{
+                Desktop.getDesktop().browse(new URI(uriString));
+            }
+            catch (URISyntaxException | IOException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
+            }
+        }
+        else{
+            LOGGER.warning("This desktop does not support opening web browser");
+            Alert alert = getStage().createWarningAlert("This desktop does not support opening web browser");
+            alert.showAndWait();
+        }
     }
 }

@@ -1,12 +1,12 @@
-#menuBar{
+.menu-bar{
     -fx-background-color: white;
 }
 
-#backgroundVBox{
+#background-vbox{
     -fx-background-color: black;
 }
 
-#bottomBarVBox{
+#bottom-bar{
     -fx-background-color: #f4f4f4;
 }
 

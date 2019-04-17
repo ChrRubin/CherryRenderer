@@ -13,7 +13,7 @@
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" />
+      <RowConstraints />
    </rowConstraints>
    <children>
       <ImageView fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
@@ -52,11 +52,15 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </Label>
-            <Label fx:id="versionLabel" text="XXXXXX" GridPane.columnIndex="1" />
+            <Label fx:id="versionLabel" onMouseReleased="#onClickVersion" text="XXXXXX" GridPane.columnIndex="1">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Label>
          </children>
       </GridPane>
-      <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.rowIndex="4">
+      <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.rowIndex="4">
          <children>
+            <Button mnemonicParsing="false" onAction="#onLicense" text="License" />
             <Button mnemonicParsing="false" onAction="#onClose" text="Close" />
          </children>
       </HBox>

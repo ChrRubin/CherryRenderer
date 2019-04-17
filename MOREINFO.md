@@ -15,12 +15,12 @@
 ## Application Specific
 ### What control point applications have been tested with CherryRenderer?
  - Tested and works:
-   - Localcast
-   - All Screen
-   - All Cast
-   - Web Video Caster
+   - [Localcast](https://www.localcast.app/)
+   - [All Screen](https://play.google.com/store/apps/details?id=com.toxic.apps.chrome&hl=en)
+   - [All Cast](https://www.allcast.io/)
+   - [Web Video Caster](http://www.webvideocaster.com)
  - Tested and does not work:
-   - BubbleUPnP
+   - [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp&hl=en)
      - It does not detect CheryRenderer for some reason. Still figuring out the reasons for this.
 
 Note that all of the above are tested on Android only. Please do let me know if other applications work as well.

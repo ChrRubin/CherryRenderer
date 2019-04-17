@@ -8,7 +8,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
 
 ## Instructions
  1. Make sure Java 8 is installed.
- 2. Download and run CherryRenderer.jar.
+ 2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer.jar.
  3. Open the control point application on your remote device.
  4. Connect to the CherryRenderer device.
  5. Start casting!
@@ -47,3 +47,6 @@ For more info such as what control point apps have been tested and what video fo
  - [Cling](https://github.com/4thline/cling)
  - [easy-events](https://github.com/Fylipp/easy-events)
  - Special thanks to my alpha testers for testing this program when it was extremely buggy.
+
+## License
+CherryRenderer is released under [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html). The full license can be found in the [COPYING](COPYING) file in the repository's root directory.
