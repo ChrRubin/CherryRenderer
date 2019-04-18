@@ -3,6 +3,7 @@
 ## Table of Contents
  - [Application Specific](#application-specific)
    - [What control point applications have been tested with CherryRenderer?](#what-control-point-applications-have-been-tested-with-cherryrenderer)
+   - [What control point application should I use?](#what-control-point-application-should-i-use)
    - [What video formats are supported by CherryRenderer?](#what-video-formats-are-supported-by-cherryrenderer)
    - [Some of the buttons are turning into white boxes. How do I fix this?](#some-of-the-buttons-are-turning-into-white-boxes-how-do-i-fix-this)
  - [General](#general)
@@ -25,14 +26,17 @@
 
 Note that all of the above are tested on Android only. Please do let me know if other applications work as well.
 
+### What control point application should I use?
+ - Whichever works for you. Preferably not one that has been tested to not work with CherryRenderer.
+
 ### What video formats are supported by CherryRenderer?
  - As per [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html), the following are the supported video formats:
  
- | File Extension   | Container | Video Encoding | Audio Encoding | MIME Type                                    |
- |----------------  |-----------|----------------|----------------|-----------                                   |
- | .fxm, .flv       | FXM, FLV  | VP6            | MP3            | video/x-javafx, video/x-flv                  |
- | .m3u8            | HLS       | H.264/AVC      | AAC            | application/vnd.apple.mpegurl, audio/mpegurl |
- | .mp4, .m4a, .m4v | MP4       | H.264/AVC      | AAC            | video/mp4, audio/x-m4a, video/x-m4v          |
+ | File Extension | Container | Video Encoding | Audio Encoding | MIME Type                     |
+ |----------------|-----------|----------------|----------------|-----------                    |
+ | .fxm, .flv     | FXM, FLV  | VP6            | MP3            | video/x-javafx, video/x-flv   |
+ | .m3u8          | HLS       | H.264/AVC      | AAC            | application/vnd.apple.mpegurl |
+ | .mp4, .m4v     | MP4       | H.264/AVC      | AAC            | video/mp4, video/x-m4v        |
  
  - On Windows 7 to 10, the required codecs *should* be included by your Windows installation by default. Older Windows versions or Windows Server editions may have to install third party codecs like MainConcept manually.
  - On Linux, you may need to install distro-dependant codecs. Examples of the codecs are ffmpeg/libavcodec/libavformat, x264 and Xvid.

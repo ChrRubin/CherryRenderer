@@ -1,6 +1,6 @@
 # CherryRenderer
 
-A standalone UPnP MediaRenderer for Windows, Linux and (probably[*](#more-info)) macOS.
+A standalone UPnP MediaRenderer video player for Windows, Linux and (probably[*](#more-info)) macOS.
 
 Cast videos from your Android/iOS phone etc to your PC as if it was a Smart TV!
 
