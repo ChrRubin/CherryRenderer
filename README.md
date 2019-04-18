@@ -4,7 +4,10 @@ A standalone UPnP MediaRenderer for Windows, Linux and (probably[*](#more-info))
 
 Cast videos from your Android/iOS phone etc to your PC as if it was a Smart TV!
 
-CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling) (yes, I know it is no longer being maintained. I am planning to migrate to a more updated library in the near future).
+![screenshot](https://cdn.discordapp.com/attachments/480408561290182667/568332775543799823/cherryrendererwhite.png)
+*(Screenshot was taken running [Web Video Caster](http://www.webvideocaster.com) on Android and CherryRenderer on Arch Linux + XFCE)*
+
+CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling) (yes, I know it is no longer being maintained. I am planning to migrate to a more updated library in the very near future).
 
 ## Instructions
  1. Make sure Java 8 is installed.
@@ -13,6 +16,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  4. Connect to the CherryRenderer device.
  5. Start casting!
 
+*&ast; Depending on your operating system, you may need to install third party codecs to play videos. View more info about this [here](MOREINFO.md#what-video-formats-are-supported-by-cherryrenderer).*
 
 ## Features
  - Basic UPnP MediaRenderer support
@@ -41,7 +45,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
 ## More Info
 For more info such as what control point apps have been tested and what video formats CherryRenderer supports, click [here](MOREINFO.md).
 
-*&ast;I do not own a macOS device, nor do my alpha testers, but technically as long as Java 8 is installed it should run fine.*
+*&ast; I do not own a macOS device, nor do my alpha testers, but technically as long as Java 8 is installed it should run fine.*
 
 ## Credits
  - [Cling](https://github.com/4thline/cling)

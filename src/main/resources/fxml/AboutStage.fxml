@@ -33,7 +33,7 @@
         <rowConstraints>
           <RowConstraints vgrow="SOMETIMES" />
           <RowConstraints vgrow="SOMETIMES" />
-          <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
             <Label text="Version:" GridPane.halignment="RIGHT">
@@ -46,16 +46,24 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <Label text="ChrRubin" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label onMouseReleased="#onClickSite" text="(https://github.com/ChrRubin)" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP">
+            <Label onMouseReleased="#onClickAuthor" text="ChrRubin" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <cursor>
                   <Cursor fx:constant="HAND" />
-               </cursor>
-            </Label>
+               </cursor></Label>
             <Label fx:id="versionLabel" onMouseReleased="#onClickVersion" text="XXXXXX" GridPane.columnIndex="1">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor></Label>
+            <Label text="Github Repository:" GridPane.rowIndex="2">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Label onMouseReleased="#onClickRepo" text="https://github.com/ChrRubin/CherryRenderer" GridPane.columnIndex="1" GridPane.rowIndex="2">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Label>
          </children>
       </GridPane>
       <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.rowIndex="4">
@@ -64,7 +72,7 @@
             <Button mnemonicParsing="false" onAction="#onClose" text="Close" />
          </children>
       </HBox>
-      <Label text="A very special thanks to my alpha testers &#10;for helping me test this." textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+      <Label text="A very special thanks to my alpha testers for helping me test this." textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
    </children>
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />

@@ -35,8 +35,13 @@ public class AboutStageController implements BaseController {
     }
 
     @FXML
-    private void onClickSite(){
+    private void onClickAuthor(){
         new Thread(() -> openBrowser("https://github.com/ChrRubin")).start();
+    }
+
+    @FXML
+    private void onClickRepo(){
+        new Thread(() -> openBrowser("https://github.com/ChrRubin/CherryRenderer")).start();
     }
 
     @FXML

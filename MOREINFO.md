@@ -34,7 +34,7 @@ Note that all of the above are tested on Android only. Please do let me know if 
  | .m3u8            | HLS       | H.264/AVC      | AAC            | application/vnd.apple.mpegurl, audio/mpegurl |
  | .mp4, .m4a, .m4v | MP4       | H.264/AVC      | AAC            | video/mp4, audio/x-m4a, video/x-m4v          |
  
- - On Windows 7 to 10, the required codecs *should* be included by your Windows installation by default. Older Windows versions or Windows Server versions may have to install third party codecs like MainConcept manually.
+ - On Windows 7 to 10, the required codecs *should* be included by your Windows installation by default. Older Windows versions or Windows Server editions may have to install third party codecs like MainConcept manually.
  - On Linux, you may need to install distro-dependant codecs. Examples of the codecs are ffmpeg/libavcodec/libavformat, x264 and Xvid.
  - If your system lacks the required codecs, or you try to play a non-supported video format, a MEDIA_UNSUPPORTED error will be thrown.
 
@@ -53,7 +53,7 @@ Note that all of the above are tested on Android only. Please do let me know if 
  - If you have a "Smart TV", chances are it can be used as a MediaRenderer device.
 
 ### What about UPnP Media Servers and UPnP Clients? How are they different from a MediaRenderer?
- - A UPnP Media Server is like a file server that shares its media content to UPnP Clients on the network.
+ - A UPnP Media Server is like a media file server that shares its media content to UPnP Clients on the network.
  - A Client can connect to a Media Server, browse the files and select whichever media file to play on the Client's device.
  - A MediaRenderer has no browsing ability, and can only play media files that are specified by a Control Point. However, a Control Point *can* specify the MediaRenderer to play media files from a Media Server.
 
@@ -64,11 +64,11 @@ Note that all of the above are tested on Android only. Please do let me know if 
    - As such, most control point apps that support DLNA supports UPnP, and by proxy, CherryRenderer.
  - **Chromecast** (also known as Google Cast) and **Airplay** are proprietary protocols developed by Google and Apple respectively. In *very* oversimplification terms, the two serves the same purpose as DLNA and UPnP AV with the added "proprietary-ness".
    - No, CherryRenderer does not support Google Cast or Airplay.
- - **Miracast** is a standard that allows users to mirror their screens to a remote device wirelessly. While Miracast has its benefits, for sharing media content it is not the most ideal choice as it mirrors the entire screen.
+ - **Miracast** is a standard that allows users to mirror their screens to a remote device wirelessly. While Miracast has its benefits, it is not the most ideal choice for sharing media content as it mirrors the device's entire screen.
    - No, CherryRenderer does not support Miracast.
    
 ### Why was CherryRenderer created?
  - I was introduced to UPnP casting from an Android Anime app called [AnYme](https://anyme.app). While casting to a TV or Raspberry Pi running Kodi was fine, I wanted a way to cast to PC.
- - A quick Google search showed almost nothing that just worked as a MediaRenderer. Popular video players like VLC only works as a UPnP client, while the only other solutions were to install huge bundled software like Kodi, which was overkill for just wanting a MediaRenderer implementation.
+ - A quick Google search showed almost nothing that just worked as a MediaRenderer. Popular video players like VLC only works as a UPnP client, while the only other solutions were to install huge bundled software such as Kodi on my PC, which was overkill for just wanting a MediaRenderer implementation.
  - A small group of the AnYme community also wanted a way to watch via the app on their PC, most of which had to resort to screen mirroring or emulators. 
  
