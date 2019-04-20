@@ -97,7 +97,7 @@ public class PlayerStageController implements BaseController {
     Start of property listeners and event handlers
      */
     /**
-     * Listener for statusProperty of videoMediaView.getPlayer()
+     * Listener for statusProperty of videoMediaView.getMediaPlayer()
      */
     private ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
         if(oldStatus == null){
@@ -107,12 +107,12 @@ public class PlayerStageController implements BaseController {
         LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
 
         if(newStatus == Status.STALLED){
-            LOGGER.fine("(Caught by listener) Media player in STALLED status. Video is currently buffering.");
+            LOGGER.fine("(Caught by listener) Media player in entered STALLED status. Video is currently buffering (?)");
         }
     };
 
     /**
-     * Listener for currentTimeProperty of videoMediaView.getPlayer()
+     * Listener for currentTimeProperty of videoMediaView.getMediaPlayer()
      * Updates currentTimeLabel and timeSlider based on the current time of the media player.
      */
     // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
@@ -124,7 +124,31 @@ public class PlayerStageController implements BaseController {
     };
 
     /**
-     * Listener for isChangingProperty of timeSlider.
+     * Listener for MuteProperty of videoMediaView.getMediaPlayer()
+     * Changes the volume image based on whether player is muted.
+     * Also notifies RenderingControlService of mute changes.
+     */
+    private InvalidationListener playerMuteListener = ((observable) -> {
+        boolean isMute = videoMediaView.getMediaPlayer().muteProperty().get();
+        changeVolumeImage(isMute);
+        renderingControlHandler.setRendererMute(isMute);
+    });
+
+    /**
+     * Listener for VolumeProperty of videoMediaView.getMediaPlayer()
+     * Updates volumeSlider based on volume changes.
+     * Also notifies RenderingControlService of volume changes.
+     */
+    private ChangeListener<Number> playerVolumeListener = ((observable, oldVolume, newVolume) -> {
+        if(!volumeSlider.isValueChanging()){
+            volumeSlider.setValue(newVolume.doubleValue() * 100);
+        }
+        renderingControlHandler.setRendererVolume(newVolume.doubleValue() * 100);
+    });
+
+    /**
+     * Listener for isChangingProperty of timeSlider
+     * Seeks video based on timeSlider value.
      */
     private ChangeListener<Boolean> timeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
@@ -134,7 +158,8 @@ public class PlayerStageController implements BaseController {
     };
 
     /**
-     * Listener for valueProperty of timeSlider.
+     * Listener for valueProperty of timeSlider
+     * Seeks video based on timeSlider value.
      */
     private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
         if(!timeSlider.isValueChanging()){
@@ -145,7 +170,8 @@ public class PlayerStageController implements BaseController {
     };
 
     /**
-     * Listener for isChangingProperty of volumeSlider.
+     * Listener for isChangingProperty of volumeSlider
+     * Changes volume of video based on volumeSlider value.
      */
     private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
@@ -155,6 +181,7 @@ public class PlayerStageController implements BaseController {
 
     /**
      * Listener for valueProperty of volumeSlider
+     * Changes volume of video based on volumeSlider value.
      */
     private InvalidationListener volumeInvalidationListener = observable -> {
         if(!volumeSlider.isValueChanging()){
@@ -164,18 +191,17 @@ public class PlayerStageController implements BaseController {
 
     /**
      * EventHandler for onMouseClicked of videoMediaView
-     * Toggles fullscreen when user double clicks on videoMediaView
+     * Toggles fullscreen when user double clicks on videoMediaView.
      */
     private EventHandler<MouseEvent> mediaViewClickEvent = event -> {
-        if(event.getButton().equals(MouseButton.PRIMARY)){
-            if(event.getClickCount() == 2){
-                toggleFullscreen();
-            }
+        if(event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2){
+            toggleFullscreen();
         }
     };
 
     /**
      * Listener for fullScreenProperty of getStage()
+     * Prepares UI based on whether stage is full screen.
      */
     private ChangeListener<Boolean> isFullScreenListener = (observable, wasFullScreen, isFullScreen) ->
             prepareFullScreen(isFullScreen);
@@ -289,25 +315,6 @@ public class PlayerStageController implements BaseController {
                 break;
         }
     };
-
-    /**
-     * Listener for MuteProperty of videoMediaView.getPlayer()
-     * Changes the volume image based on whether player is muted.
-     */
-    private InvalidationListener playerMuteListener = ((observable) -> {
-        boolean isMute = videoMediaView.getMediaPlayer().muteProperty().get();
-        changeVolumeImage(isMute);
-        renderingControlHandler.setRendererMute(isMute);
-    });
-
-    private InvalidationListener playerVolumeListener = ((observable) -> {
-        double volume = videoMediaView.getMediaPlayer().volumeProperty().get();
-        if(!volumeSlider.isValueChanging()){
-            volumeSlider.setValue(volume);
-        }
-
-        renderingControlHandler.setRendererVolume(volume);
-    });
     /*
     End of property listeners and event handlers
      */
@@ -386,13 +393,15 @@ public class PlayerStageController implements BaseController {
         // TODO: Implement buffering handling
         //  For some reason Status.STALLED can't be used to determine whether player is buffering...
         player.setOnStalled(() ->
-                LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering."));
+                LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering (?)"));
 
         player.statusProperty().addListener(playerStatusListener);
 
         player.currentTimeProperty().addListener(playerCurrentTimeListener);
 
         player.muteProperty().addListener(playerMuteListener);
+
+        player.volumeProperty().addListener(playerVolumeListener);
 
         /*
         Allow manipulation of video via timeSlider & volumeSlider
