@@ -17,6 +17,8 @@ public class CherryRenderer extends Application {
 
     @Override
     public void start(Stage primaryStage){
+        String agent = "CherryRenderer/" + CherryPrefs.VERSION + " (" + System.getProperty("os.name") + "; " + System.getProperty("os.arch") + "; " + System.getProperty("os.version") + ")";
+        System.setProperty("http.agent", agent);
         try {
             String propertiesFileName;
             switch (preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT)) {
@@ -54,7 +56,6 @@ public class CherryRenderer extends Application {
     }
 
     public static void main(String[] args) {
-        System.setProperty("http.agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
         launch(args);
     }
 
