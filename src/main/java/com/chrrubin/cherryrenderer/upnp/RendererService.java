@@ -18,8 +18,6 @@ import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
 import org.fourthline.cling.support.lastchange.LastChangeParser;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -39,7 +37,7 @@ public class RendererService {
         this.friendlyName = friendlyName;
     }
 
-    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, URISyntaxException, IOException {
+    private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, IOException {
 
         DeviceIdentity identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("CherryRenderer"));
 
@@ -47,11 +45,12 @@ public class RendererService {
 
         DeviceDetails details = new DeviceDetails(
                 friendlyName,
-                new ManufacturerDetails("ChrRubin", new URI("http://chrrubin.com")),
+                new ManufacturerDetails("ChrRubin", "http://chrrubin.com"),
                 new ModelDetails(
                         "CherryRenderer",
                         "CherryRenderer - Standalone UPnP Media Renderer",
-                        CherryPrefs.VERSION
+                        CherryPrefs.VERSION,
+                        "http://chrrubin.com"
                         )
         );
 

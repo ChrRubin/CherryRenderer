@@ -137,13 +137,9 @@ public class PlayerStageController implements BaseController {
      */
     private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
         if(!timeSlider.isValueChanging()){
-            double currentTime = oldValue.doubleValue();
             double newTime = newValue.doubleValue();
-            if(Math.abs(newTime - currentTime) > 0.5) {
-
-                videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
-                updateCurrentTime();
-            }
+            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
+            updateCurrentTime();
         }
     };
 

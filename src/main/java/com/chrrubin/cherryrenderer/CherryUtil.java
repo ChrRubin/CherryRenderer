@@ -29,36 +29,36 @@ public class CherryUtil {
         String pattern = "(\\d+:)*\\d{2}:\\d{2}";
         Pattern p = Pattern.compile(pattern);
         Matcher m = p.matcher(strTime);
-        if(m.matches()){
-            String[] splitTime = strTime.split(":");
-            if(splitTime.length == 3){
-                int hour = Integer.parseInt(splitTime[0]);
-                int min = Integer.parseInt(splitTime[1]);
-                int sec = Integer.parseInt(splitTime[2]);
+        if(!m.matches()){
+            return null;
+        }
 
-                if(min <= 59 && sec <= 59){
-                    return Duration.hours(hour).add(Duration.minutes(min)).add(Duration.seconds(sec));
-                }
-                else{
-                    return null;
-                }
-            }
-            else if(splitTime.length == 2){
-                int min = Integer.parseInt(splitTime[0]);
-                int sec = Integer.parseInt(splitTime[1]);
+        String[] splitTime = strTime.split(":");
 
-                if(min <= 59 && sec <= 59){
-                    return Duration.minutes(min).add(Duration.seconds(sec));
-                }
-                else{
-                    return null;
-                }
+        if(splitTime.length == 3){
+            int hour = Integer.parseInt(splitTime[0]);
+            int min = Integer.parseInt(splitTime[1]);
+            int sec = Integer.parseInt(splitTime[2]);
+
+            if(min <= 59 && sec <= 59){
+                return Duration.hours(hour).add(Duration.minutes(min)).add(Duration.seconds(sec));
             }
             else{
                 return null;
             }
         }
-        else {
+        else if(splitTime.length == 2){
+            int min = Integer.parseInt(splitTime[0]);
+            int sec = Integer.parseInt(splitTime[1]);
+
+            if(min <= 59 && sec <= 59){
+                return Duration.minutes(min).add(Duration.seconds(sec));
+            }
+            else{
+                return null;
+            }
+        }
+        else{
             return null;
         }
     }
