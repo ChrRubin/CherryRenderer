@@ -162,7 +162,7 @@ public class PlayerStageController implements BaseController {
      * Seeks video based on timeSlider value.
      */
     private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
-        if(!timeSlider.isValueChanging()){
+        if(!timeSlider.isValueChanging() && Math.abs(newValue.doubleValue() - oldValue.doubleValue()) > 0.5){
             double newTime = newValue.doubleValue();
             videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
             updateCurrentTime();
@@ -865,7 +865,7 @@ public class PlayerStageController implements BaseController {
     private void onRendererVolumeChange(double volume){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
-            player.setVolume(volume);
+            player.setVolume(volume / 100.0);
         }
     }
 
