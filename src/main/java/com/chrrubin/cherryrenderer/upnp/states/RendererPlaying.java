@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.upnp.TransportHandler;
+import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.Playing;
 import org.fourthline.cling.support.model.AVTransport;
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class RendererPlaying extends Playing {
     final private Logger LOGGER = Logger.getLogger(RendererPlaying.class.getName());
 
-    private TransportHandler transportHandler = TransportHandler.getInstance();
+    private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
 
     public RendererPlaying(AVTransport transport) {
         super(transport);
@@ -23,8 +23,8 @@ public class RendererPlaying extends Playing {
         super.onEntry();
         LOGGER.fine("Entered Playing state");
 
-        transportHandler.setTransport(getTransport());
-        transportHandler.setRendererState(RendererState.PLAYING);
+        avTransportHandler.setTransport(getTransport());
+        avTransportHandler.setRendererState(RendererState.PLAYING);
 
     }
 
@@ -35,7 +35,7 @@ public class RendererPlaying extends Playing {
     @Override
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
         LOGGER.finer("Setting transport URI...");
-        transportHandler.setTransportURI(uri, metaData);
+        avTransportHandler.setTransportURI(uri, metaData);
         return RendererPlaying.class;
     }
 
@@ -66,7 +66,7 @@ public class RendererPlaying extends Playing {
     @Override
     public Class<? extends AbstractState> seek(SeekMode unit, String target) {
         LOGGER.finer("Seek invoked");
-        transportHandler.seek(unit, target);
+        avTransportHandler.seek(unit, target);
         return RendererPlaying.class;
     }
 

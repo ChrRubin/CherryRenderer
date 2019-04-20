@@ -12,10 +12,10 @@ import org.fourthline.cling.support.model.*;
 import java.net.URI;
 import java.util.logging.Logger;
 
-public class TransportHandler {
-    private final Logger LOGGER = Logger.getLogger(TransportHandler.class.getName());
+public class AVTransportHandler {
+    private final Logger LOGGER = Logger.getLogger(AVTransportHandler.class.getName());
 
-    private static TransportHandler instance = new TransportHandler();
+    private static AVTransportHandler instance = new AVTransportHandler();
 
     private AVTransport transport = null;
     private URI uri = null;
@@ -24,9 +24,9 @@ public class TransportHandler {
     private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
     private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
 
-    private TransportHandler(){}
+    private AVTransportHandler(){}
 
-    public static TransportHandler getInstance(){
+    public static AVTransportHandler getInstance(){
         return instance;
     }
 
@@ -34,11 +34,11 @@ public class TransportHandler {
         this.transport = transport;
     }
 
-    public URI getUri() {
+    public synchronized URI getUri() {
         return uri;
     }
 
-    public String getMetadata() {
+    public synchronized String getMetadata() {
         return metadata;
     }
 

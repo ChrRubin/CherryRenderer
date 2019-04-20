@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-import com.chrrubin.cherryrenderer.upnp.TransportHandler;
+import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.PausedPlay;
 import org.fourthline.cling.support.model.AVTransport;
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class RendererPausedPlay extends PausedPlay {
     final private Logger LOGGER = Logger.getLogger(RendererPausedPlay.class.getName());
 
-    private TransportHandler transportHandler = TransportHandler.getInstance();
+    private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
 
     public RendererPausedPlay(AVTransport avTransport){
         super(avTransport);
@@ -23,8 +23,8 @@ public class RendererPausedPlay extends PausedPlay {
         super.onEntry();
         LOGGER.fine("Entered PausedPlay state");
 
-        transportHandler.setTransport(getTransport());
-        transportHandler.setRendererState(RendererState.PAUSED);
+        avTransportHandler.setTransport(getTransport());
+        avTransportHandler.setRendererState(RendererState.PAUSED);
     }
 
     public void onExit(){
@@ -33,7 +33,7 @@ public class RendererPausedPlay extends PausedPlay {
 
     public Class<? extends AbstractState> setTransportURI(URI uri, String metaData) {
         LOGGER.finer("Setting transport URI...");
-        transportHandler.setTransportURI(uri, metaData);
+        avTransportHandler.setTransportURI(uri, metaData);
         return RendererPausedPlay.class;
     }
 
@@ -54,7 +54,7 @@ public class RendererPausedPlay extends PausedPlay {
 
     public Class<? extends AbstractState> seek(SeekMode unit, String target){
         LOGGER.finer("Seek invoked");
-        transportHandler.seek(unit, target);
+        avTransportHandler.seek(unit, target);
         return RendererPausedPlay.class;
     }
 }

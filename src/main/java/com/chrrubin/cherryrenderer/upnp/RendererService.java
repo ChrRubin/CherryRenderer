@@ -16,6 +16,7 @@ import org.fourthline.cling.support.avtransport.impl.AVTransportService;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportLastChangeParser;
 import org.fourthline.cling.support.lastchange.LastChangeAwareServiceManager;
 import org.fourthline.cling.support.lastchange.LastChangeParser;
+import org.fourthline.cling.support.renderingcontrol.lastchange.RenderingControlLastChangeParser;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +32,8 @@ public class RendererService {
     private String friendlyName;
 
     private ExecutorService mainExecutor = Executors.newSingleThreadExecutor();
-    private ScheduledExecutorService lastChangeExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService avTransportLastChangeExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService renderingControlLastChangeExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public RendererService(String friendlyName){
         this.friendlyName = friendlyName;
@@ -57,12 +59,12 @@ public class RendererService {
         Icon icon = new Icon("image/png", 64, 64, 32, "CherryRendererIcon.png",
                 this.getClass().getClassLoader().getResourceAsStream("icons/cherry64.png"));
 
-        LocalService<AVTransportService> service = new AnnotationLocalServiceBinder().read(AVTransportService.class);
+        LocalService<AVTransportService> avTransportService = new AnnotationLocalServiceBinder().read(AVTransportService.class);
 
-        LastChangeParser lastChangeParser = new AVTransportLastChangeParser();
+        LastChangeParser avTransportLastChangeParser = new AVTransportLastChangeParser();
 
-        service.setManager(
-                new LastChangeAwareServiceManager<AVTransportService>(service, lastChangeParser) {
+        avTransportService.setManager(
+                new LastChangeAwareServiceManager<AVTransportService>(avTransportService, avTransportLastChangeParser) {
                     @Override
                     protected AVTransportService createServiceInstance() throws Exception {
                         return new AVTransportService(
@@ -73,12 +75,31 @@ public class RendererService {
                 }
         );
 
-        lastChangeExecutor.scheduleWithFixedDelay(() ->{
-            LastChangeAwareServiceManager manager = (LastChangeAwareServiceManager)service.getManager();
+        avTransportLastChangeExecutor.scheduleWithFixedDelay(() ->{
+            LastChangeAwareServiceManager manager = (LastChangeAwareServiceManager)avTransportService.getManager();
             manager.fireLastChange();
         },0,500, TimeUnit.MILLISECONDS);
 
-        return new LocalDevice(identity, type, details, icon, service);
+
+        LocalService<RenderingControlService> renderingControlService = new AnnotationLocalServiceBinder().read(RenderingControlService.class);
+
+        LastChangeParser renderingControlLastChangeParser = new RenderingControlLastChangeParser();
+
+        renderingControlService.setManager(
+                new LastChangeAwareServiceManager<RenderingControlService>(renderingControlService, renderingControlLastChangeParser){
+                    @Override
+                    protected RenderingControlService createServiceInstance() throws Exception {
+                        return new RenderingControlService();
+                    }
+                }
+        );
+
+        renderingControlLastChangeExecutor.scheduleWithFixedDelay(() ->{
+            LastChangeAwareServiceManager manager = (LastChangeAwareServiceManager)renderingControlService.getManager();
+            manager.fireLastChange();
+        },0,500,TimeUnit.MILLISECONDS);
+
+        return new LocalDevice(identity, type, details, icon, new LocalService[]{avTransportService, renderingControlService});
     }
 
     public void startService() {
@@ -90,7 +111,8 @@ public class RendererService {
                     // TODO: The service doesn't shutdown properly? Sometimes it doesn't show signs of it in the output/log
                     LOGGER.info("Running shutdown hooks");
                     upnpService.shutdown();
-                    lastChangeExecutor.shutdown();
+                    avTransportLastChangeExecutor.shutdown();
+                    renderingControlLastChangeExecutor.shutdown();
                 }));
 
                 upnpService.getRegistry().addDevice(createDevice());

@@ -3,8 +3,9 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
-import com.chrrubin.cherryrenderer.upnp.TransportHandler;
+import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.animation.PauseTransition;
 import javafx.beans.InvalidationListener;
@@ -48,10 +49,10 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-
 public class PlayerStageController implements BaseController {
     @FXML
     private StackPane rootStackPane;
@@ -85,8 +86,8 @@ public class PlayerStageController implements BaseController {
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
     private URI currentUri = null;
-    private double volumeSavedValue = 0;
-    private TransportHandler transportHandler = TransportHandler.getInstance();
+    private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
+    private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
     private Image volumeFullImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume.png"));
     private Image volumeMuteImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume-mute.png"));
@@ -144,12 +145,11 @@ public class PlayerStageController implements BaseController {
     };
 
     /**
-     * Listener for isChangingProperty of volumeSlider,
+     * Listener for isChangingProperty of volumeSlider.
      */
     private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
             videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
-            changeVolumeImage(volumeSlider.getValue());
         }
     };
 
@@ -159,7 +159,6 @@ public class PlayerStageController implements BaseController {
     private InvalidationListener volumeInvalidationListener = observable -> {
         if(!volumeSlider.isValueChanging()){
             videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
-            changeVolumeImage(volumeSlider.getValue());
         }
     };
 
@@ -290,6 +289,25 @@ public class PlayerStageController implements BaseController {
                 break;
         }
     };
+
+    /**
+     * Listener for MuteProperty of videoMediaView.getPlayer()
+     * Changes the volume image based on whether player is muted.
+     */
+    private InvalidationListener playerMuteListener = ((observable) -> {
+        boolean isMute = videoMediaView.getMediaPlayer().muteProperty().get();
+        changeVolumeImage(isMute);
+        renderingControlHandler.setRendererMute(isMute);
+    });
+
+    private InvalidationListener playerVolumeListener = ((observable) -> {
+        double volume = videoMediaView.getMediaPlayer().volumeProperty().get();
+        if(!volumeSlider.isValueChanging()){
+            volumeSlider.setValue(volume);
+        }
+
+        renderingControlHandler.setRendererVolume(volume);
+    });
     /*
     End of property listeners and event handlers
      */
@@ -307,7 +325,9 @@ public class PlayerStageController implements BaseController {
         RendererService handler = new RendererService(friendlyName);
         handler.startService();
 
-        transportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+        avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+        renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
+        renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChange);
     }
 
     /**
@@ -331,12 +351,12 @@ public class PlayerStageController implements BaseController {
             Duration totalDuration = player.getTotalDuration();
 
             totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
-            transportHandler.setMediaInfoWithTotalTime(totalDuration);
-            transportHandler.setPositionInfoWithTimes(totalDuration, Duration.ZERO);
-            transportHandler.sendLastChangeMediaDuration(totalDuration);
-            transportHandler.setTransportInfo(TransportState.PLAYING);
+            avTransportHandler.setMediaInfoWithTotalTime(totalDuration);
+            avTransportHandler.setPositionInfoWithTimes(totalDuration, Duration.ZERO);
+            avTransportHandler.sendLastChangeMediaDuration(totalDuration);
+            avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
-            String title = getTitle(transportHandler.getMetadata());
+            String title = getTitle(avTransportHandler.getMetadata());
             if(title != null && !title.equals("")){
                 LOGGER.finer("Video title is " + title);
 
@@ -371,6 +391,8 @@ public class PlayerStageController implements BaseController {
         player.statusProperty().addListener(playerStatusListener);
 
         player.currentTimeProperty().addListener(playerCurrentTimeListener);
+
+        player.muteProperty().addListener(playerMuteListener);
 
         /*
         Allow manipulation of video via timeSlider & volumeSlider
@@ -447,7 +469,7 @@ public class PlayerStageController implements BaseController {
         /*
         Seeks video when VideoSeekEvent is triggered by control point
          */
-        transportHandler.getVideoSeekEvent().addListener(seekDuration -> {
+        avTransportHandler.getVideoSeekEvent().addListener(seekDuration -> {
             if(seekDuration != null) {
                 player.seek(seekDuration);
                 updateCurrentTime();
@@ -468,8 +490,8 @@ public class PlayerStageController implements BaseController {
     private void endOfMedia(){
         LOGGER.fine("Running end of media function");
 
-        transportHandler.clearInfo();
-        transportHandler.setTransportInfo(TransportState.STOPPED);
+        avTransportHandler.clearInfo();
+        avTransportHandler.setTransportInfo(TransportState.STOPPED);
 
         getStage().setTitle("CherryRenderer");
 
@@ -529,12 +551,12 @@ public class PlayerStageController implements BaseController {
         if(status == Status.PAUSED || status == Status.STOPPED || status == Status.READY){
             player.play();
             updateCurrentTime();
-            transportHandler.setTransportInfo(TransportState.PLAYING);
+            avTransportHandler.setTransportInfo(TransportState.PLAYING);
         }
         else{
             player.pause();
             updateCurrentTime();
-            transportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
+            avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
         }
     }
 
@@ -639,13 +661,16 @@ public class PlayerStageController implements BaseController {
 
     @FXML
     private void toggleMute(){
-        if(volumeSavedValue == 0){
-            volumeSavedValue = volumeSlider.getValue();
-            volumeSlider.setValue(0);
+        MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+            return;
+        }
+
+        if(player.muteProperty().get()){
+            player.setMute(false);
         }
         else{
-            volumeSlider.setValue(volumeSavedValue);
-            volumeSavedValue = 0;
+            player.setMute(true);
         }
     }
 
@@ -669,7 +694,7 @@ public class PlayerStageController implements BaseController {
                 }
                 break;
             case PLAYING:
-                URI uri = transportHandler.getUri();
+                URI uri = avTransportHandler.getUri();
 
                 if(!uri.equals(currentUri)) {
                     if(player != null && player.getStatus() != Status.DISPOSED){
@@ -683,7 +708,7 @@ public class PlayerStageController implements BaseController {
                     Media media = new Media(uri.toString());
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
 
-                    transportHandler.setTransportInfo(TransportState.TRANSITIONING);
+                    avTransportHandler.setTransportInfo(TransportState.TRANSITIONING);
 
                     prepareMediaPlayback();
                 }
@@ -706,11 +731,11 @@ public class PlayerStageController implements BaseController {
     }
 
     /**
-     * Switches the volume image between volume.png and volume-mute.png based on the given volume.
-     * @param volume Volume value of the player
+     * Switches the volume image between volume.png and volume-mute.png based on the mute boolean.
+     * @param mute Whether player is muted
      */
-    private void changeVolumeImage(double volume){
-        if(volume == 0){
+    private void changeVolumeImage(boolean mute){
+        if(mute && !volumeImageView.getImage().equals(volumeMuteImage)){
             volumeImageView.setImage(volumeMuteImage);
         }
         else if(!volumeImageView.getImage().equals(volumeFullImage)){
@@ -797,11 +822,11 @@ public class PlayerStageController implements BaseController {
             return;
         }
 
-        transportHandler.setPositionInfoWithTimes(player.getTotalDuration(), player.getCurrentTime());
+        avTransportHandler.setPositionInfoWithTimes(player.getTotalDuration(), player.getCurrentTime());
     }
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
-        transportHandler.setPositionInfoWithTimes(totalTime, currentTime);
+        avTransportHandler.setPositionInfoWithTimes(totalTime, currentTime);
     }
 
     /**
@@ -825,6 +850,20 @@ public class PlayerStageController implements BaseController {
             Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();
             return null;
+        }
+    }
+
+    private void onRendererVolumeChange(double volume){
+        MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+            player.setVolume(volume);
+        }
+    }
+
+    private void onRendererMuteChange(boolean isMute){
+        MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+            player.setMute(isMute);
         }
     }
 }
