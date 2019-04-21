@@ -1,7 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryPrefs;
-import com.chrrubin.cherryrenderer.CherryRenderer;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
@@ -12,11 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 
 public class PreferencesStageController implements BaseController {
     private final Logger LOGGER = Logger.getLogger(PreferencesStageController.class.getName());
-    private Preferences preferences = Preferences.userNodeForPackage(CherryRenderer.class);
 
     @FXML
     private GridPane rootGridPane;
@@ -26,23 +23,27 @@ public class PreferencesStageController implements BaseController {
     private ComboBox<String> logLevelComboBox;
     @FXML
     private CheckBox hardwareCheckBox;
+    @FXML
+    private ComboBox<String> themeComboBox;
 
     public BaseStage getStage() {
         return (BaseStage)rootGridPane.getScene().getWindow();
     }
 
     public void prepareControls(){
-        nameTextField.setText(preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT));
+        nameTextField.setText(CherryPrefs.FriendlyName.get());
 
-        hardwareCheckBox.setSelected(preferences.getBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT));
+        hardwareCheckBox.setSelected(CherryPrefs.HardwareAcceleration.get());
 
         logLevelComboBox.getItems().add("DEBUG");
         logLevelComboBox.getItems().add("DEBUG+");
         logLevelComboBox.getItems().add("ALL");
-
-        logLevelComboBox.setValue(preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT));
-
+        logLevelComboBox.setValue(CherryPrefs.LogLevel.get());
         logLevelComboBox.setOnAction(event -> onLogLevelSelect());
+
+        themeComboBox.getItems().add("DEFAULT");
+        themeComboBox.getItems().add("DARK");
+        themeComboBox.setValue(CherryPrefs.Theme.get());
     }
 
     private void onLogLevelSelect(){
@@ -91,9 +92,10 @@ public class PreferencesStageController implements BaseController {
         alert.showAndWait();
 
         if(alert.getResult() == ButtonType.YES){
-            preferences.put(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT);
-            preferences.put(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT);
-            preferences.putBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT);
+            CherryPrefs.FriendlyName.reset();
+            CherryPrefs.LogLevel.reset();
+            CherryPrefs.HardwareAcceleration.reset();
+            CherryPrefs.Theme.reset();
 
             LOGGER.fine("User preferences have been reset to their default values");
 
@@ -112,15 +114,18 @@ public class PreferencesStageController implements BaseController {
     @FXML
     private void onSave(){
         String friendlyName = nameTextField.getText().trim();
+        String theme = themeComboBox.getValue();
         String logLevel = logLevelComboBox.getValue();
 
         if(!friendlyName.equals("") && friendlyName.length() < 64) {
-            preferences.put(CherryPrefs.FriendlyName.KEY, friendlyName);
-            preferences.put(CherryPrefs.LogLevel.KEY, logLevel);
-            preferences.putBoolean(CherryPrefs.HardwareAcceleration.KEY, hardwareCheckBox.isSelected());
+            CherryPrefs.FriendlyName.put(friendlyName);
+            CherryPrefs.Theme.put(theme);
+            CherryPrefs.LogLevel.put(logLevel);
+            CherryPrefs.HardwareAcceleration.put(hardwareCheckBox.isSelected());
 
             LOGGER.fine("User preferences have been saved.");
             LOGGER.finer(CherryPrefs.FriendlyName.KEY + " has been set to " + friendlyName);
+            LOGGER.finer(CherryPrefs.Theme.KEY + " has been set to " + theme);
             LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
             LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
 

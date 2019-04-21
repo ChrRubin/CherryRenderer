@@ -1,7 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryPrefs;
-import com.chrrubin.cherryrenderer.CherryRenderer;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
@@ -52,7 +51,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
+
 public class PlayerStageController implements BaseController {
     @FXML
     private StackPane rootStackPane;
@@ -82,6 +81,12 @@ public class PlayerStageController implements BaseController {
     private VBox volumeTooltipVBox;
     @FXML
     private Label volumeTooltipLabel;
+    @FXML
+    private ImageView rewindImageView;
+    @FXML
+    private ImageView stopImageView;
+    @FXML
+    private ImageView fastForwardImageView;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -89,8 +94,13 @@ public class PlayerStageController implements BaseController {
     private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
     private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
-    private Image volumeFullImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume.png"));
-    private Image volumeMuteImage = new Image(this.getClass().getClassLoader().getResourceAsStream("icons/volume-mute.png"));
+    private Image playImage;
+    private Image pauseImage;
+    private Image rewindImage;
+    private Image stopImage;
+    private Image fastForwardImage;
+    private Image volumeFullImage;
+    private Image volumeMuteImage;
     private ScheduledService<Void> updateTimeService;
 
     /*
@@ -325,9 +335,7 @@ public class PlayerStageController implements BaseController {
     }
 
     public void initialize(){
-        Preferences preferences = Preferences.userNodeForPackage(CherryRenderer.class);
-
-        String friendlyName = preferences.get(CherryPrefs.FriendlyName.KEY, CherryPrefs.FriendlyName.DEFAULT);
+        String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
         LOGGER.info("Current device friendly name is " + friendlyName);
         RendererService handler = new RendererService(friendlyName);
         handler.startService();
@@ -335,6 +343,32 @@ public class PlayerStageController implements BaseController {
         avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
         renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
         renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChange);
+
+        if (CherryPrefs.Theme.LOADED_VALUE.equals("DARK")) {
+            playImage = new Image("icons/play-grey.png");
+            pauseImage = new Image("icons/pause-grey.png");
+            rewindImage = new Image("icons/rewind-grey.png");
+            stopImage = new Image("icons/stop-grey.png");
+            fastForwardImage = new Image("icons/forward-grey.png");
+            volumeFullImage = new Image("icons/volume-grey.png");
+            volumeMuteImage = new Image("icons/volume-mute-grey.png");
+        } else {
+            playImage = new Image("icons/play.png");
+            pauseImage = new Image("icons/pause.png");
+            rewindImage = new Image("icons/rewind.png");
+            stopImage = new Image("icons/stop.png");
+            fastForwardImage = new Image("icons/forward.png");
+            volumeFullImage = new Image("icons/volume.png");
+            volumeMuteImage = new Image("icons/volume-mute.png");
+        }
+    }
+
+    public void prepareControls(){
+        playPauseImageView.setImage(playImage);
+        rewindImageView.setImage(rewindImage);
+        stopImageView.setImage(stopImage);
+        fastForwardImageView.setImage(fastForwardImage);
+        volumeImageView.setImage(volumeFullImage);
     }
 
     /**
@@ -350,9 +384,9 @@ public class PlayerStageController implements BaseController {
 
         player.setAutoPlay(true);
 
-        player.setOnPlaying(() -> playPauseImageView.setImage(new Image("icons/pause.png")));
+        player.setOnPlaying(() -> playPauseImageView.setImage(pauseImage));
 
-        player.setOnPaused(() -> playPauseImageView.setImage(new Image("icons/play.png")));
+        player.setOnPaused(() -> playPauseImageView.setImage(playImage));
 
         player.setOnReady(() -> {
             Duration totalDuration = player.getTotalDuration();
@@ -532,7 +566,7 @@ public class PlayerStageController implements BaseController {
         volumeSlider.setValue(100);
 
         bottomBarVBox.setDisable(true);
-        volumeImageView.setOpacity(0.5);
+        volumeImageView.setOpacity(0.4);
 
         currentUri = null;
 
@@ -752,6 +786,9 @@ public class PlayerStageController implements BaseController {
         }
     }
 
+    /**
+     * Toggles between fullscreen and windowed.
+     */
     private void toggleFullscreen() {
         if(!getStage().isFullScreen()){
             getStage().setFullScreen(true);
@@ -862,6 +899,10 @@ public class PlayerStageController implements BaseController {
         }
     }
 
+    /**
+     * Handles RendererVolumeChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
+     * @param volume volume set by control point
+     */
     private void onRendererVolumeChange(double volume){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
@@ -869,6 +910,10 @@ public class PlayerStageController implements BaseController {
         }
     }
 
+    /**
+     * Handles RendererMuteChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
+     * @param isMute whether control point enabled/disabled mute
+     */
     private void onRendererMuteChange(boolean isMute){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){

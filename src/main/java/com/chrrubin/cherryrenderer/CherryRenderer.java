@@ -9,10 +9,8 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 
 public class CherryRenderer extends Application {
-    private Preferences preferences = Preferences.userNodeForPackage(CherryRenderer.class);
     private Logger LOGGER = Logger.getLogger(CherryRenderer.class.getName());
 
     @Override
@@ -21,7 +19,7 @@ public class CherryRenderer extends Application {
         System.setProperty("http.agent", agent);
         try {
             String propertiesFileName;
-            switch (preferences.get(CherryPrefs.LogLevel.KEY, CherryPrefs.LogLevel.DEFAULT)) {
+            switch (CherryPrefs.LogLevel.LOADED_VALUE) {
                 case "DEBUG":
                     propertiesFileName = "log-debug.properties";
                     break;
@@ -39,7 +37,7 @@ public class CherryRenderer extends Application {
             LogManager.getLogManager().readConfiguration(inputStream);
             LOGGER.fine("Loaded logger properties from " + propertiesFileName);
 
-            if(!preferences.getBoolean(CherryPrefs.HardwareAcceleration.KEY, CherryPrefs.HardwareAcceleration.DEFAULT)){
+            if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
                 LOGGER.fine("Using software acceleration.");
                 System.setProperty("prism.order", "sw");
             }

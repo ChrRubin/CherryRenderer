@@ -6,9 +6,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Font?>
-<?import java.net.URL?>
 <StackPane fx:id="rootStackPane" minHeight="450.0" minWidth="640.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PlayerStageController">
-   <stylesheets><URL value="@/fxml/PlayerStage.css" /></stylesheets>
+   <!--<stylesheets><URL value="@/fxml/PlayerStage-Dark.css" /></stylesheets>-->
    <children>
       <VBox id="background-vbox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" StackPane.alignment="CENTER" />
       <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" focusTraversable="true" StackPane.alignment="CENTER" />
@@ -27,9 +26,9 @@
          <children>
             <HBox alignment="BOTTOM_CENTER" spacing="5.0">
                <children>
-                  <Label fx:id="currentTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" />
+                  <Label id="time-label" fx:id="currentTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" />
                   <Slider fx:id="timeSlider" focusTraversable="false" minWidth="500.0" HBox.hgrow="ALWAYS" />
-                  <Label fx:id="totalTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" textAlignment="RIGHT" />
+                  <Label id="time-label" fx:id="totalTimeLabel" alignment="CENTER" minWidth="50.0" text="--:--:--" textAlignment="RIGHT" />
                </children>
                <opaqueInsets>
                   <Insets />
@@ -59,9 +58,9 @@
                               <Tooltip text="Rewind" />
                            </tooltip>
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView id="player-button" fx:id="rewindImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@/icons/backward.png" />
+                                    <Image url="@/icons/rewind.png" />
                                  </image>
                               </ImageView>
                            </graphic>
@@ -71,7 +70,7 @@
                               <Tooltip text="Stop" />
                            </tooltip>
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="stopImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@/icons/stop.png" />
                                  </image>
@@ -83,7 +82,7 @@
                               <Tooltip text="Fast Forward" />
                            </tooltip>
                            <graphic>
-                              <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
+                              <ImageView fx:id="fastForwardImageView" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
                                     <Image url="@/icons/forward.png" />
                                  </image>
@@ -97,7 +96,7 @@
                   </HBox>
                   <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <ImageView fx:id="volumeImageView" fitHeight="20.0" fitWidth="20.0" onMouseReleased="#toggleMute" opacity="0.5" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="volumeImageView" fitHeight="20.0" fitWidth="20.0" onMouseReleased="#toggleMute" opacity="0.4" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@/icons/volume.png" />
                            </image>

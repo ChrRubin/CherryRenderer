@@ -1,10 +1,12 @@
 package com.chrrubin.cherryrenderer.gui;
 
+import com.chrrubin.cherryrenderer.CherryPrefs;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -60,14 +62,14 @@ public class BaseStage extends Stage {
 
     public Alert createInfoAlert(String text){
         Alert alert = new Alert(Alert.AlertType.INFORMATION, text, ButtonType.OK);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        prepareAlertDialog(alert.getDialogPane());
 
         return alert;
     }
 
     public Alert createWarningAlert(String text){
         Alert alert = new Alert(Alert.AlertType.WARNING, text, ButtonType.OK);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        prepareAlertDialog(alert.getDialogPane());
 
         return alert;
     }
@@ -78,17 +80,27 @@ public class BaseStage extends Stage {
                 "An error has occurred: " + System.lineSeparator() + errorName + System.lineSeparator() +
                         "Please refer to logs for more detail.",
                 ButtonType.OK);
-        alert.getDialogPane().setMinWidth(500);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        prepareAlertDialog(alert.getDialogPane());
 
         return alert;
     }
 
     public Alert createConfirmAlert(String text){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, text, ButtonType.NO, ButtonType.YES);
-        alert.getDialogPane().setMinWidth(500);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        prepareAlertDialog(alert.getDialogPane());
 
         return alert;
+    }
+
+    public void loadCss(String cssName){
+        getScene().getStylesheets().add(getClass().getClassLoader().getResource("fxml/" + cssName).toExternalForm());
+    }
+
+    private void prepareAlertDialog(DialogPane dialogPane){
+        dialogPane.setMinWidth(500);
+        dialogPane.setMinHeight(Region.USE_PREF_SIZE);
+        if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
+            dialogPane.getStylesheets().add(getClass().getClassLoader().getResource("fxml/DarkBase.css").toExternalForm());
+        }
     }
 }
