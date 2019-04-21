@@ -7,11 +7,11 @@ Cast videos from your Android/iOS phone etc to your PC as if it was a Smart TV!
 ![screenshot](https://cdn.discordapp.com/attachments/480408561290182667/568332775543799823/cherryrendererwhite.png)
 *(Screenshot was taken running [Web Video Caster](http://www.webvideocaster.com) on Android and CherryRenderer on Arch Linux + XFCE)*
 
-CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling) (yes, I know it is no longer being maintained. I am planning to migrate to a more updated library in the very near future).
+CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling) (yes, I know it is no longer being maintained).
 
 ## Instructions
  1. Make sure Java 8 is installed.
- 2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer.jar.
+ 2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer_*[version]*.jar.
  3. Open the control point application on your remote device.
  4. Connect to the CherryRenderer device.
  5. Start casting!
@@ -20,8 +20,9 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
 
 ## Features
  - Basic UPnP MediaRenderer support
-   - Play, Pause, Stop, Rewind, Fast Forward
- - Change the device's friendly name via Menu - Preferences
+   - Cast videos to CherryRenderer via a control point application
+   - Control video playback such as Play, Pause, Stop, Rewind, Fast Forward from a control point application
+ - Change CherryRenderer's friendly name (announced name) via Menu - Preferences
  - Keyboard support:
  
  | Function          | Key   |
@@ -34,6 +35,11 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  | Volume Up         | Up    |
  | Volume Down       | Down  |
  | Toggle Mute       | M     |
+ 
+ - Dark theme!
+   - Switch between the default white theme and dark theme via Menu - Preferences
+ - Volume control support
+   - Control the volume of CherryRenderer from control point applications that support this feature
 
 ## Known bugs
  - There is currently no buffer handling, as in there are no indications of when a video is in the middle of buffering.

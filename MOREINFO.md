@@ -16,18 +16,19 @@
 ## Application Specific
 ### What control point applications have been tested with CherryRenderer?
  - Tested and works:
+   - [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp&hl=en)
+     - Able to detect CherryRenderer as of version 1.1
    - [Localcast](https://www.localcast.app/)
    - [All Screen](https://play.google.com/store/apps/details?id=com.toxic.apps.chrome&hl=en)
    - [All Cast](https://www.allcast.io/)
    - [Web Video Caster](http://www.webvideocaster.com)
  - Tested and does not work:
-   - [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp&hl=en)
-     - It does not detect CheryRenderer for some reason. Still figuring out the reasons for this.
+   - No other apps have been tested for now
 
 Note that all of the above are tested on Android only. Please do let me know if other applications work as well.
 
 ### What control point application should I use?
- - Whichever works for you. Preferably not one that has been tested to not work with CherryRenderer.
+ - Each app works slightly differently than others. Just choose whichever works for you. Preferably not one that has been tested to not work with CherryRenderer.
 
 ### What video formats are supported by CherryRenderer?
  - As per [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html), the following are the supported video formats:
