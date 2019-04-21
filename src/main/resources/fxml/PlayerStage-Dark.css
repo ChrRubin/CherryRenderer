@@ -41,9 +41,15 @@
           linear-gradient(to bottom,
           derive(#51504f, -9%),
           derive(#51504f, 0%),
-          derive(#51504f, -5%),
-          derive(#51504f, -12%)
+          derive(#51504f, -5%)
           );
+}
+
+.slider .thumb{
+    -fx-background-color:
+            linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+            -fx-inner-border,
+            #2b2b2b;
 }
 
 .button {
