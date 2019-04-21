@@ -15,9 +15,11 @@
         <menus>
           <Menu mnemonicParsing="false" text="Menu">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#onMenuPreferences" text="Preferences" />
-                  <MenuItem mnemonicParsing="false" onAction="#onMenuAbout" text="About" />
-                  <MenuItem mnemonicParsing="false" onAction="#onMenuExit" text="Exit" />
+              <MenuItem fx:id="preferencesMenuItem" mnemonicParsing="false" onAction="#onMenuPreferences" text="Preferences" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="aboutMenuItem" mnemonicParsing="false" onAction="#onMenuAbout" text="About" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="exitMenuItem" mnemonicParsing="false" onAction="#onMenuExit" text="Exit" />
             </items>
           </Menu>
         </menus>

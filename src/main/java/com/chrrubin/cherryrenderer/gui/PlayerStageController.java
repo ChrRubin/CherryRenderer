@@ -18,10 +18,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
@@ -87,6 +84,12 @@ public class PlayerStageController implements BaseController {
     private ImageView stopImageView;
     @FXML
     private ImageView fastForwardImageView;
+    @FXML
+    private MenuItem preferencesMenuItem;
+    @FXML
+    private MenuItem aboutMenuItem;
+    @FXML
+    private MenuItem exitMenuItem;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -101,6 +104,9 @@ public class PlayerStageController implements BaseController {
     private Image fastForwardImage;
     private Image volumeFullImage;
     private Image volumeMuteImage;
+    private ImageView preferencesImageView = new ImageView();
+    private ImageView aboutImageView = new ImageView();
+    private ImageView exitImageView = new ImageView();
     private ScheduledService<Void> updateTimeService;
 
     /*
@@ -352,7 +358,12 @@ public class PlayerStageController implements BaseController {
             fastForwardImage = new Image("icons/forward-grey.png");
             volumeFullImage = new Image("icons/volume-grey.png");
             volumeMuteImage = new Image("icons/volume-mute-grey.png");
-        } else {
+
+            preferencesImageView.setImage(new Image("icons/pref-grey.png"));
+            aboutImageView.setImage(new Image("icons/about-grey.png"));
+            exitImageView.setImage(new Image("icons/exit-grey.png"));
+        }
+        else {
             playImage = new Image("icons/play.png");
             pauseImage = new Image("icons/pause.png");
             rewindImage = new Image("icons/rewind.png");
@@ -360,7 +371,18 @@ public class PlayerStageController implements BaseController {
             fastForwardImage = new Image("icons/forward.png");
             volumeFullImage = new Image("icons/volume.png");
             volumeMuteImage = new Image("icons/volume-mute.png");
+
+            preferencesImageView.setImage(new Image("icons/pref.png"));
+            aboutImageView.setImage(new Image("icons/about.png"));
+            exitImageView.setImage(new Image("icons/exit.png"));
         }
+
+        preferencesImageView.setFitHeight(15);
+        preferencesImageView.setFitWidth(15);
+        aboutImageView.setFitWidth(15);
+        aboutImageView.setFitHeight(15);
+        exitImageView.setFitWidth(15);
+        exitImageView.setFitHeight(15);
     }
 
     public void prepareControls(){
@@ -369,6 +391,10 @@ public class PlayerStageController implements BaseController {
         stopImageView.setImage(stopImage);
         fastForwardImageView.setImage(fastForwardImage);
         volumeImageView.setImage(volumeFullImage);
+
+        preferencesMenuItem.setGraphic(preferencesImageView);
+        aboutMenuItem.setGraphic(aboutImageView);
+        exitMenuItem.setGraphic(exitImageView);
     }
 
     /**
