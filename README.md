@@ -36,9 +36,9 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  | Volume Down       | Down  |
  | Toggle Mute       | M     |
  
- - Dark theme!
+ - **&ast;NEW&ast;** Dark theme!
    - Switch between the default white theme and dark theme via Menu - Preferences
- - Volume control support
+ - **&ast;NEW&ast;** Volume control support
    - Control the volume of CherryRenderer from control point applications that support this feature
 
 ## Known bugs
