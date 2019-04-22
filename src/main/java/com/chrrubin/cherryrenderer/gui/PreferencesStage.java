@@ -3,7 +3,7 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import javafx.stage.Window;
 
-public class PreferencesStage extends BaseStage {
+public class PreferencesStage extends AbstractStage {
     public PreferencesStage(Window windowParent){
         super("Preferences", "PreferencesStage.fxml", true, windowParent);
 
@@ -12,7 +12,7 @@ public class PreferencesStage extends BaseStage {
                 loadCss("DarkBase.css");
             }
 
-            ((PreferencesStageController)getController()).prepareControls();
+            getController().prepareControls();
         });
     }
 }

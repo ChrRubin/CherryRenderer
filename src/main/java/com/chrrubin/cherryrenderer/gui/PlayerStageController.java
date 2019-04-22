@@ -49,7 +49,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PlayerStageController implements BaseController {
+public class PlayerStageController implements IController {
     @FXML
     private StackPane rootStackPane;
     @FXML
@@ -336,8 +336,9 @@ public class PlayerStageController implements BaseController {
      */
 
 
-    public BaseStage getStage() {
-        return (BaseStage) rootStackPane.getScene().getWindow();
+    @Override
+    public AbstractStage getStage() {
+        return (AbstractStage) rootStackPane.getScene().getWindow();
     }
 
     public void initialize(){
@@ -385,6 +386,7 @@ public class PlayerStageController implements BaseController {
         exitImageView.setFitHeight(15);
     }
 
+    @Override
     public void prepareControls(){
         playPauseImageView.setImage(playImage);
         rewindImageView.setImage(rewindImage);
@@ -699,7 +701,7 @@ public class PlayerStageController implements BaseController {
 
     @FXML
     private void onMenuPreferences(){
-        PreferencesStage preferencesStage = new PreferencesStage(getStage());
+        AbstractStage preferencesStage = new PreferencesStage(getStage());
         try{
             preferencesStage.prepareStage();
             preferencesStage.show();
@@ -712,7 +714,7 @@ public class PlayerStageController implements BaseController {
 
     @FXML
     private void onMenuAbout(){
-        AboutStage aboutStage = new AboutStage(getStage());
+        AbstractStage aboutStage = new AboutStage(getStage());
         try{
             aboutStage.prepareStage();
             aboutStage.show();

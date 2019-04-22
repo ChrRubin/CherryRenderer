@@ -3,7 +3,7 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import javafx.scene.image.Image;
 
-public class PlayerStage extends BaseStage {
+public class PlayerStage extends AbstractStage {
 
     public PlayerStage(){
         super("CherryRenderer", "PlayerStage.fxml", 640, 450);
@@ -18,7 +18,7 @@ public class PlayerStage extends BaseStage {
                 loadCss("PlayerStage.css");
             }
 
-            ((PlayerStageController)getController()).prepareControls();
+            getController().prepareControls();
         });
     }
 }

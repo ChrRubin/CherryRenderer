@@ -14,22 +14,22 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 
-public class BaseStage extends Stage {
+public class AbstractStage extends Stage {
     private String title;
     private String fxml;
     private double minWidth;
     private double minHeight;
     private boolean modal = false;
     private Window parent = null;
-    private BaseController controller;
+    private IController controller;
 
-    public BaseStage(String title, String fxml, double minWidth, double minHeight){
+    public AbstractStage(String title, String fxml, double minWidth, double minHeight){
         this.title = title;
         this.fxml = fxml;
         this.minHeight = minHeight;
         this.minWidth = minWidth;
     }
-    public BaseStage(String title, String fxml, boolean modal, Window parent){
+    public AbstractStage(String title, String fxml, boolean modal, Window parent){
         this.title = title;
         this.fxml = fxml;
         this.modal = modal;
@@ -56,7 +56,7 @@ public class BaseStage extends Stage {
         }
     }
 
-    public BaseController getController(){
+    public IController getController(){
         return controller;
     }
 

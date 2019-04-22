@@ -13,7 +13,7 @@ import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AboutStageController implements BaseController {
+public class AboutStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(AboutStageController.class.getName());
     @FXML
     private GridPane rootGridPane;
@@ -21,11 +21,12 @@ public class AboutStageController implements BaseController {
     private Label versionLabel;
 
     @Override
-    public BaseStage getStage() {
-        return (BaseStage)rootGridPane.getScene().getWindow();
+    public AbstractStage getStage() {
+        return (AbstractStage)rootGridPane.getScene().getWindow();
     }
 
-    public void loadVersion(){
+    @Override
+    public void prepareControls(){
         versionLabel.setText(CherryPrefs.VERSION);
     }
 

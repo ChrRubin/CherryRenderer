@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PreferencesStageController implements BaseController {
+public class PreferencesStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(PreferencesStageController.class.getName());
 
     @FXML
@@ -26,10 +26,12 @@ public class PreferencesStageController implements BaseController {
     @FXML
     private ComboBox<String> themeComboBox;
 
-    public BaseStage getStage() {
-        return (BaseStage)rootGridPane.getScene().getWindow();
+    @Override
+    public AbstractStage getStage() {
+        return (AbstractStage)rootGridPane.getScene().getWindow();
     }
 
+    @Override
     public void prepareControls(){
         nameTextField.setText(CherryPrefs.FriendlyName.get());
 

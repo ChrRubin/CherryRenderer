@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer;
 
+import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.PlayerStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -42,7 +43,7 @@ public class CherryRenderer extends Application {
                 System.setProperty("prism.order", "sw");
             }
 
-            PlayerStage stage = new PlayerStage();
+            AbstractStage stage = new PlayerStage();
             stage.prepareStage();
             stage.show();
         }
