@@ -875,9 +875,8 @@ public class PlayerStageController implements IController {
             double menuBarHeight = menuBar.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(menuBarHeight,0, bottomBarHeight,0));
 
-            // Frankly I don't understand how this math works /shrug
-            videoMediaView.fitHeightProperty().bind(getStage().heightProperty().subtract((bottomBarHeight + menuBarHeight) * 1.45));
-            videoMediaView.fitWidthProperty().bind(getStage().widthProperty().subtract(10));
+            videoMediaView.fitHeightProperty().bind(getStage().getScene().heightProperty().subtract(bottomBarHeight + menuBarHeight));
+            videoMediaView.fitWidthProperty().bind(getStage().getScene().widthProperty());
 
             bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
 
