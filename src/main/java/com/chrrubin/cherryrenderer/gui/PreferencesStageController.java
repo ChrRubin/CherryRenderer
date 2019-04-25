@@ -131,7 +131,7 @@ public class PreferencesStageController implements IController {
             LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
             LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
 
-            Alert alert = getStage().createInfoAlert("Preferences have been saved.");
+            Alert alert = getStage().createInfoAlert("Preferences have been saved. It will be applied on the next program restart.");
             alert.showAndWait();
 
             getStage().close();

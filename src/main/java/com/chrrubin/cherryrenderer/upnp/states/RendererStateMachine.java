@@ -1,6 +1,5 @@
 package com.chrrubin.cherryrenderer.upnp.states;
 
-
 import org.fourthline.cling.support.avtransport.impl.AVTransportStateMachine;
 import org.seamless.statemachine.States;
 

@@ -92,7 +92,7 @@
             <Insets top="30.0" />
          </GridPane.margin>
       </HBox>
-      <Label disable="true" text="(Preferences will be applied after the next restart)" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+      <Label disable="true" text="(Preferences will be applied after the next progam restart)" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
          <font>
             <Font name="System Italic" size="13.0" />
          </font></Label>
