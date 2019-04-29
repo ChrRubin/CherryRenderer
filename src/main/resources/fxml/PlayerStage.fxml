@@ -16,11 +16,16 @@
             <items>
               <MenuItem fx:id="preferencesMenuItem" mnemonicParsing="false" onAction="#onMenuPreferences" text="Preferences" />
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem fx:id="aboutMenuItem" mnemonicParsing="false" onAction="#onMenuAbout" text="About" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem fx:id="exitMenuItem" mnemonicParsing="false" onAction="#onMenuExit" text="Exit" />
             </items>
           </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#onMenuHelp" text="Help" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="aboutMenuItem" mnemonicParsing="false" onAction="#onMenuAbout" text="About" />
+              </items>
+            </Menu>
         </menus>
       </MenuBar>
       <VBox id="bottom-bar" fx:id="bottomBarVBox" alignment="BOTTOM_CENTER" disable="true" maxHeight="-Infinity" spacing="5.0" StackPane.alignment="BOTTOM_CENTER">

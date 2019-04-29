@@ -1,0 +1,22 @@
+.paragraph{
+    -fx-font-family: "System";
+}
+
+.title{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.header{
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.empty-line{
+    -fx-font-size: 10px;
+}
+
+.link{
+    -fx-text-fill: #0096C9;
+    -fx-cursor: hand;
+}

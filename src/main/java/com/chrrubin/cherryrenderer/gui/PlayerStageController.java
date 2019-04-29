@@ -711,6 +711,18 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
+    private void onMenuHelp(){
+        AbstractStage helpStage = new HelpStage(getStage());
+        try{
+            helpStage.prepareStage();
+            helpStage.show();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
+    }
+
+    @FXML
     private void onMenuAbout(){
         AbstractStage aboutStage = new AboutStage(getStage());
         try{
