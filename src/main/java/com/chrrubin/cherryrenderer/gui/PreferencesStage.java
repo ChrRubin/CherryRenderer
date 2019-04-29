@@ -11,8 +11,6 @@ public class PreferencesStage extends AbstractStage {
             if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
                 loadCss("DarkBase.css");
             }
-
-            getController().prepareControls();
         });
     }
 }

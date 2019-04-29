@@ -341,7 +341,8 @@ public class PlayerStageController implements IController {
         return (AbstractStage) rootStackPane.getScene().getWindow();
     }
 
-    public void initialize(){
+    @FXML
+    private void initialize(){
         String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
         LOGGER.info("Current device friendly name is " + friendlyName);
         RendererService handler = new RendererService(friendlyName);
@@ -384,10 +385,7 @@ public class PlayerStageController implements IController {
         aboutImageView.setFitHeight(15);
         exitImageView.setFitWidth(15);
         exitImageView.setFitHeight(15);
-    }
 
-    @Override
-    public void prepareControls(){
         playPauseImageView.setImage(playImage);
         rewindImageView.setImage(rewindImage);
         stopImageView.setImage(stopImage);

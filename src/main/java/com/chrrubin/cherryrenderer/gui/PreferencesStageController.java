@@ -31,8 +31,8 @@ public class PreferencesStageController implements IController {
         return (AbstractStage)rootGridPane.getScene().getWindow();
     }
 
-    @Override
-    public void prepareControls(){
+    @FXML
+    private void initialize(){
         nameTextField.setText(CherryPrefs.FriendlyName.get());
 
         hardwareCheckBox.setSelected(CherryPrefs.HardwareAcceleration.get());

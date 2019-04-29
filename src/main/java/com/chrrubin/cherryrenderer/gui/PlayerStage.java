@@ -17,8 +17,6 @@ public class PlayerStage extends AbstractStage {
             else{
                 loadCss("PlayerStage.css");
             }
-
-            getController().prepareControls();
         });
     }
 }

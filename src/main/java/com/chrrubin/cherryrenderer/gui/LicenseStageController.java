@@ -12,9 +12,6 @@ public class LicenseStageController implements IController {
         return (AbstractStage)rootGridPane.getScene().getWindow();
     }
 
-    @Override
-    public void prepareControls(){}
-
     @FXML
     private void onClose(){
         getStage().close();
