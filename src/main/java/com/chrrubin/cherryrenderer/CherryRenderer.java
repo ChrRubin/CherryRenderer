@@ -2,6 +2,7 @@ package com.chrrubin.cherryrenderer;
 
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.PlayerStage;
+import com.chrrubin.cherryrenderer.gui.UpdaterStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -37,12 +38,32 @@ public class CherryRenderer extends Application {
             InputStream inputStream = CherryRenderer.class.getClassLoader().getResourceAsStream(propertiesFileName);
             LogManager.getLogManager().readConfiguration(inputStream);
             LOGGER.fine("Loaded logger properties from " + propertiesFileName);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
 
-            if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
-                LOGGER.fine("Using software acceleration.");
-                System.setProperty("prism.order", "sw");
+        if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
+            LOGGER.fine("Using software acceleration.");
+            System.setProperty("prism.order", "sw");
+        }
+
+        try {
+            if (CherryPrefs.AutoCheckUpdate.LOADED_VALUE) {
+                LOGGER.fine("Checking for updates...");
+                if(CherryUtil.isOutdated()){
+                    AbstractStage stage = new UpdaterStage();
+                    stage.prepareStage();
+                    stage.showAndWait();
+                }
             }
+        }
+        catch (IOException | RuntimeException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
 
+        try{
             AbstractStage stage = new PlayerStage();
             stage.prepareStage();
             stage.show();

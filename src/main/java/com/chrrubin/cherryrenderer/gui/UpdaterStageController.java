@@ -36,6 +36,19 @@ public class UpdaterStageController implements IController {
             "Consider updating for new features and bug fixes.";
     private final String ERROR = "Could not find latest version!" + System.lineSeparator() +
             "Please check your internet connection.";
+    private Service<Map<String, Boolean>> latestVersionService = new Service<Map<String, Boolean>>() {
+        @Override
+        protected Task<Map<String, Boolean>> createTask() {
+            return new Task<Map<String, Boolean>>() {
+                @Override
+                protected Map<String, Boolean> call() throws Exception {
+                    HashMap<String, Boolean> map = new HashMap<>(1);
+                    map.put(CherryUtil.getLatestVersion(), CherryUtil.isOutdated());
+                    return map;
+                }
+            };
+        }
+    };
 
     @Override
     public AbstractStage getStage() {
@@ -46,23 +59,8 @@ public class UpdaterStageController implements IController {
     private void initialize(){
         currentLabel.setText(CherryPrefs.VERSION);
 
-        Service<Map<String, Boolean>> getLatestService = new Service<Map<String, Boolean>>() {
-            @Override
-            protected Task<Map<String, Boolean>> createTask() {
-                return new Task<Map<String, Boolean>>() {
-                    @Override
-                    protected Map<String, Boolean> call() throws Exception {
-                        HashMap<String, Boolean> map = new HashMap<>(1);
-                        map.put(CherryUtil.getLatestVersion(), CherryUtil.isOutdated());
-
-                        return map;
-                    }
-                };
-            }
-        };
-
-        getLatestService.setOnSucceeded(event -> {
-            Map<String, Boolean> map = getLatestService.getValue();
+        latestVersionService.setOnSucceeded(event -> {
+            Map<String, Boolean> map = latestVersionService.getValue();
             Map.Entry<String, Boolean> firstPair = map.entrySet().iterator().next();
             String latest = firstPair.getKey();
             boolean isOutdated = firstPair.getValue();
@@ -76,20 +74,19 @@ public class UpdaterStageController implements IController {
                 currentLabel.setStyle("-fx-text-fill: green");
                 statusLabel.setText(UP_TO_DATE);
             }
-
         });
 
-        getLatestService.setOnFailed(event -> {
+        latestVersionService.setOnFailed(event -> {
             latestLabel.setText("???");
             statusLabel.setText(ERROR);
-            Throwable e = getLatestService.getException();
+            Throwable e = latestVersionService.getException();
 
             LOGGER.log(Level.SEVERE, e.toString(), e);
             Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();
         });
 
-        getLatestService.start();
+        latestVersionService.start();
     }
 
     @FXML
@@ -115,4 +112,5 @@ public class UpdaterStageController implements IController {
     private void onClose(){
         getStage().close();
     }
+
 }

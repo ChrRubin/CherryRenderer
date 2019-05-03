@@ -13,4 +13,14 @@ public class UpdaterStage extends AbstractStage {
             }
         });
     }
+
+    public UpdaterStage(){
+        super("Updater", "UpdaterStage.fxml", 400, 200);
+
+        this.setOnShown(event -> {
+            if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
+                loadCss("DarkBase.css");
+            }
+        });
+    }
 }

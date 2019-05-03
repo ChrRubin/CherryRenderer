@@ -29,6 +29,7 @@
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
                   <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
                   <Label text="Device Name:" GridPane.halignment="RIGHT" />
@@ -41,7 +42,12 @@
                         <Insets bottom="10.0" />
                      </GridPane.margin></Label>
                   <Label text="Theme:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-                  <ComboBox fx:id="themeComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <ComboBox fx:id="themeComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                     <GridPane.margin>
+                        <Insets bottom="10.0" />
+                     </GridPane.margin></ComboBox>
+                  <Label text="Updates:" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+                  <CheckBox fx:id="updateCheckBox" mnemonicParsing="false" selected="true" text="Automatically check for updates on startup" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                </children>
             </GridPane>
          </content>

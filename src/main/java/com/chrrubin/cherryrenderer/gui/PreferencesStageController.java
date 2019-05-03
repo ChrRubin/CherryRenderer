@@ -25,6 +25,8 @@ public class PreferencesStageController implements IController {
     private CheckBox hardwareCheckBox;
     @FXML
     private ComboBox<String> themeComboBox;
+    @FXML
+    private CheckBox updateCheckBox;
 
     @Override
     public AbstractStage getStage() {
@@ -34,6 +36,8 @@ public class PreferencesStageController implements IController {
     @FXML
     private void initialize(){
         nameTextField.setText(CherryPrefs.FriendlyName.get());
+
+        updateCheckBox.setSelected(CherryPrefs.AutoCheckUpdate.get());
 
         hardwareCheckBox.setSelected(CherryPrefs.HardwareAcceleration.get());
 
@@ -98,6 +102,7 @@ public class PreferencesStageController implements IController {
             CherryPrefs.LogLevel.reset();
             CherryPrefs.HardwareAcceleration.reset();
             CherryPrefs.Theme.reset();
+            CherryPrefs.AutoCheckUpdate.reset();
 
             LOGGER.fine("User preferences have been reset to their default values");
 
@@ -124,12 +129,14 @@ public class PreferencesStageController implements IController {
             CherryPrefs.Theme.put(theme);
             CherryPrefs.LogLevel.put(logLevel);
             CherryPrefs.HardwareAcceleration.put(hardwareCheckBox.isSelected());
+            CherryPrefs.AutoCheckUpdate.put(updateCheckBox.isSelected());
 
             LOGGER.fine("User preferences have been saved.");
             LOGGER.finer(CherryPrefs.FriendlyName.KEY + " has been set to " + friendlyName);
             LOGGER.finer(CherryPrefs.Theme.KEY + " has been set to " + theme);
             LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
             LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
+            LOGGER.finer(CherryPrefs.AutoCheckUpdate.KEY + " has been set to " + updateCheckBox.isSelected());
 
             Alert alert = getStage().createInfoAlert("Preferences have been saved. It will be applied on the next program restart.");
             alert.showAndWait();

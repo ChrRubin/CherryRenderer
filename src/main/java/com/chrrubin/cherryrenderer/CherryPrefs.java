@@ -69,4 +69,20 @@ public class CherryPrefs {
             NODE.put(KEY, DEFAULT);
         }
     }
+
+    public static class AutoCheckUpdate{
+        public static final String KEY = "autoCheckUpdate";
+        public static final boolean DEFAULT = true;
+        public static final boolean LOADED_VALUE = get();
+
+        public static boolean get(){
+            return NODE.getBoolean(KEY, DEFAULT);
+        }
+        public static void put(boolean value){
+            NODE.putBoolean(KEY, value);
+        }
+        public static void reset(){
+            NODE.putBoolean(KEY, DEFAULT);
+        }
+    }
 }
