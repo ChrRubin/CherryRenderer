@@ -7,6 +7,7 @@ import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -95,7 +96,7 @@ public class PlayerStageController implements IController {
     @FXML
     private MenuItem snapshotMenuItem;
     @FXML
-    private MenuItem playMenuItem;
+    private MenuItem playPauseMenuItem;
     @FXML
     private MenuItem stopMenuItem;
     @FXML
@@ -114,6 +115,12 @@ public class PlayerStageController implements IController {
     private MenuItem helpMenuItem;
     @FXML
     private MenuItem updateMenuItem;
+    @FXML
+    private Menu playbackMenu;
+    @FXML
+    private VBox waitingVBox;
+    @FXML
+    private Label waitingLabel;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -126,6 +133,8 @@ public class PlayerStageController implements IController {
     private Image volumeFullImage;
     private Image volumeMuteImage;
     private ScheduledService<Void> updateTimeService;
+    private final String WAITING_CONNECTION = "Awaiting connection from control point app...";
+    private final String WAITING_VIDEO = "Video is loading...";
 
     /*
     Start of property listeners and event handlers
@@ -229,7 +238,7 @@ public class PlayerStageController implements IController {
      */
     private EventHandler<MouseEvent> mediaViewClickEvent = event -> {
         if(event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2){
-            toggleFullscreen();
+            onToggleFullScreen();
         }
     };
 
@@ -330,10 +339,10 @@ public class PlayerStageController implements IController {
                 onStop();
                 break;
             case F:
-                toggleFullscreen();
+                onToggleFullScreen();
                 break;
             case M:
-                toggleMute();
+                onToggleMute();
                 break;
             case LEFT:
                 onRewind();
@@ -429,7 +438,7 @@ public class PlayerStageController implements IController {
         exitMenuItem.setGraphic(createMenuImageView(exitImage));
         mediaInfoMenuItem.setGraphic(createMenuImageView(infoImage));
         snapshotMenuItem.setGraphic(createMenuImageView(snapshotImage));
-        playMenuItem.setGraphic(createMenuImageView(playImage));
+        playPauseMenuItem.setGraphic(createMenuImageView(playImage));
         stopMenuItem.setGraphic(createMenuImageView(stopImage));
         rewindMenuItem.setGraphic(createMenuImageView(rewindImage));
         forwardMenuItem.setGraphic(createMenuImageView(fastForwardImage));
@@ -455,9 +464,17 @@ public class PlayerStageController implements IController {
 
         player.setAutoPlay(true);
 
-        player.setOnPlaying(() -> playPauseImageView.setImage(pauseImage));
+        player.setOnPlaying(() -> {
+            playPauseImageView.setImage(pauseImage);
+            playPauseMenuItem.setGraphic(createMenuImageView(pauseImage));
+            playPauseMenuItem.setText("Pause");
+        });
 
-        player.setOnPaused(() -> playPauseImageView.setImage(playImage));
+        player.setOnPaused(() -> {
+            playPauseImageView.setImage(playImage);
+            playPauseMenuItem.setGraphic(createMenuImageView(playImage));
+            playPauseMenuItem.setText("Play");
+        });
 
         player.setOnReady(() -> {
             Duration totalDuration = player.getTotalDuration();
@@ -479,6 +496,10 @@ public class PlayerStageController implements IController {
             }
 
             bottomBarVBox.setDisable(false);
+            for (MenuItem item : playbackMenu.getItems()) {
+                item.setDisable(false);
+            }
+            waitingVBox.setVisible(false);
             volumeImageView.setOpacity(1);
         });
 
@@ -488,6 +509,8 @@ public class PlayerStageController implements IController {
             LOGGER.log(Level.SEVERE, error, player.getError());
             Alert alert = getStage().createErrorAlert(error);
             alert.showAndWait();
+
+            waitingLabel.setText(WAITING_CONNECTION);
         });
 
         player.setOnHalted(() -> {
@@ -637,6 +660,11 @@ public class PlayerStageController implements IController {
         volumeSlider.setValue(100);
 
         bottomBarVBox.setDisable(true);
+        for (MenuItem item : playbackMenu.getItems()) {
+            item.setDisable(true);
+        }
+        waitingLabel.setText(WAITING_CONNECTION);
+        waitingVBox.setVisible(true);
         volumeImageView.setOpacity(0.4);
 
         currentUri = null;
@@ -798,7 +826,17 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void toggleMute(){
+    private void onToggleFullScreen() {
+        if(!getStage().isFullScreen()){
+            getStage().setFullScreen(true);
+        }
+        else{
+            getStage().setFullScreen(false);
+        }
+    }
+
+    @FXML
+    private void onToggleMute(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
             return;
@@ -810,6 +848,26 @@ public class PlayerStageController implements IController {
         else{
             player.setMute(true);
         }
+    }
+
+    @FXML
+    private void onIncreaseVolume(){
+        volumeSlider.increment();
+    }
+
+    @FXML
+    private void onDecreaseVolume(){
+        volumeSlider.decrement();
+    }
+
+    @FXML
+    private void onMediaInfo(){
+
+    }
+
+    @FXML
+    private void onSnapshot(){
+
     }
 
     /**
@@ -842,6 +900,8 @@ public class PlayerStageController implements IController {
 
                     LOGGER.finer("Creating new player for URI " + uri.toString());
                     currentUri = uri;
+
+                    Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
 
                     Media media = new Media(uri.toString());
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
@@ -878,18 +938,6 @@ public class PlayerStageController implements IController {
         }
         else if(!volumeImageView.getImage().equals(volumeFullImage)){
             volumeImageView.setImage(volumeFullImage);
-        }
-    }
-
-    /**
-     * Toggles between fullscreen and windowed.
-     */
-    private void toggleFullscreen() {
-        if(!getStage().isFullScreen()){
-            getStage().setFullScreen(true);
-        }
-        else{
-            getStage().setFullScreen(false);
         }
     }
 

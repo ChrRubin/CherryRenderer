@@ -26,27 +26,27 @@
                      </accelerator></MenuItem>
             </items>
           </Menu>
-            <Menu mnemonicParsing="false" text="Playback">
+            <Menu fx:id="playbackMenu" mnemonicParsing="false" text="Playback">
               <items>
-                  <MenuItem fx:id="mediaInfoMenuItem" disable="true" mnemonicParsing="false" text="Media Information">
+                  <MenuItem fx:id="mediaInfoMenuItem" disable="true" mnemonicParsing="false" onAction="#onMediaInfo" text="Media Information">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
-                <MenuItem fx:id="snapshotMenuItem" disable="true" mnemonicParsing="false" text="Take Snapshot">
+                <MenuItem fx:id="snapshotMenuItem" disable="true" mnemonicParsing="false" onAction="#onSnapshot" text="Take Snapshot">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="F12" control="UP" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
                   <SeparatorMenuItem disable="true" mnemonicParsing="false" />
-                  <MenuItem fx:id="playMenuItem" disable="true" mnemonicParsing="false" text="Play" />
-                  <MenuItem fx:id="stopMenuItem" disable="true" mnemonicParsing="false" text="Stop" />
-                  <MenuItem fx:id="rewindMenuItem" disable="true" mnemonicParsing="false" text="Rewind" />
-                  <MenuItem fx:id="forwardMenuItem" disable="true" mnemonicParsing="false" text="Fast Forward" />
+                  <MenuItem fx:id="playPauseMenuItem" disable="true" mnemonicParsing="false" onAction="#onPlay" text="Play" />
+                  <MenuItem fx:id="stopMenuItem" disable="true" mnemonicParsing="false" onAction="#onStop" text="Stop" />
+                  <MenuItem fx:id="rewindMenuItem" disable="true" mnemonicParsing="false" onAction="#onRewind" text="Rewind" />
+                  <MenuItem fx:id="forwardMenuItem" disable="true" mnemonicParsing="false" onAction="#onForward" text="Fast Forward" />
                   <SeparatorMenuItem disable="true" mnemonicParsing="false" />
-                  <MenuItem fx:id="volUpMenuItem" disable="true" mnemonicParsing="false" text="Increase Volume" />
-                  <MenuItem fx:id="volDownMenuItem" disable="true" mnemonicParsing="false" text="Decrease Volume" />
-                  <MenuItem fx:id="muteMenuItem" disable="true" mnemonicParsing="false" text="Toggle Mute" />
+                  <MenuItem fx:id="volUpMenuItem" disable="true" mnemonicParsing="false" onAction="#onIncreaseVolume" text="Increase Volume" />
+                  <MenuItem fx:id="volDownMenuItem" disable="true" mnemonicParsing="false" onAction="#onDecreaseVolume" text="Decrease Volume" />
+                  <MenuItem fx:id="muteMenuItem" disable="true" mnemonicParsing="false" onAction="#onToggleMute" text="Toggle Mute" />
                   <SeparatorMenuItem disable="true" mnemonicParsing="false" />
-                  <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" text="Toggle Fullscreen" />
+                  <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" onAction="#onToggleFullScreen" text="Toggle Fullscreen" />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
@@ -139,7 +139,7 @@
                   </HBox>
                   <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <ImageView fx:id="volumeImageView" fitHeight="20.0" fitWidth="20.0" onMouseReleased="#toggleMute" opacity="0.4" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="volumeImageView" fitHeight="20.0" fitWidth="20.0" onMouseReleased="#onToggleMute" opacity="0.4" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@/icons/volume-full.png" />
                            </image>
@@ -177,6 +177,18 @@
          </children>
          <padding>
             <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+         </padding>
+      </VBox>
+      <VBox fx:id="waitingVBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="500.0" spacing="10.0" StackPane.alignment="CENTER">
+         <children>
+            <ProgressIndicator />
+            <Label fx:id="waitingLabel" alignment="TOP_LEFT" text="Awaiting connection from control point app..." textFill="WHITE">
+               <font>
+                  <Font size="15.0" />
+               </font></Label>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
          </padding>
       </VBox>
    </children>
