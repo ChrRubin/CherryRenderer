@@ -90,6 +90,30 @@ public class PlayerStageController implements IController {
     private MenuItem aboutMenuItem;
     @FXML
     private MenuItem exitMenuItem;
+    @FXML
+    private MenuItem mediaInfoMenuItem;
+    @FXML
+    private MenuItem snapshotMenuItem;
+    @FXML
+    private MenuItem playMenuItem;
+    @FXML
+    private MenuItem stopMenuItem;
+    @FXML
+    private MenuItem rewindMenuItem;
+    @FXML
+    private MenuItem forwardMenuItem;
+    @FXML
+    private MenuItem volUpMenuItem;
+    @FXML
+    private MenuItem volDownMenuItem;
+    @FXML
+    private MenuItem muteMenuItem;
+    @FXML
+    private MenuItem fullscreenMenuItem;
+    @FXML
+    private MenuItem helpMenuItem;
+    @FXML
+    private MenuItem updateMenuItem;
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
@@ -99,14 +123,8 @@ public class PlayerStageController implements IController {
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
     private Image playImage;
     private Image pauseImage;
-    private Image rewindImage;
-    private Image stopImage;
-    private Image fastForwardImage;
     private Image volumeFullImage;
     private Image volumeMuteImage;
-    private ImageView preferencesImageView = new ImageView();
-    private ImageView aboutImageView = new ImageView();
-    private ImageView exitImageView = new ImageView();
     private ScheduledService<Void> updateTimeService;
 
     /*
@@ -352,18 +370,35 @@ public class PlayerStageController implements IController {
         renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
         renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChange);
 
-        if (CherryPrefs.Theme.LOADED_VALUE.equals("DARK")) {
-            playImage = new Image("icons/play-grey.png");
-            pauseImage = new Image("icons/pause-grey.png");
-            rewindImage = new Image("icons/rewind-grey.png");
-            stopImage = new Image("icons/stop-grey.png");
-            fastForwardImage = new Image("icons/forward-grey.png");
-            volumeFullImage = new Image("icons/volume-grey.png");
-            volumeMuteImage = new Image("icons/volume-mute-grey.png");
+        Image rewindImage;
+        Image stopImage;
+        Image fastForwardImage;
+        Image preferencesImage;
+        Image infoImage;
+        Image exitImage;
+        Image snapshotImage;
+        Image fullscreenImage;
+        Image helpImage;
+        Image updateImage;
+        Image volumeDownImage;
 
-            preferencesImageView.setImage(new Image("icons/pref-grey.png"));
-            aboutImageView.setImage(new Image("icons/about-grey.png"));
-            exitImageView.setImage(new Image("icons/exit-grey.png"));
+        if (CherryPrefs.Theme.LOADED_VALUE.equals("DARK")) {
+            playImage = new Image("icons/grey/play.png");
+            pauseImage = new Image("icons/grey/pause.png");
+            rewindImage = new Image("icons/grey/rewind.png");
+            stopImage = new Image("icons/grey/stop.png");
+            fastForwardImage = new Image("icons/grey/forward.png");
+            volumeFullImage = new Image("icons/grey/volume-full.png");
+            volumeMuteImage = new Image("icons/grey/volume-mute.png");
+
+            preferencesImage = new Image("icons/grey/pref.png");
+            infoImage = new Image("icons/grey/info.png");
+            exitImage = new Image("icons/grey/exit.png");
+            snapshotImage = new Image("icons/grey/snapshot.png");
+            fullscreenImage = new Image("icons/grey/fullscreen.png");
+            helpImage = new Image("icons/grey/help.png");
+            updateImage = new Image("icons/grey/update.png");
+            volumeDownImage = new Image("icons/grey/volume-down.png");
         }
         else {
             playImage = new Image("icons/play.png");
@@ -371,20 +406,18 @@ public class PlayerStageController implements IController {
             rewindImage = new Image("icons/rewind.png");
             stopImage = new Image("icons/stop.png");
             fastForwardImage = new Image("icons/forward.png");
-            volumeFullImage = new Image("icons/volume.png");
+            volumeFullImage = new Image("icons/volume-full.png");
             volumeMuteImage = new Image("icons/volume-mute.png");
 
-            preferencesImageView.setImage(new Image("icons/pref.png"));
-            aboutImageView.setImage(new Image("icons/about.png"));
-            exitImageView.setImage(new Image("icons/exit.png"));
+            preferencesImage = new Image("icons/pref.png");
+            infoImage = new Image("icons/info.png");
+            exitImage = new Image("icons/exit.png");
+            snapshotImage = new Image("icons/snapshot.png");
+            fullscreenImage = new Image("icons/fullscreen.png");
+            helpImage = new Image("icons/help.png");
+            updateImage = new Image("icons/update.png");
+            volumeDownImage = new Image("icons/volume-down.png");
         }
-
-        preferencesImageView.setFitHeight(15);
-        preferencesImageView.setFitWidth(15);
-        aboutImageView.setFitWidth(15);
-        aboutImageView.setFitHeight(15);
-        exitImageView.setFitWidth(15);
-        exitImageView.setFitHeight(15);
 
         playPauseImageView.setImage(playImage);
         rewindImageView.setImage(rewindImage);
@@ -392,9 +425,21 @@ public class PlayerStageController implements IController {
         fastForwardImageView.setImage(fastForwardImage);
         volumeImageView.setImage(volumeFullImage);
 
-        preferencesMenuItem.setGraphic(preferencesImageView);
-        aboutMenuItem.setGraphic(aboutImageView);
-        exitMenuItem.setGraphic(exitImageView);
+        preferencesMenuItem.setGraphic(createMenuImageView(preferencesImage));
+        exitMenuItem.setGraphic(createMenuImageView(exitImage));
+        mediaInfoMenuItem.setGraphic(createMenuImageView(infoImage));
+        snapshotMenuItem.setGraphic(createMenuImageView(snapshotImage));
+        playMenuItem.setGraphic(createMenuImageView(playImage));
+        stopMenuItem.setGraphic(createMenuImageView(stopImage));
+        rewindMenuItem.setGraphic(createMenuImageView(rewindImage));
+        forwardMenuItem.setGraphic(createMenuImageView(fastForwardImage));
+        volUpMenuItem.setGraphic(createMenuImageView(volumeFullImage));
+        volDownMenuItem.setGraphic(createMenuImageView(volumeDownImage));
+        muteMenuItem.setGraphic(createMenuImageView(volumeMuteImage));
+        fullscreenMenuItem.setGraphic(createMenuImageView(fullscreenImage));
+        helpMenuItem.setGraphic(createMenuImageView(helpImage));
+        updateMenuItem.setGraphic(createMenuImageView(updateImage));
+        aboutMenuItem.setGraphic(createMenuImageView(infoImage));
     }
 
     /**
@@ -824,7 +869,7 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Switches the volume image between volume.png and volume-mute.png based on the mute boolean.
+     * Switches the volume image between volume-full.png and volume-mute.png based on the mute boolean.
      * @param mute Whether player is muted
      */
     private void changeVolumeImage(boolean mute){
@@ -968,5 +1013,13 @@ public class PlayerStageController implements IController {
         if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
             player.setMute(isMute);
         }
+    }
+
+    private ImageView createMenuImageView(Image image){
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(15);
+        imageView.setFitWidth(15);
+
+        return imageView;
     }
 }
