@@ -1,12 +1,12 @@
 package com.chrrubin.cherryrenderer;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -78,11 +78,11 @@ public class CherryUtil {
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
 
-        InputStream input = connection.getInputStream();
+        Reader reader = new InputStreamReader(connection.getInputStream());
 
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(new InputStreamReader(input), JsonObject.class);
-        String latestVersion = jsonObject.get("tag_name").getAsString();
+        JsonObject jsonObject = Json.parse(reader).asObject();
+
+        String latestVersion = jsonObject.get("tag_name").asString();
         if(latestVersion.isEmpty()){
             throw new RuntimeException("Could not get latest version.");
         }
