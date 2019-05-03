@@ -1,7 +1,14 @@
 package com.chrrubin.cherryrenderer;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import javafx.util.Duration;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,5 +68,52 @@ public class CherryUtil {
         else{
             return null;
         }
+    }
+
+    public static String getLatestVersion() throws IOException, RuntimeException{
+        URL url = new URL("https://api.github.com/repos/chrrubin/cherryrenderer/releases/latest");
+
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+
+        InputStream input = connection.getInputStream();
+
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(new InputStreamReader(input), JsonObject.class);
+        String latestVersion = jsonObject.get("tag_name").getAsString();
+        if(latestVersion.isEmpty()){
+            throw new RuntimeException("Could not get latest version.");
+        }
+        else{
+            return latestVersion;
+        }
+    }
+
+    public static boolean isOutdated() throws IOException, RuntimeException {
+        int[] currentIntArray = semanticToIntArray(CherryPrefs.VERSION);
+        int[] latestIntArray = semanticToIntArray(getLatestVersion());
+
+        int maxLength = Math.max(currentIntArray.length, latestIntArray.length);
+        for (int i = 0; i < maxLength; i++) {
+            int current = i < currentIntArray.length ? currentIntArray[i] : 0;
+            int latest = i < latestIntArray.length ? latestIntArray[i] : 0;
+            if(latest > current){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int[] semanticToIntArray(String semantic){
+        String[] split = semantic.split("\\.");
+        int[] numbers = new int[split.length];
+
+        for (int i = 0; i < split.length; i++) {
+            numbers[i] = Integer.valueOf(split[i]);
+        }
+
+        return numbers;
     }
 }

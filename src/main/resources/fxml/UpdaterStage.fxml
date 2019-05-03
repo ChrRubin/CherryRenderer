@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<GridPane fx:id="rootGridPane" alignment="CENTER" hgap="10.0" prefHeight="200.0" prefWidth="400.0" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.UpdaterStageController">
+   <children>
+      <GridPane hgap="10.0" vgap="10.0">
+         <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <Label text="Current Version:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font></Label>
+            <Label fx:id="currentLabel" text="XXXXXX" GridPane.columnIndex="1" />
+            <Label text="Latest Version:" GridPane.rowIndex="1">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font></Label>
+            <Label fx:id="latestLabel" text="..." GridPane.columnIndex="1" GridPane.rowIndex="1" />
+         </children>
+      </GridPane>
+      <Label fx:id="statusLabel" text="Fetching latest version..." textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+      <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.rowIndex="2">
+         <children>
+            <Button mnemonicParsing="false" onAction="#onViewLatest" text="View latest release" />
+            <Button mnemonicParsing="false" onAction="#onClose" text="Close" />
+         </children>
+      </HBox>
+   </children>
+   <padding>
+      <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+   </padding>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints vgrow="ALWAYS" />
+      <RowConstraints />
+   </rowConstraints>
+   <columnConstraints>
+      <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" />
+   </columnConstraints>
+</GridPane>
