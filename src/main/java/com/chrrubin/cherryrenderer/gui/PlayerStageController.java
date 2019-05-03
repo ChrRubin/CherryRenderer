@@ -477,6 +477,7 @@ public class PlayerStageController implements IController {
         });
 
         player.setOnReady(() -> {
+            videoMediaView.setVisible(true);
             Duration totalDuration = player.getTotalDuration();
 
             totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
@@ -673,6 +674,8 @@ public class PlayerStageController implements IController {
         if(getStage().isFullScreen()){
             getStage().setFullScreen(false);
         }
+
+        videoMediaView.setVisible(false);
     }
 
     @FXML
