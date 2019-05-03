@@ -99,8 +99,8 @@ public class CherryUtil {
         for (int i = 0; i < maxLength; i++) {
             int current = i < currentIntArray.length ? currentIntArray[i] : 0;
             int latest = i < latestIntArray.length ? latestIntArray[i] : 0;
-            if(latest > current){
-                return true;
+            if(current != latest){
+                return current < latest;
             }
         }
         return false;
