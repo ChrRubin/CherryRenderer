@@ -2,6 +2,7 @@ package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
@@ -34,17 +35,11 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -486,14 +481,20 @@ public class PlayerStageController implements IController {
             avTransportHandler.sendLastChangeMediaDuration(totalDuration);
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
-            String title = getTitle(avTransportHandler.getMetadata());
-            if(title != null && !title.equals("")){
-                LOGGER.finer("Video title is " + title);
+            try {
+                String title = avTransportHandler.getMediaObject().getTitle();
+                if (title != null && !title.equals("")) {
+                    LOGGER.finer("Video title is " + title);
 
-                getStage().setTitle("CherryRenderer - " + title);
+                    getStage().setTitle("CherryRenderer - " + title);
+                } else {
+                    LOGGER.finer("Video title was not detected.");
+                }
             }
-            else{
-                LOGGER.finer("Video title was not detected.");
+            catch (ParserConfigurationException | XPathExpressionException | IOException | SAXException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
             }
 
             bottomBarVBox.setDisable(false);
@@ -865,7 +866,14 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void onMediaInfo(){
-
+        AbstractStage mediaInfoStage = new MediaInfoStage(getStage());
+        try{
+            mediaInfoStage.prepareStage();
+            mediaInfoStage.show();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
     }
 
     @FXML
@@ -893,20 +901,20 @@ public class PlayerStageController implements IController {
                 }
                 break;
             case PLAYING:
-                URI uri = avTransportHandler.getUri();
+                MediaObject mediaObject = avTransportHandler.getMediaObject();
 
-                if(!uri.equals(currentUri)) {
+                if(!mediaObject.getUri().equals(currentUri)) {
                     if(player != null && player.getStatus() != Status.DISPOSED){
                         LOGGER.warning("Tried to create new player while existing player still running. Stopping current player.");
                         onStop();
                     }
 
-                    LOGGER.finer("Creating new player for URI " + uri.toString());
-                    currentUri = uri;
+                    LOGGER.finer("Creating new player for URI " + mediaObject.getUriString());
+                    currentUri = mediaObject.getUri();
 
                     Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
 
-                    Media media = new Media(uri.toString());
+                    Media media = mediaObject.toJFXMedia();
                     videoMediaView.setMediaPlayer(new MediaPlayer(media));
 
                     avTransportHandler.setTransportInfo(TransportState.TRANSITIONING);
@@ -1018,30 +1026,6 @@ public class PlayerStageController implements IController {
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
         avTransportHandler.setPositionInfoWithTimes(totalTime, currentTime);
-    }
-
-    /**
-     * Parses the metadata XML to get the title of the video playing
-     * @param xml XML metadata string
-     * @return Title string of video
-     */
-    private String getTitle(String xml){
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(new InputSource(new StringReader(xml)));
-
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            XPathExpression expr = xpath.compile("/DIDL-Lite/item/*[local-name() = 'title']");
-
-            return (String)expr.evaluate(document, XPathConstants.STRING);
-        }
-        catch (Exception e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-            return null;
-        }
     }
 
     /**

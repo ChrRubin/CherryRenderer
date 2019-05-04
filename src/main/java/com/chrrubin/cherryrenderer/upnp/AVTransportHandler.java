@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer.upnp;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import com.pploder.events.Event;
 import com.pploder.events.SimpleEvent;
@@ -18,8 +19,7 @@ public class AVTransportHandler {
     private static AVTransportHandler instance = new AVTransportHandler();
 
     private AVTransport transport = null;
-    private URI uri = null;
-    private String metadata = null;
+    private MediaObject mediaObject = null;
 
     private final Event<RendererState> rendererStateChangedEvent = new SimpleEvent<>();
     private final Event<Duration> videoSeekEvent = new SimpleEvent<>();
@@ -30,16 +30,12 @@ public class AVTransportHandler {
         return instance;
     }
 
+    public synchronized MediaObject getMediaObject(){
+        return mediaObject;
+    }
+
     public synchronized void setTransport(AVTransport transport) {
         this.transport = transport;
-    }
-
-    public synchronized URI getUri() {
-        return uri;
-    }
-
-    public synchronized String getMetadata() {
-        return metadata;
     }
 
     public Event<RendererState> getRendererStateChangedEvent() {
@@ -60,7 +56,7 @@ public class AVTransportHandler {
             return;
         }
 
-        transport.setPositionInfo(new PositionInfo(1, this.metadata, this.uri.toString()));
+        transport.setPositionInfo(new PositionInfo(1, mediaObject.getXmlMetadata(), mediaObject.getUriString()));
     }
 
     public synchronized void setPositionInfoWithTimes(Duration totalTime, Duration currentTime){
@@ -74,8 +70,8 @@ public class AVTransportHandler {
 
         transport.setPositionInfo(new PositionInfo(1,
                 CherryUtil.durationToString(totalTime),
-                this.metadata,
-                this.uri.toString(),
+                mediaObject.getXmlMetadata(),
+                mediaObject.getUriString(),
                 CherryUtil.durationToString(currentTime),
                 CherryUtil.durationToString(currentTime),
                 2147483647,
@@ -95,12 +91,12 @@ public class AVTransportHandler {
             return;
         }
 
-        transport.setMediaInfo(new MediaInfo(this.uri.toString(), this.metadata));
+        transport.setMediaInfo(new MediaInfo(mediaObject.getUriString(), mediaObject.getXmlMetadata()));
 
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
-                new AVTransportVariable.AVTransportURI(this.uri),
-                new AVTransportVariable.CurrentTrackURI(this.uri)
+                new AVTransportVariable.AVTransportURI(mediaObject.getUri()),
+                new AVTransportVariable.CurrentTrackURI(mediaObject.getUri())
         );
     }
 
@@ -110,8 +106,8 @@ public class AVTransportHandler {
         }
 
         transport.setMediaInfo(new MediaInfo(
-                this.uri.toString(),
-                this.metadata,
+                mediaObject.getUriString(),
+                mediaObject.getXmlMetadata(),
                 new UnsignedIntegerFourBytes(0L),
                 CherryUtil.durationToString(totalTime),
                 StorageMedium.NOT_IMPLEMENTED
@@ -119,8 +115,8 @@ public class AVTransportHandler {
 
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
-                new AVTransportVariable.AVTransportURI(this.uri),
-                new AVTransportVariable.CurrentTrackURI(this.uri)
+                new AVTransportVariable.AVTransportURI(mediaObject.getUri()),
+                new AVTransportVariable.CurrentTrackURI(mediaObject.getUri())
         );
     }
 
@@ -150,13 +146,11 @@ public class AVTransportHandler {
                 transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play, TransportAction.Next, TransportAction.Previous, TransportAction.Seek};
                 break;
             case PLAYING:
+            case TRANSITIONING:
                 transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play, TransportAction.Pause, TransportAction.Next, TransportAction.Previous, TransportAction.Seek};
                 break;
             case PAUSED_PLAYBACK:
                 transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play};
-                break;
-            case TRANSITIONING:
-                transportActions = new TransportAction[]{TransportAction.Stop, TransportAction.Play, TransportAction.Pause, TransportAction.Next, TransportAction.Previous, TransportAction.Seek};
                 break;
             default:
                 transportActions = new TransportAction[]{};
@@ -172,8 +166,7 @@ public class AVTransportHandler {
 
     public synchronized void clearInfo(){
         LOGGER.fine("Clearing MediaInfo and PositionInfo");
-        this.uri = null;
-        this.metadata = null;
+        mediaObject = null;
         transport.setMediaInfo(new MediaInfo());
         transport.setPositionInfo(new PositionInfo());
     }
@@ -182,8 +175,7 @@ public class AVTransportHandler {
         LOGGER.finest("URI: " + uri.toString());
         LOGGER.finest("Metadata: " + metadata);
 
-        this.uri = uri;
-        this.metadata = metadata;
+        mediaObject = new MediaObject(uri, metadata);
 
         setNewMediaInfo();
         setNewPositionInfo();

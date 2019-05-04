@@ -50,6 +50,7 @@ public class CherryRenderer extends Application {
         }
 
         try {
+            //TODO: This is effectively sending the API request twice
             if (CherryPrefs.AutoCheckUpdate.LOADED_VALUE) {
                 LOGGER.fine("Checking for updates...");
                 if(CherryUtil.isOutdated()){
