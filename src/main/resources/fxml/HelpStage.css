@@ -17,6 +17,11 @@
 }
 
 .link{
-    -fx-text-fill: #0096C9;
+    -fx-fill: blue;
+    -fx-underline: true;
     -fx-cursor: hand;
+}
+
+#content-grid-pane{
+    -fx-background-color: -fx-control-inner-background;
 }

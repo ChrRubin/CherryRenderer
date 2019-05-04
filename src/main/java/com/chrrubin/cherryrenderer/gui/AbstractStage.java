@@ -86,7 +86,7 @@ public class AbstractStage extends Stage {
         Alert alert = new Alert(
                 Alert.AlertType.ERROR,
                 "An error has occurred: " + System.lineSeparator() + errorName + System.lineSeparator() +
-                        "Please refer to logs for more detail.",
+                        "Please refer to the debug logs for more details.",
                 ButtonType.OK);
         prepareAlertDialog(alert.getDialogPane());
 

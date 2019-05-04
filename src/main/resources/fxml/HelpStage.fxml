@@ -6,11 +6,11 @@
 <?import javafx.scene.text.*?>
 <?import java.net.URL?>
 <GridPane fx:id="rootGridPane" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.HelpStageController">
-   <stylesheets><URL value="@/fxml/HelpText.css" /></stylesheets>
+   <stylesheets><URL value="@/fxml/HelpStage.css" /></stylesheets>
    <children>
-      <ScrollPane fx:id="helpScrollPane" hbarPolicy="NEVER" prefHeight="450.0" prefWidth="450.0">
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="450.0" prefWidth="450.0">
          <content>
-            <GridPane prefWidth="430.0">
+            <GridPane id="content-grid-pane">
                <columnConstraints>
                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                </columnConstraints>
@@ -21,9 +21,9 @@
                </rowConstraints>
                <children>
                   <TextFlow lineSpacing="5.0" styleClass="paragraph">
-                     <Text styleClass="title" text="Welcome to CherryRenderer Help&#10;" />
+                     <Text styleClass="title" text="CherryRenderer Help&#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
-                     <Text styleClass="header" text="Instructions: &#10;" />
+                     <Text styleClass="header" text="Usage Instructions: &#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text text="1. Open the control point application on your remote device. &#10;" />
                      <Text text="2. Connect to the CherryRenderer device. &#10;" />
@@ -31,10 +31,10 @@
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text styleClass="header" text="Hotkeys:" />
                   </TextFlow>
-                  <TableView fx:id="hotkeyTableView" focusTraversable="false" prefHeight="300.0" GridPane.rowIndex="1">
+                  <TableView fx:id="hotkeyTableView" fixedCellSize="25" focusTraversable="false" maxWidth="300.0" GridPane.rowIndex="1">
                     <columns>
                       <TableColumn fx:id="functionTableColumn" editable="false" minWidth="-1.0" prefWidth="-1.0" sortable="false" text="Function" />
-                      <TableColumn fx:id="keyTableColumn" editable="false" minWidth="-1.0" prefWidth="-1.0" sortable="false" text="Key" />
+                      <TableColumn fx:id="keyTableColumn" editable="false" maxWidth="3000.0" minWidth="-1.0" prefWidth="-1.0" sortable="false" style="-fx-alignment: CENTER;" text="Key" />
                     </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -45,13 +45,13 @@
                      <Text styleClass="header" text="More Documentation:&#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text text="More detailed information can be found on " />
-                     <Text styleClass="link" text="our GitHub repository" />
+                     <Text onMouseReleased="#onClickRepo" styleClass="link" text="our GitHub repository" />
                      <Text text=".&#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text text="General information such as list of features and known bugs can be found in " />
-                     <Text styleClass="link" text="README.md" />
+                     <Text onMouseReleased="#onClickReadme" styleClass="link" text="README.md" />
                      <Text text=" while detailed information such as what control point applications have been tested and what video codecs CherryRenderer supports can be found in " />
-                     <Text styleClass="link" text="MOREINFO.md" />
+                     <Text onMouseReleased="#onClickMoreInfo" styleClass="link" text="MOREINFO.md" />
                      <Text text="." />
                   </TextFlow>
                </children>
