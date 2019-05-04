@@ -791,6 +791,8 @@ public class PlayerStageController implements IController {
         }
         catch (IOException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
 
     }
@@ -804,6 +806,8 @@ public class PlayerStageController implements IController {
         }
         catch (IOException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
     }
 
@@ -816,6 +820,8 @@ public class PlayerStageController implements IController {
         }
         catch (IOException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
     }
 
@@ -828,6 +834,8 @@ public class PlayerStageController implements IController {
         }
         catch (IOException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
 
     }
@@ -881,6 +889,8 @@ public class PlayerStageController implements IController {
         }
         catch (IOException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
     }
 

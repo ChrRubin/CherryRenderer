@@ -46,7 +46,10 @@
                   <MenuItem fx:id="volDownMenuItem" disable="true" mnemonicParsing="false" onAction="#onDecreaseVolume" text="Decrease Volume" />
                   <MenuItem fx:id="muteMenuItem" disable="true" mnemonicParsing="false" onAction="#onToggleMute" text="Toggle Mute" />
                   <SeparatorMenuItem disable="true" mnemonicParsing="false" />
-                  <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" onAction="#onToggleFullScreen" text="Toggle Fullscreen" />
+                  <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" onAction="#onToggleFullScreen" text="Toggle Fullscreen">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="F11" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">

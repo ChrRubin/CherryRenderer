@@ -13,7 +13,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AbstractStage extends Stage {
     private String title;
@@ -23,6 +28,7 @@ public class AbstractStage extends Stage {
     private boolean modal = false;
     private Window parent = null;
     private IController controller;
+    private Image icon = new Image(PlayerStage.class.getClassLoader().getResourceAsStream("icons/cherry64.png"));
 
     public AbstractStage(String title, String fxml, double minWidth, double minHeight){
         this.title = title;
@@ -44,7 +50,7 @@ public class AbstractStage extends Stage {
 
         this.setTitle(title);
         this.setScene(new Scene(root));
-        this.getIcons().add(new Image(PlayerStage.class.getClassLoader().getResourceAsStream("icons/cherry64.png")));
+        this.getIcons().add(icon);
 
         if(modal){
             this.initModality(Modality.APPLICATION_MODAL);
@@ -103,6 +109,26 @@ public class AbstractStage extends Stage {
         dialogPane.setMinHeight(Region.USE_PREF_SIZE);
         if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
             dialogPane.getStylesheets().add(getClass().getClassLoader().getResource("fxml/DarkBase.css").toExternalForm());
+        }
+
+        ((Stage)dialogPane.getScene().getWindow()).getIcons().add(icon);
+    }
+
+    public void openBrowser(String urlString, Logger logger){
+        if(Desktop.isDesktopSupported()){
+            try{
+                Desktop.getDesktop().browse(new URI(urlString));
+            }
+            catch (URISyntaxException | IOException e){
+                logger.log(Level.SEVERE, e.toString(), e);
+                Alert alert = createErrorAlert(e.toString());
+                alert.showAndWait();
+            }
+        }
+        else{
+            logger.warning("This desktop does not support opening web browser");
+            Alert alert = createWarningAlert("This desktop does not support opening web browser");
+            alert.showAndWait();
         }
     }
 }

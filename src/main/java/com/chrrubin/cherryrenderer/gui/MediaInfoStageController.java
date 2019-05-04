@@ -8,7 +8,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class MediaInfoStageController implements IController {
+    private final Logger LOGGER = Logger.getLogger(MediaInfoStageController.class.getName());
     @FXML
     private GridPane rootGridPane;
     @FXML
@@ -34,6 +38,7 @@ public class MediaInfoStageController implements IController {
             metadataTextArea.setText(mediaObject.getPrettyXml());
         }
         catch (Exception e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
             Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();
         }

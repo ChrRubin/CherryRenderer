@@ -37,7 +37,7 @@ public class CherryRenderer extends Application {
             }
             InputStream inputStream = CherryRenderer.class.getClassLoader().getResourceAsStream(propertiesFileName);
             LogManager.getLogManager().readConfiguration(inputStream);
-            LOGGER.fine("Loaded logger properties from " + propertiesFileName);
+            LOGGER.info("Loaded logger properties from " + propertiesFileName);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -45,14 +45,14 @@ public class CherryRenderer extends Application {
         }
 
         if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
-            LOGGER.fine("Using software acceleration.");
+            LOGGER.info("Using software acceleration.");
             System.setProperty("prism.order", "sw");
         }
 
         try {
             //TODO: This is effectively sending the API request twice
             if (CherryPrefs.AutoCheckUpdate.LOADED_VALUE) {
-                LOGGER.fine("Checking for updates...");
+                LOGGER.info("Checking for updates...");
                 if(CherryUtil.isOutdated()){
                     AbstractStage stage = new UpdaterStage();
                     stage.prepareStage();

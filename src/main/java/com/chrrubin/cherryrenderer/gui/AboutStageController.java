@@ -2,14 +2,10 @@ package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,17 +28,17 @@ public class AboutStageController implements IController {
 
     @FXML
     private void onClickVersion(){
-        new Thread(() -> openBrowser("https://github.com/ChrRubin/CherryRenderer/releases")).start();
+        new Thread(() -> getStage().openBrowser("https://github.com/ChrRubin/CherryRenderer/releases", LOGGER)).start();
     }
 
     @FXML
     private void onClickAuthor(){
-        new Thread(() -> openBrowser("https://github.com/ChrRubin")).start();
+        new Thread(() -> getStage().openBrowser("https://github.com/ChrRubin", LOGGER)).start();
     }
 
     @FXML
     private void onClickRepo(){
-        new Thread(() -> openBrowser("https://github.com/ChrRubin/CherryRenderer")).start();
+        new Thread(() -> getStage().openBrowser("https://github.com/ChrRubin/CherryRenderer", LOGGER)).start();
     }
 
     @FXML
@@ -60,23 +56,5 @@ public class AboutStageController implements IController {
     @FXML
     private void onClose(){
         getStage().close();
-    }
-
-    private void openBrowser(String uriString){
-        if(Desktop.isDesktopSupported()){
-            try{
-                Desktop.getDesktop().browse(new URI(uriString));
-            }
-            catch (URISyntaxException | IOException e){
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-                Alert alert = getStage().createErrorAlert(e.toString());
-                alert.showAndWait();
-            }
-        }
-        else{
-            LOGGER.warning("This desktop does not support opening web browser");
-            Alert alert = getStage().createWarningAlert("This desktop does not support opening web browser");
-            alert.showAndWait();
-        }
     }
 }

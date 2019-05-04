@@ -9,10 +9,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
-import java.awt.*;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -91,21 +87,7 @@ public class UpdaterStageController implements IController {
 
     @FXML
     private void onViewLatest(){
-        if(Desktop.isDesktopSupported()){
-            try{
-                Desktop.getDesktop().browse(new URI("https://github.com/ChrRubin/CherryRenderer/releases/latest"));
-            }
-            catch (URISyntaxException | IOException e){
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-                Alert alert = getStage().createErrorAlert(e.toString());
-                alert.showAndWait();
-            }
-        }
-        else{
-            LOGGER.warning("This desktop does not support opening web browser");
-            Alert alert = getStage().createWarningAlert("This desktop does not support opening web browser");
-            alert.showAndWait();
-        }
+        new Thread(() -> getStage().openBrowser("https://github.com/ChrRubin/CherryRenderer/releases/latest", LOGGER)).start();
     }
 
     @FXML

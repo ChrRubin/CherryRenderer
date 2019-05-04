@@ -18,7 +18,7 @@
          </font>
       </Label>
       <TextField fx:id="titleTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <TitledPane animated="false" collapsible="false" prefHeight="250.0" prefWidth="575.0" text="Media Metadata XML" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+      <TitledPane animated="false" collapsible="false" prefHeight="250.0" prefWidth="575.0" text="UPnP Metadata XML" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
          <content>
             <ScrollPane fitToHeight="true" fitToWidth="true">
                <content>
