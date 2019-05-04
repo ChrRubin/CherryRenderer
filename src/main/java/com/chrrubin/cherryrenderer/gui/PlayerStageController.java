@@ -15,14 +15,17 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -33,15 +36,20 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 import org.xml.sax.SAXException;
 
+import javax.imageio.ImageIO;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -878,7 +886,33 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void onSnapshot(){
+        try{
+            WritableImage snapshot = videoMediaView.snapshot(new SnapshotParameters(), null);
+            File snapshotFile;
+            String defaultFileName = "cherrysnap-" + new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'SSS").format(new Date()) + ".png";
 
+            if(CherryPrefs.AutoSaveSnapshots.LOADED_VALUE){
+                snapshotFile = new File(System.getProperty("user.home"), defaultFileName);
+            }
+            else {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setInitialFileName(defaultFileName);
+                fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
+                fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+                fileChooser.setTitle("Save snapshot as..");
+
+                snapshotFile = fileChooser.showSaveDialog(getStage());
+            }
+
+            ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", snapshotFile);
+            Alert alert = getStage().createInfoAlert("Saved snapshot to " + snapshotFile.getPath());
+            alert.showAndWait();
+        }
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
+        }
     }
 
     /**

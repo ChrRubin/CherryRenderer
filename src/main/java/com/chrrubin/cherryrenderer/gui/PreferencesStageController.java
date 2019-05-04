@@ -27,6 +27,8 @@ public class PreferencesStageController implements IController {
     private ComboBox<String> themeComboBox;
     @FXML
     private CheckBox updateCheckBox;
+    @FXML
+    private CheckBox autosaveCheckBox;
 
     @Override
     public AbstractStage getStage() {
@@ -37,8 +39,8 @@ public class PreferencesStageController implements IController {
     private void initialize(){
         nameTextField.setText(CherryPrefs.FriendlyName.get());
 
+        autosaveCheckBox.setSelected(CherryPrefs.AutoSaveSnapshots.get());
         updateCheckBox.setSelected(CherryPrefs.AutoCheckUpdate.get());
-
         hardwareCheckBox.setSelected(CherryPrefs.HardwareAcceleration.get());
 
         logLevelComboBox.getItems().add("DEBUG");
@@ -103,6 +105,7 @@ public class PreferencesStageController implements IController {
             CherryPrefs.HardwareAcceleration.reset();
             CherryPrefs.Theme.reset();
             CherryPrefs.AutoCheckUpdate.reset();
+            CherryPrefs.AutoSaveSnapshots.reset();
 
             LOGGER.fine("User preferences have been reset to their default values");
 
@@ -130,6 +133,7 @@ public class PreferencesStageController implements IController {
             CherryPrefs.LogLevel.put(logLevel);
             CherryPrefs.HardwareAcceleration.put(hardwareCheckBox.isSelected());
             CherryPrefs.AutoCheckUpdate.put(updateCheckBox.isSelected());
+            CherryPrefs.AutoSaveSnapshots.put(autosaveCheckBox.isSelected());
 
             LOGGER.fine("User preferences have been saved.");
             LOGGER.finer(CherryPrefs.FriendlyName.KEY + " has been set to " + friendlyName);
@@ -137,6 +141,7 @@ public class PreferencesStageController implements IController {
             LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
             LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
             LOGGER.finer(CherryPrefs.AutoCheckUpdate.KEY + " has been set to " + updateCheckBox.isSelected());
+            LOGGER.finer(CherryPrefs.AutoSaveSnapshots.KEY + " has been set to " + autosaveCheckBox.isSelected());
 
             Alert alert = getStage().createInfoAlert("Preferences have been saved. It will be applied on the next program restart.");
             alert.showAndWait();

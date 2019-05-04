@@ -85,4 +85,20 @@ public class CherryPrefs {
             NODE.putBoolean(KEY, DEFAULT);
         }
     }
+
+    public static class AutoSaveSnapshots{
+        public static final String KEY = "autoSaveSnapshots";
+        public static final boolean DEFAULT = false;
+        public static final boolean LOADED_VALUE = get();
+
+        public static boolean get(){
+            return NODE.getBoolean(KEY, DEFAULT);
+        }
+        public static void put(boolean value){
+            NODE.putBoolean(KEY, value);
+        }
+        public static void reset(){
+            NODE.putBoolean(KEY, DEFAULT);
+        }
+    }
 }
