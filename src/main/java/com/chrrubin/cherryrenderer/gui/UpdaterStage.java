@@ -11,16 +11,20 @@ public class UpdaterStage extends AbstractStage {
             if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
                 loadCss("DarkBase.css");
             }
+
+            ((UpdaterStageController)getController()).checkForUpdate();
         });
     }
 
-    public UpdaterStage(){
-        super("Updater", "UpdaterStage.fxml", 400, 200);
+    public UpdaterStage(Window windowParent, String latestVersion){
+        super("Updater", "UpdaterStage.fxml", true, windowParent);
 
         this.setOnShown(event -> {
             if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
                 loadCss("DarkBase.css");
             }
+
+            ((UpdaterStageController)getController()).skipUpdateCheck(latestVersion);
         });
     }
 }

@@ -2,7 +2,6 @@ package com.chrrubin.cherryrenderer;
 
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.PlayerStage;
-import com.chrrubin.cherryrenderer.gui.UpdaterStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -47,21 +46,6 @@ public class CherryRenderer extends Application {
         if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
             LOGGER.info("Using software acceleration.");
             System.setProperty("prism.order", "sw");
-        }
-
-        try {
-            //TODO: This is effectively sending the API request twice
-            if (CherryPrefs.AutoCheckUpdate.LOADED_VALUE) {
-                LOGGER.info("Checking for updates...");
-                if(CherryUtil.isOutdated()){
-                    AbstractStage stage = new UpdaterStage();
-                    stage.prepareStage();
-                    stage.showAndWait();
-                }
-            }
-        }
-        catch (IOException | RuntimeException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
 
         try{

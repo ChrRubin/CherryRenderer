@@ -14,6 +14,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
@@ -1100,5 +1101,38 @@ public class PlayerStageController implements IController {
         imageView.setFitWidth(15);
 
         return imageView;
+    }
+
+    public void checkUpdate(){
+        LOGGER.info("Checking for updates...");
+        Service<String> getLatestVersionService = CherryUtil.getLatestVersionJFXService();
+
+        getLatestVersionService.setOnSucceeded(event ->{
+            String latestVersion = getLatestVersionService.getValue();
+            LOGGER.info("Latest version is " + latestVersion);
+            if(CherryUtil.isOutdated(latestVersion)){
+                LOGGER.info("Current version is outdated!");
+                AbstractStage updaterStage = new UpdaterStage(getStage(), latestVersion);
+                try{
+                    updaterStage.prepareStage();
+                    updaterStage.show();
+                }
+                catch (IOException e){
+                    LOGGER.log(Level.SEVERE, e.toString(), e);
+                    Alert alert = getStage().createErrorAlert(e.toString());
+                    alert.showAndWait();
+                }
+            }
+        });
+
+        getLatestVersionService.setOnFailed(event -> {
+            Throwable e = getLatestVersionService.getException();
+
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
+        });
+
+        getLatestVersionService.start();
     }
 }

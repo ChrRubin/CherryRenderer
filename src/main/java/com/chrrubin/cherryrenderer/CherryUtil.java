@@ -2,6 +2,8 @@ package com.chrrubin.cherryrenderer;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -91,9 +93,9 @@ public class CherryUtil {
         }
     }
 
-    public static boolean isOutdated() throws IOException, RuntimeException {
+    public static boolean isOutdated(String latestVersion) {
         int[] currentIntArray = semanticToIntArray(CherryPrefs.VERSION);
-        int[] latestIntArray = semanticToIntArray(getLatestVersion());
+        int[] latestIntArray = semanticToIntArray(latestVersion);
 
         int maxLength = Math.max(currentIntArray.length, latestIntArray.length);
         for (int i = 0; i < maxLength; i++) {
@@ -115,5 +117,19 @@ public class CherryUtil {
         }
 
         return numbers;
+    }
+
+    public static Service<String> getLatestVersionJFXService(){
+        return new Service<String>() {
+            @Override
+            protected Task<String> createTask() {
+                return new Task<String>() {
+                    @Override
+                    protected String call() throws Exception {
+                        return getLatestVersion();
+                    }
+                };
+            }
+        };
     }
 }

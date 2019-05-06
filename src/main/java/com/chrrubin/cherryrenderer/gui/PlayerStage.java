@@ -15,6 +15,10 @@ public class PlayerStage extends AbstractStage {
             else{
                 loadCss("PlayerStage.css");
             }
+
+            if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE) {
+                ((PlayerStageController)getController()).checkUpdate();
+            }
         });
     }
 }
