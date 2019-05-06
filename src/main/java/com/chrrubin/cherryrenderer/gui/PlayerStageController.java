@@ -491,11 +491,11 @@ public class PlayerStageController implements IController {
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
             try {
-                String title = avTransportHandler.getMediaObject().getTitle();
-                if (title != null && !title.equals("")) {
+                String title = avTransportHandler.getMediaObject().getTitle().trim();
+                if (!title.isEmpty()) {
                     LOGGER.finer("Video title is " + title);
 
-                    getStage().setTitle("CherryRenderer - " + title);
+                    getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + " - " + title);
                 } else {
                     LOGGER.finer("Video title was not detected.");
                 }
@@ -641,7 +641,7 @@ public class PlayerStageController implements IController {
         avTransportHandler.clearInfo();
         avTransportHandler.setTransportInfo(TransportState.STOPPED);
 
-        getStage().setTitle("CherryRenderer");
+        getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
 
         LOGGER.finer("Clearing property listeners & event handlers");
         timeSlider.valueChangingProperty().removeListener(timeIsChangingListener);

@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<GridPane fx:id="rootGridPane" alignment="CENTER" hgap="10.0" prefHeight="200.0" prefWidth="400.0" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.UpdaterStageController">
+<GridPane fx:id="rootGridPane" alignment="CENTER" hgap="10.0" prefHeight="175.0" prefWidth="400.0" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.UpdaterStageController">
    <children>
       <GridPane hgap="10.0" vgap="10.0">
          <columnConstraints>
@@ -37,7 +37,7 @@
       </HBox>
    </children>
    <padding>
-      <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
    </padding>
    <rowConstraints>
       <RowConstraints />

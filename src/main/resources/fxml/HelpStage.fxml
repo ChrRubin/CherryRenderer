@@ -24,7 +24,6 @@
                      <Text styleClass="title" text="CherryRenderer Help&#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text styleClass="header" text="Usage Instructions: &#10;" />
-                     <Text styleClass="empty-line" text="&#10;" />
                      <Text text="1. Open the control point application on your remote device. &#10;" />
                      <Text text="2. Connect to the CherryRenderer device. &#10;" />
                      <Text text="3. Start casting! &#10;" />
@@ -43,14 +42,13 @@
                   <TextFlow lineSpacing="5.0" styleClass="paragraph" GridPane.rowIndex="2">
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text styleClass="header" text="More Documentation:&#10;" />
-                     <Text styleClass="empty-line" text="&#10;" />
                      <Text text="More detailed information can be found on " />
                      <Text onMouseReleased="#onClickRepo" styleClass="link" text="our GitHub repository" />
                      <Text text=".&#10;" />
                      <Text styleClass="empty-line" text="&#10;" />
                      <Text text="General information such as list of features and known bugs can be found in " />
                      <Text onMouseReleased="#onClickReadme" styleClass="link" text="README.md" />
-                     <Text text=" while detailed information such as what control point applications have been tested and what video codecs CherryRenderer supports can be found in " />
+                     <Text text=" while detailed information such as what control point applications have been tested and what video formats CherryRenderer supports can be found in " />
                      <Text onMouseReleased="#onClickMoreInfo" styleClass="link" text="MOREINFO.md" />
                      <Text text="." />
                   </TextFlow>

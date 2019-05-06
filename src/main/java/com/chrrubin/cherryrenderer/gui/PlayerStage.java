@@ -5,7 +5,7 @@ import com.chrrubin.cherryrenderer.CherryPrefs;
 public class PlayerStage extends AbstractStage {
 
     public PlayerStage(){
-        super("CherryRenderer", "PlayerStage.fxml", 640, 450);
+        super("CherryRenderer " + CherryPrefs.VERSION, "PlayerStage.fxml", 640, 450);
 
         this.setOnShown(event -> {
             if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
