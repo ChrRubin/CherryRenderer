@@ -4,26 +4,29 @@ A standalone UPnP MediaRenderer video player for Windows, Linux and (probably[*]
 
 Cast videos from your Android/iOS phone etc to your PC as if it was a Smart TV!
 
-![screenshot](https://cdn.discordapp.com/attachments/480408561290182667/568332775543799823/cherryrendererwhite.png)
+![screenshot](https://media.discordapp.net/attachments/480408561290182667/574177434941784094/cherryrenderer2.png)
 *(Screenshot was taken running [Web Video Caster](http://www.webvideocaster.com) on Android and CherryRenderer on Arch Linux + XFCE)*
 
 CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling) (yes, I know it is no longer being maintained).
 
 ## Instructions
- 1. Make sure Java 8 is installed.
+ 1. Make sure Java 8 is installed. You can check your Java version by following [these instructions](https://www.java.com/en/download/help/version_manual.xml).
  2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer_*[version]*.jar.
  3. Open the control point application on your remote device.
  4. Connect to the CherryRenderer device.
  5. Start casting!
 
-*&ast; Depending on your operating system, you may need to install third party codecs to play videos. View more info about this [here](MOREINFO.md#what-video-formats-are-supported-by-cherryrenderer).*
+*&ast; Depending on your operating system, you may need to install third party codecs to play videos. View more info about this [here](MOREINFO.md#do-i-need-specific-codecs-to-play-videos).*
 
 ## Features
- - Basic UPnP MediaRenderer support
-   - Cast videos to CherryRenderer via a control point application
-   - Control video playback such as Play, Pause, Stop, Rewind, Fast Forward from a control point application
- - Change CherryRenderer's friendly name (announced name) via Menu - Preferences
- - Keyboard support:
+ - **UPnP MediaRenderer support**
+   - **Cast videos** to CherryRenderer via a control point application
+   - **Control video playback** such as Play, Pause, Stop, Rewind, Fast Forward from the control point application
+   - **Control the volume** of CherryRenderer from control point applications that support this feature
+ - Optional **dark theme** available.
+ - **&ast;NEW&ast;** Take **snapshots** of the currently playing video
+ - Change CherryRenderer's friendly name (announced name) via *Menu - Preferences*
+ - Hotkey support:
  
  | Function          | Key   |
  |----------         |:-----:|
@@ -35,11 +38,6 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  | Volume Up         | Up    |
  | Volume Down       | Down  |
  | Toggle Mute       | M     |
- 
- - **&ast;NEW&ast;** Dark theme!
-   - Switch between the default white theme and dark theme via Menu - Preferences
- - **&ast;NEW&ast;** Volume control support
-   - Control the volume of CherryRenderer from control point applications that support this feature
 
 ## Known bugs
  - There is currently no buffer handling, as in there are no indications of when a video is in the middle of buffering.
@@ -56,6 +54,7 @@ For more info such as what control point apps have been tested and what video fo
 ## Credits
  - [Cling](https://github.com/4thline/cling)
  - [easy-events](https://github.com/Fylipp/easy-events)
+ - [minimal-json](https://github.com/ralfstx/minimal-json)
  - Special thanks to my alpha testers for testing this program when it was extremely buggy.
 
 ## License

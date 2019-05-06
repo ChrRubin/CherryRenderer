@@ -5,6 +5,7 @@
    - [What control point applications have been tested with CherryRenderer?](#what-control-point-applications-have-been-tested-with-cherryrenderer)
    - [What control point application should I use?](#what-control-point-application-should-i-use)
    - [What video formats are supported by CherryRenderer?](#what-video-formats-are-supported-by-cherryrenderer)
+   - [Do I need specific codecs to play videos?](#do-i-need-specific-codecs-to-play-videos)
    - [Some of the buttons are turning into white boxes. How do I fix this?](#some-of-the-buttons-are-turning-into-white-boxes-how-do-i-fix-this)
  - [General](#general)
    - [What is a UPnP MediaRenderer and how does it work?](#what-is-a-upnp-mediarenderer-and-how-does-it-work)
@@ -17,7 +18,7 @@
 ### What control point applications have been tested with CherryRenderer?
  - Tested and works:
    - [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp&hl=en)
-     - Able to detect CherryRenderer as of version 1.1
+     - Works as of version 1.1
    - [Localcast](https://www.localcast.app/)
    - [All Screen](https://play.google.com/store/apps/details?id=com.toxic.apps.chrome&hl=en)
    - [All Cast](https://www.allcast.io/)
@@ -28,17 +29,24 @@
 Note that all of the above are tested on Android only. Please do let me know if other applications work as well.
 
 ### What control point application should I use?
- - Each app works slightly differently than others. Just choose whichever works for you. Preferably not one that has been tested to not work with CherryRenderer.
+ - **Just choose whichever works for you.** Each app works slightly differently than others. Preferably not one that has been tested to not work with CherryRenderer.
 
 ### What video formats are supported by CherryRenderer?
  - As per [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html), the following are the supported video formats:
  
- | File Extension | Container | Video Encoding | Audio Encoding | MIME Type                     |
- |----------------|-----------|----------------|----------------|-----------                    |
- | .fxm, .flv     | FXM, FLV  | VP6            | MP3            | video/x-javafx, video/x-flv   |
- | .m3u8          | HLS       | H.264/AVC      | AAC            | application/vnd.apple.mpegurl |
- | .mp4, .m4v     | MP4       | H.264/AVC      | AAC            | video/mp4, video/x-m4v        |
+ | Container | File Extension | Video Encoding | Audio Encoding | MIME Type                     |
+ |-----------|----------------|----------------|----------------|-----------                    |
+ | FXM, FLV  | .fxm, .flv     | VP6            | MP3            | video/x-javafx, video/x-flv   |
+ | HLS (*)   | .m3u8          | H.264/AVC      | AAC            | application/vnd.apple.mpegurl |
+ | MP4       | .mp4, .m4v     | H.264/AVC      | AAC            | video/mp4, video/x-m4v        |
  
+ - In addition, HLS video playback will only work properly if it has the following characteristics:
+   - On-demand or live playlist.
+   - Multiplexed MP2T streams with one AAC audio and one H.264/AVC video track.
+   - Playlist with integer or float duration.
+ - Other HLS profiles are not guaranteed to work.
+ 
+### Do I need specific codecs to play videos?
  - On Windows 7 to 10, the required codecs *should* be included by your Windows installation by default. Older Windows versions or Windows Server editions may have to install third party codecs like MainConcept manually.
  - On Linux, you may need to install distro-dependant codecs. Examples of the codecs are ffmpeg/libavcodec/libavformat, x264 and Xvid.
  - If your system lacks the required codecs, or you try to play a non-supported video format, a MEDIA_UNSUPPORTED error will be thrown.
