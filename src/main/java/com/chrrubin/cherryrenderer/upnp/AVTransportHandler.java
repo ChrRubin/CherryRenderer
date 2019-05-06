@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class AVTransportHandler {
     private final Logger LOGGER = Logger.getLogger(AVTransportHandler.class.getName());
 
-    private static AVTransportHandler instance = new AVTransportHandler();
+    private static final AVTransportHandler instance = new AVTransportHandler();
 
     private AVTransport transport = null;
     private MediaObject mediaObject = null;

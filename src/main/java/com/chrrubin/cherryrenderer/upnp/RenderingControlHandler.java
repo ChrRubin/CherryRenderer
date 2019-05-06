@@ -27,11 +27,13 @@ public class RenderingControlHandler {
     }
 
     public synchronized void setVideoVolume(double volume){
+        LOGGER.fine("Setting video volume to " + volume);
         this.volume = volume;
         videoVolumeEvent.trigger(volume);
     }
 
     public synchronized void setRendererVolume(double volume){
+        LOGGER.fine("Setting renderer volume to " + volume);
         this.volume = volume;
         rendererVolumeEvent.trigger(volume);
     }
@@ -41,11 +43,13 @@ public class RenderingControlHandler {
     }
 
     public synchronized void setVideoMute(boolean mute){
+        LOGGER.fine("Setting video mute to " + mute);
         this.mute = mute;
         videoMuteEvent.trigger(mute);
     }
 
     public synchronized void setRendererMute(boolean mute){
+        LOGGER.fine("Setting renderer mute to " + mute);
         this.mute = mute;
         rendererMuteEvent.trigger(mute);
     }

@@ -28,7 +28,7 @@ public class AbstractStage extends Stage {
     private boolean modal = false;
     private Window parent = null;
     private IController controller;
-    private Image icon = new Image(PlayerStage.class.getClassLoader().getResourceAsStream("icons/cherry64.png"));
+    private final Image icon = new Image(PlayerStage.class.getClassLoader().getResourceAsStream("icons/cherry64.png"));
 
     public AbstractStage(String title, String fxml, double minWidth, double minHeight){
         this.title = title;

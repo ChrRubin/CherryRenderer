@@ -53,6 +53,7 @@ public class RenderingControlService extends AbstractAudioRenderingControl {
     }
 
     private void onVideoVolumeChange(double volume){
+        LOGGER.fine("Notifying control point about volume change to " + volume);
         getLastChange().setEventedValue(
                 instanceID,
                 new RenderingControlVariable.Volume(new ChannelVolume(Channel.Master, (int)volume))
@@ -60,6 +61,7 @@ public class RenderingControlService extends AbstractAudioRenderingControl {
     }
 
     private void onVideoMuteChange(boolean mute){
+        LOGGER.fine("Notifying control point about mute change to " + mute);
         getLastChange().setEventedValue(
                 instanceID,
                 new RenderingControlVariable.Mute(new ChannelMute(Channel.Master, mute))

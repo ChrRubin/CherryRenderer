@@ -13,7 +13,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class CherryRenderer extends Application {
-    private Logger LOGGER = Logger.getLogger(CherryRenderer.class.getName());
+    private final Logger LOGGER = Logger.getLogger(CherryRenderer.class.getName());
 
     @Override
     public void start(Stage primaryStage){
