@@ -40,11 +40,8 @@ import javafx.scene.media.MediaView;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
-import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -490,20 +487,13 @@ public class PlayerStageController implements IController {
             avTransportHandler.sendLastChangeMediaDuration(totalDuration);
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
-            try {
-                String title = avTransportHandler.getMediaObject().getTitle().trim();
-                if (!title.isEmpty()) {
-                    LOGGER.finer("Video title is " + title);
+            String title = avTransportHandler.getMediaObject().getTitle();
+            if (!title.isEmpty()) {
+                LOGGER.finer("Video title is " + title);
 
-                    getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + " - " + title);
-                } else {
-                    LOGGER.finer("Video title was not detected.");
-                }
-            }
-            catch (ParserConfigurationException | XPathExpressionException | IOException | SAXException e){
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-                Alert alert = getStage().createErrorAlert(e.toString());
-                alert.showAndWait();
+                getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + " - " + title);
+            } else {
+                LOGGER.finer("Video title was not detected.");
             }
 
             bottomBarVBox.setDisable(false);

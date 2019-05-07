@@ -35,7 +35,12 @@ public class MediaInfoStageController implements IController {
         try {
             uriTextField.setText(mediaObject.getUriString());
             titleTextField.setText(mediaObject.getTitle());
-            metadataTextArea.setText(mediaObject.getPrettyXml());
+            if(mediaObject.getXmlMetadata() != null) {
+                metadataTextArea.setText(mediaObject.getPrettyXmlMetadata());
+            }
+            else {
+                metadataTextArea.setText("Not available");
+            }
         }
         catch (Exception e){
             LOGGER.log(Level.SEVERE, e.toString(), e);

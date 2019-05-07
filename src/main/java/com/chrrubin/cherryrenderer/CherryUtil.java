@@ -1,7 +1,7 @@
 package com.chrrubin.cherryrenderer;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.util.Duration;
@@ -82,9 +82,9 @@ public class CherryUtil {
 
         Reader reader = new InputStreamReader(connection.getInputStream());
 
-        JsonObject jsonObject = Json.parse(reader).asObject();
+        JsonObject jsonObject = new Gson().fromJson(reader, JsonObject.class);
 
-        String latestVersion = jsonObject.get("tag_name").asString();
+        String latestVersion = jsonObject.get("tag_name").getAsString();
         if(latestVersion.isEmpty()){
             throw new RuntimeException("Could not get latest version.");
         }

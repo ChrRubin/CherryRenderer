@@ -9,8 +9,13 @@ import javafx.util.Duration;
 import org.fourthline.cling.model.types.UnsignedIntegerFourBytes;
 import org.fourthline.cling.support.avtransport.lastchange.AVTransportVariable;
 import org.fourthline.cling.support.model.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.IOException;
 import java.net.URI;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AVTransportHandler {
@@ -80,6 +85,10 @@ public class AVTransportHandler {
     }
 
     public synchronized void sendLastChangeMediaDuration(Duration currentTime){
+        if(transport == null){
+            return;
+        }
+
         transport.getLastChange().setEventedValue(
                 transport.getInstanceId(),
                 new AVTransportVariable.CurrentMediaDuration(CherryUtil.durationToString(currentTime))
@@ -175,10 +184,14 @@ public class AVTransportHandler {
         LOGGER.finest("URI: " + uri.toString());
         LOGGER.finest("Metadata: " + metadata);
 
-        mediaObject = new MediaObject(uri, metadata);
-
-        setNewMediaInfo();
-        setNewPositionInfo();
+        try {
+            mediaObject = new UpnpMediaObject(uri, metadata);
+            setNewMediaInfo();
+            setNewPositionInfo();
+        }
+        catch (ParserConfigurationException | XPathExpressionException | IOException | SAXException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
     }
 
     public void seek(SeekMode unit, String target){

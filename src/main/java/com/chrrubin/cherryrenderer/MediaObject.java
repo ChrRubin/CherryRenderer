@@ -1,29 +1,21 @@
 package com.chrrubin.cherryrenderer;
 
 import javafx.scene.media.Media;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.xpath.*;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 
-public class MediaObject {
+public abstract class MediaObject {
     private URI uri;
-    private String xmlMetadata;
+    private String title;
+    private transient String xmlMetadata;
 
-    public MediaObject(URI uri, String xmlMetadata) {
+    public MediaObject(URI uri){
         this.uri = uri;
-        this.xmlMetadata = xmlMetadata;
     }
 
     public URI getUri() {
@@ -34,11 +26,23 @@ public class MediaObject {
         return uri.toString();
     }
 
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getXmlMetadata() {
         return xmlMetadata;
     }
 
-    public String getPrettyXml() throws TransformerException {
+    public String getPrettyXmlMetadata() throws TransformerException {
         Source xmlInput = new StreamSource(new StringReader(xmlMetadata));
         StringWriter stringWriter = new StringWriter();
 
@@ -51,22 +55,11 @@ public class MediaObject {
         return stringWriter.toString().trim();
     }
 
-    public Media toJFXMedia(){
-        return new Media(uri.toString());
+    public void setXmlMetadata(String xmlMetadata) {
+        this.xmlMetadata = xmlMetadata;
     }
 
-    /**
-     * Parses the metadata XML to get the title of the media object
-     * @return Title string of video
-     */
-    public String getTitle() throws ParserConfigurationException, XPathExpressionException, IOException, SAXException {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(xmlMetadata)));
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        XPathExpression expr = xpath.compile("/DIDL-Lite/item/*[local-name() = 'title']");
-
-        return (String)expr.evaluate(document, XPathConstants.STRING);
+    public Media toJFXMedia(){
+        return new Media(getUriString());
     }
 }
