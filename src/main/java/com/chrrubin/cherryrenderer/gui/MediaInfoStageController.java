@@ -1,7 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.MediaObject;
-import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
@@ -28,14 +27,15 @@ public class MediaInfoStageController implements IController {
     }
 
     @FXML
-    private void initialize(){
-        AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
-        MediaObject mediaObject = avTransportHandler.getMediaObject();
+    private void onClose(){
+        getStage().close();
+    }
 
+    public void loadMediaInfo(MediaObject mediaObject){
         try {
             uriTextField.setText(mediaObject.getUriString());
             titleTextField.setText(mediaObject.getTitle());
-            if(mediaObject.getXmlMetadata() != null) {
+            if(!mediaObject.getXmlMetadata().isEmpty()) {
                 metadataTextArea.setText(mediaObject.getPrettyXmlMetadata());
             }
             else {
@@ -47,10 +47,5 @@ public class MediaInfoStageController implements IController {
             Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();
         }
-    }
-
-    @FXML
-    private void onClose(){
-        getStage().close();
     }
 }

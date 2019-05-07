@@ -4,6 +4,7 @@ import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import org.fourthline.cling.support.avtransport.impl.state.AbstractState;
 import org.fourthline.cling.support.avtransport.impl.state.NoMediaPresent;
 import org.fourthline.cling.support.model.AVTransport;
+import org.fourthline.cling.support.model.SeekMode;
 
 import java.net.URI;
 import java.util.logging.Logger;
@@ -41,5 +42,21 @@ public class RendererNoMediaPresent extends NoMediaPresent {
     public Class<? extends AbstractState> stop() {
         LOGGER.finer("Stop invoked");
         return RendererStopped.class;
+    }
+
+    public Class<? extends AbstractState> play(String speed) {
+        LOGGER.finer("Play invoked");
+        return RendererPlaying.class;
+    }
+
+    public Class<? extends AbstractState> pause() {
+        LOGGER.finer("Pause invoked");
+        return RendererPausedPlay.class;
+    }
+
+    public Class<? extends AbstractState> seek(SeekMode unit, String target){
+        LOGGER.finer("Seek invoked");
+        avTransportHandler.seek(unit, target);
+        return RendererPausedPlay.class;
     }
 }

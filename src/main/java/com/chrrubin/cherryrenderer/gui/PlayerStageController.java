@@ -125,7 +125,7 @@ public class PlayerStageController implements IController {
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
-    private URI currentUri = null;
+    private MediaObject currentMediaObject;
     private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
     private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
@@ -459,6 +459,8 @@ public class PlayerStageController implements IController {
     private void prepareMediaPlayback(){
         LOGGER.finer("Preparing Media Player for playback");
 
+        avTransportHandler.setMediaObject(currentMediaObject);
+
         prepareFullScreen(false);
 
         MediaPlayer player = videoMediaView.getMediaPlayer();
@@ -487,7 +489,7 @@ public class PlayerStageController implements IController {
             avTransportHandler.sendLastChangeMediaDuration(totalDuration);
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
-            String title = avTransportHandler.getMediaObject().getTitle();
+            String title = currentMediaObject.getTitle();
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
 
@@ -511,6 +513,7 @@ public class PlayerStageController implements IController {
             Alert alert = getStage().createErrorAlert(error);
             alert.showAndWait();
 
+            currentMediaObject = null;
             waitingLabel.setText(WAITING_CONNECTION);
         });
 
@@ -668,7 +671,7 @@ public class PlayerStageController implements IController {
         waitingVBox.setVisible(true);
         volumeImageView.setOpacity(0.4);
 
-        currentUri = null;
+        currentMediaObject = null;
 
         videoMediaView.setOnMouseClicked(null);
         if(getStage().isFullScreen()){
@@ -873,7 +876,7 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void onMediaInfo(){
-        AbstractStage mediaInfoStage = new MediaInfoStage(getStage());
+        AbstractStage mediaInfoStage = new MediaInfoStage(getStage(), currentMediaObject);
         try{
             mediaInfoStage.prepareStage();
             mediaInfoStage.show();
@@ -905,6 +908,9 @@ public class PlayerStageController implements IController {
                 snapshotFile = fileChooser.showSaveDialog(getStage());
             }
 
+            if(snapshotFile == null){
+                return;
+            }
             ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", snapshotFile);
             Alert alert = getStage().createInfoAlert("Saved snapshot to " + snapshotFile.getPath());
             alert.showAndWait();
@@ -926,17 +932,28 @@ public class PlayerStageController implements IController {
 
         switch (rendererState){
             case NOMEDIAPRESENT:
-                if(player != null){
-                    onStop();
+                if(currentMediaObject != null){
+                    switch (player.getStatus()){
+                        case PLAYING:
+                            avTransportHandler.setTransportInfo(TransportState.PLAYING);
+                            break;
+                        case PAUSED:
+                            avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
+                            break;
+                    }
                 }
                 break;
             case STOPPED:
-                if(player != null && player.getStatus() != Status.DISPOSED){
+                if(currentMediaObject != null){
                     onStop();
                 }
                 break;
             case PLAYING:
                 MediaObject mediaObject = avTransportHandler.getMediaObject();
+                URI currentUri = null;
+                if(currentMediaObject != null){
+                    currentUri = currentMediaObject.getUri();
+                }
 
                 if(!mediaObject.getUri().equals(currentUri)) {
                     if(player != null && player.getStatus() != Status.DISPOSED){
@@ -945,7 +962,7 @@ public class PlayerStageController implements IController {
                     }
 
                     LOGGER.finer("Creating new player for URI " + mediaObject.getUriString());
-                    currentUri = mediaObject.getUri();
+                    currentMediaObject = mediaObject;
 
                     Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
 
@@ -957,7 +974,7 @@ public class PlayerStageController implements IController {
                     prepareMediaPlayback();
                 }
                 else{
-                    if(player != null && player.getStatus() == Status.PAUSED){
+                    if(currentMediaObject != null && player.getStatus() == Status.PAUSED){
                         LOGGER.finer("Resuming playback");
                         player.play();
                         updateCurrentTime();
@@ -965,7 +982,7 @@ public class PlayerStageController implements IController {
                 }
                 break;
             case PAUSED:
-                if(player != null){
+                if(currentMediaObject != null){
                     LOGGER.finer("Pausing playback");
                     player.pause();
                     updateCurrentTime();

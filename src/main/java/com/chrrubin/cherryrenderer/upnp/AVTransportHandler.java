@@ -39,6 +39,10 @@ public class AVTransportHandler {
         return mediaObject;
     }
 
+    public synchronized void setMediaObject(MediaObject mediaObject){
+        this.mediaObject = mediaObject;
+    }
+
     public synchronized void setTransport(AVTransport transport) {
         this.transport = transport;
     }
@@ -176,6 +180,10 @@ public class AVTransportHandler {
     public synchronized void clearInfo(){
         LOGGER.fine("Clearing MediaInfo and PositionInfo");
         mediaObject = null;
+
+        if(transport == null){
+            return;
+        }
         transport.setMediaInfo(new MediaInfo());
         transport.setPositionInfo(new PositionInfo());
     }
