@@ -109,7 +109,7 @@ public class CherryUtil {
     }
 
     private static int[] semanticToIntArray(String semantic){
-        String[] split = semantic.split("\\.");
+        String[] split = semantic.split("-")[0].split("\\.");
         int[] numbers = new int[split.length];
 
         for (int i = 0; i < split.length; i++) {

@@ -3,6 +3,7 @@ package com.chrrubin.cherryrenderer.gui;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
+import com.chrrubin.cherryrenderer.api.ApiService;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
@@ -33,7 +34,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
@@ -125,10 +125,11 @@ public class PlayerStageController implements IController {
 
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
 
-    private MediaObject currentMediaObject;
+    private MediaObject currentMediaObject = null;
     private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
     private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
+    private ApiService apiService = null;
     private Image playImage;
     private Image pauseImage;
     private Image volumeFullImage;
@@ -371,10 +372,23 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void initialize(){
+        try{
+            apiService = new ApiService();
+        }
+        catch (IOException | RuntimeException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Platform.runLater(() -> {
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
+            });
+        }
+
+        apiService.getMediaObjectEvent().addListener(this::onApiReceiveMedia);
+
         String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
         LOGGER.info("Current device friendly name is " + friendlyName);
-        RendererService handler = new RendererService(friendlyName);
-        handler.startService();
+        RendererService rendererService = new RendererService(friendlyName);
+        rendererService.startService();
 
         avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
         renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
@@ -459,7 +473,10 @@ public class PlayerStageController implements IController {
     private void prepareMediaPlayback(){
         LOGGER.finer("Preparing Media Player for playback");
 
+        Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
+
         avTransportHandler.setMediaObject(currentMediaObject);
+        apiService.setCurrentlyPlayingMedia(currentMediaObject);
 
         prepareFullScreen(false);
 
@@ -489,6 +506,8 @@ public class PlayerStageController implements IController {
             avTransportHandler.sendLastChangeMediaDuration(totalDuration);
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
+            apiService.setCurrentStatus(RendererState.PLAYING);
+
             String title = currentMediaObject.getTitle();
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
@@ -515,6 +534,11 @@ public class PlayerStageController implements IController {
 
             currentMediaObject = null;
             waitingLabel.setText(WAITING_CONNECTION);
+
+            avTransportHandler.clearInfo();
+            avTransportHandler.setTransportInfo(TransportState.STOPPED);
+
+            apiService.setCurrentStatus(RendererState.STOPPED);
         });
 
         player.setOnHalted(() -> {
@@ -634,6 +658,9 @@ public class PlayerStageController implements IController {
         avTransportHandler.clearInfo();
         avTransportHandler.setTransportInfo(TransportState.STOPPED);
 
+        apiService.clearInfo();
+        apiService.setCurrentStatus(RendererState.STOPPED);
+
         getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
 
         LOGGER.finer("Clearing property listeners & event handlers");
@@ -653,7 +680,7 @@ public class PlayerStageController implements IController {
             updateTimeService.cancel();
         }
 
-        if(videoMediaView.getMediaPlayer() != null){
+        if(videoMediaView.getMediaPlayer().getStatus() != Status.DISPOSED){
             LOGGER.finer("Disposing MediaPlayer");
             videoMediaView.getMediaPlayer().dispose();
         }
@@ -700,11 +727,13 @@ public class PlayerStageController implements IController {
             player.play();
             updateCurrentTime();
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
+            apiService.setCurrentStatus(RendererState.PLAYING);
         }
         else{
             player.pause();
             updateCurrentTime();
             avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
+            apiService.setCurrentStatus(RendererState.PAUSED);
         }
     }
 
@@ -956,29 +985,13 @@ public class PlayerStageController implements IController {
                 }
 
                 if(!mediaObject.getUri().equals(currentUri)) {
-                    if(player != null && player.getStatus() != Status.DISPOSED){
-                        LOGGER.warning("Tried to create new player while existing player still running. Stopping current player.");
-                        onStop();
-                    }
-
-                    LOGGER.finer("Creating new player for URI " + mediaObject.getUriString());
-                    currentMediaObject = mediaObject;
-
-                    Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
-
-                    Media media = mediaObject.toJFXMedia();
-                    videoMediaView.setMediaPlayer(new MediaPlayer(media));
-
                     avTransportHandler.setTransportInfo(TransportState.TRANSITIONING);
-
-                    prepareMediaPlayback();
+                    playNewMedia(mediaObject);
                 }
-                else{
-                    if(currentMediaObject != null && player.getStatus() == Status.PAUSED){
-                        LOGGER.finer("Resuming playback");
-                        player.play();
-                        updateCurrentTime();
-                    }
+                else if(player.getStatus() == Status.PAUSED){
+                    LOGGER.finer("Resuming playback");
+                    player.play();
+                    updateCurrentTime();
                 }
                 break;
             case PAUSED:
@@ -1078,6 +1091,7 @@ public class PlayerStageController implements IController {
 
     private void updateCurrentTime(Duration currentTime, Duration totalTime){
         avTransportHandler.setPositionInfoWithTimes(totalTime, currentTime);
+        apiService.updateCurrentlyPlayingInfo(currentTime, totalTime, videoMediaView.getMediaPlayer().isMute(), (int)Math.round(volumeSlider.getValue()));
     }
 
     /**
@@ -1141,5 +1155,27 @@ public class PlayerStageController implements IController {
         });
 
         getLatestVersionService.start();
+    }
+
+    private void playNewMedia(MediaObject mediaObject){
+        Platform.runLater(() -> {
+            MediaPlayer player = videoMediaView.getMediaPlayer();
+            if(player != null && player.getStatus() != Status.DISPOSED){
+                LOGGER.warning("Tried to create new player while existing player still running. Forcing endOfMedia.");
+                endOfMedia();
+            }
+
+            LOGGER.finer("Creating new player for URI " + mediaObject.getUriString());
+            currentMediaObject = mediaObject;
+
+            videoMediaView.setMediaPlayer(new MediaPlayer(mediaObject.toJFXMedia()));
+
+            prepareMediaPlayback();
+        });
+    }
+
+    private void onApiReceiveMedia(MediaObject mediaObject){
+        apiService.setCurrentStatus(RendererState.TRANSITIONING);
+        playNewMedia(mediaObject);
     }
 }

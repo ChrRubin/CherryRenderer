@@ -4,5 +4,6 @@ public enum RendererState {
     NOMEDIAPRESENT,
     PAUSED,
     PLAYING,
-    STOPPED
+    STOPPED,
+    TRANSITIONING
 }
