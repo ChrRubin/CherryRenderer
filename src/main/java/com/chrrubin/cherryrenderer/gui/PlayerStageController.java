@@ -383,16 +383,22 @@ public class PlayerStageController implements IController {
             });
         }
 
-        apiService.getMediaObjectEvent().addListener(this::onApiReceiveMedia);
-
         String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
         LOGGER.info("Current device friendly name is " + friendlyName);
         RendererService rendererService = new RendererService(friendlyName);
         rendererService.startService();
 
         avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+        avTransportHandler.getVideoSeekEvent().addListener(this::seekSpecificDuration);
         renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
         renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChange);
+
+        apiService.getMediaObjectEvent().addListener(this::onApiReceiveMedia);
+        apiService.getTogglePauseEvent().addListener(object -> onPlay());
+        apiService.getSeekEvent().addListener(this::seekSpecificDuration);
+        apiService.getStopEvent().addListener(object -> onStop());
+        apiService.getToggleMuteEvent().addListener(object -> onToggleMute());
+        apiService.getSetVolumeEvent().addListener(this::onRendererVolumeChange);
 
         Image rewindImage;
         Image stopImage;
@@ -488,12 +494,18 @@ public class PlayerStageController implements IController {
             playPauseImageView.setImage(pauseImage);
             playPauseMenuItem.setGraphic(createMenuImageView(pauseImage));
             playPauseMenuItem.setText("Pause");
+
+            avTransportHandler.setTransportInfo(TransportState.PLAYING);
+            apiService.setCurrentStatus(RendererState.PLAYING);
         });
 
         player.setOnPaused(() -> {
             playPauseImageView.setImage(playImage);
             playPauseMenuItem.setGraphic(createMenuImageView(playImage));
             playPauseMenuItem.setText("Play");
+
+            avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
+            apiService.setCurrentStatus(RendererState.PAUSED);
         });
 
         player.setOnReady(() -> {
@@ -620,7 +632,7 @@ public class PlayerStageController implements IController {
                     @Override
                     protected Void call() throws Exception {
                         if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
-                            updateCurrentTime(videoMediaView.getMediaPlayer().getCurrentTime(), videoMediaView.getMediaPlayer().getTotalDuration());
+                            updateCurrentTime();
                         }
                         return null;
                     }
@@ -630,16 +642,6 @@ public class PlayerStageController implements IController {
 
         updateTimeService.setPeriod(Duration.seconds(1));
         updateTimeService.start();
-
-        /*
-        Seeks video when VideoSeekEvent is triggered by control point
-         */
-        avTransportHandler.getVideoSeekEvent().addListener(seekDuration -> {
-            if(seekDuration != null) {
-                player.seek(seekDuration);
-                updateCurrentTime();
-            }
-        });
 
         videoMediaView.requestFocus();
 
@@ -726,14 +728,10 @@ public class PlayerStageController implements IController {
         if(status == Status.PAUSED || status == Status.STOPPED || status == Status.READY){
             player.play();
             updateCurrentTime();
-            avTransportHandler.setTransportInfo(TransportState.PLAYING);
-            apiService.setCurrentStatus(RendererState.PLAYING);
         }
         else{
             player.pause();
             updateCurrentTime();
-            avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
-            apiService.setCurrentStatus(RendererState.PAUSED);
         }
     }
 
@@ -1082,16 +1080,15 @@ public class PlayerStageController implements IController {
      */
     private void updateCurrentTime(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null){
+        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
             return;
         }
 
-        avTransportHandler.setPositionInfoWithTimes(player.getTotalDuration(), player.getCurrentTime());
-    }
+        Duration currentDuration = player.getCurrentTime();
+        Duration totalDuration = player.getTotalDuration();
 
-    private void updateCurrentTime(Duration currentTime, Duration totalTime){
-        avTransportHandler.setPositionInfoWithTimes(totalTime, currentTime);
-        apiService.updateCurrentlyPlayingInfo(currentTime, totalTime, videoMediaView.getMediaPlayer().isMute(), (int)Math.round(volumeSlider.getValue()));
+        avTransportHandler.setPositionInfoWithTimes(totalDuration, currentDuration);
+        apiService.updateCurrentlyPlayingInfo(currentDuration, totalDuration, videoMediaView.getMediaPlayer().isMute(), (int)Math.round(volumeSlider.getValue()));
     }
 
     /**
@@ -1124,6 +1121,9 @@ public class PlayerStageController implements IController {
         return imageView;
     }
 
+    /**
+     * Checks for update on program startup
+     */
     public void checkUpdate(){
         LOGGER.info("Checking for updates...");
         Service<String> getLatestVersionService = CherryUtil.getLatestVersionJFXService();
@@ -1157,6 +1157,10 @@ public class PlayerStageController implements IController {
         getLatestVersionService.start();
     }
 
+    /**
+     * Set MediaPlayer to play a new media
+     * @param mediaObject media to play
+     */
     private void playNewMedia(MediaObject mediaObject){
         Platform.runLater(() -> {
             MediaPlayer player = videoMediaView.getMediaPlayer();
@@ -1172,6 +1176,22 @@ public class PlayerStageController implements IController {
 
             prepareMediaPlayback();
         });
+    }
+
+    /**
+     * For use when seeking to a specific duration
+     * @param target target to seek to
+     */
+    private void seekSpecificDuration(Duration target){
+        MediaPlayer player = videoMediaView.getMediaPlayer();
+        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+            return;
+        }
+
+        if(target.lessThanOrEqualTo(player.getTotalDuration())){
+            player.seek(target);
+            updateCurrentTime();
+        }
     }
 
     private void onApiReceiveMedia(MediaObject mediaObject){

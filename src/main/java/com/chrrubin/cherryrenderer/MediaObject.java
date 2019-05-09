@@ -11,7 +11,7 @@ import java.net.URI;
 
 public abstract class MediaObject {
     private URI uri;
-    private String title;
+    private String title = "";
     private transient String xmlMetadata;
 
     public MediaObject(URI uri){

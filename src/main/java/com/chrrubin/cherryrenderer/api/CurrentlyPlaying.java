@@ -1,22 +1,34 @@
 package com.chrrubin.cherryrenderer.api;
 
 import com.chrrubin.cherryrenderer.MediaObject;
+import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 
-public class CurrentlyPlaying implements Response {
-    private MediaObject video;
-    private int currentTime;
-    private int totalTime;
-    private boolean mute;
-    private int volume;
+import java.net.URI;
+
+public class CurrentlyPlaying implements GetResponse {
+    private MediaObject media = new ApiMediaObject(URI.create(""), "");
+    private RendererState status = RendererState.STOPPED;
+    private int currentTime = 0;
+    private int totalTime = 0;
+    private boolean mute = false;
+    private int volume = 100;
 
     public CurrentlyPlaying(){}
 
-    public MediaObject getVideo() {
-        return video;
+    public MediaObject getMedia() {
+        return media;
     }
 
-    public void setVideo(MediaObject video) {
-        this.video = video;
+    public void setMedia(MediaObject media) {
+        this.media = media;
+    }
+
+    public RendererState getStatus() {
+        return status;
+    }
+
+    public void setStatus(RendererState status) {
+        this.status = status;
     }
 
     public int getCurrentTime() {
