@@ -87,7 +87,7 @@ public class MediaToolbar extends VBox {
             volumeFullImage = new Image("icons/volume-full.png");
             volumeMuteImage = new Image("icons/volume-mute.png");
 
-            getStylesheets().add(getClass().getResource("/fxml/custom/MediaToolbar.css").toExternalForm());
+            getStylesheets().add(getClass().getResource("/fxml/custom/MediaToolbar-Default.css").toExternalForm());
         }
 
         playPauseImageView.setImage(playImage);

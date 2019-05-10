@@ -14,7 +14,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -122,7 +124,7 @@ public class ApiService {
                     }
                 }
                 else{
-                    response = gson.toJson(new HttpResponse(400, "Player is not currently playing."));
+                    response = gson.toJson(new HttpResponse(400, "Player is not currently playing"));
                 }
 
                 exchange.getResponseHeaders().add("Content-Type", "application/json");
@@ -148,14 +150,19 @@ public class ApiService {
 
     private String onPlay(PlayArguments arguments){
         if(arguments.getVideos()[0] == null){
-            RuntimeException e = new RuntimeException("No videos found from payload");
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw e;
+            return gson.toJson(new HttpResponse(400, "No videos found from payload"));
         }
 
         MediaObject mediaObject = new ApiMediaObject(arguments.getVideos()[0]);
-        mediaObjectEvent.trigger(mediaObject);
+        try{
+            new URL(mediaObject.getUri().toString());
+        }
+        catch (MalformedURLException e){
+            LOGGER.warning("Invalid URI received: " + mediaObject.getUri().toString());
+            return gson.toJson(new HttpResponse(400, "Invalid URI received"));
+        }
 
+        mediaObjectEvent.trigger(mediaObject);
         return gson.toJson(new HttpResponse(200));
     }
 
@@ -165,8 +172,13 @@ public class ApiService {
     }
 
     private String onSeek(SeekArguments arguments){
-        seekEvent.trigger(Duration.seconds(arguments.getTargetTime()));
-        return gson.toJson(new HttpResponse(200));
+        if(!(arguments.getTargetTime() < 0 || arguments.getTargetTime() > currentlyPlaying.getTotalTime())){
+            seekEvent.trigger(Duration.seconds(arguments.getTargetTime()));
+            return gson.toJson(new HttpResponse(200));
+        }
+        else {
+            return gson.toJson(new HttpResponse(400, "Invalid seek target"));
+        }
     }
 
     private String onStop(){
@@ -180,8 +192,13 @@ public class ApiService {
     }
 
     private String onSetVolume(SetVolumeArguments arguments){
-        setVolumeEvent.trigger(arguments.getTargetVolume());
-        return gson.toJson(new HttpResponse(200));
+        if(!(arguments.getTargetVolume() < 0 || arguments.getTargetVolume() > 100)) {
+            setVolumeEvent.trigger(arguments.getTargetVolume());
+            return gson.toJson(new HttpResponse(200));
+        }
+        else{
+            return gson.toJson(new HttpResponse(400, "Invalid target volume"));
+        }
     }
 
     public Event<MediaObject> getMediaObjectEvent() {
@@ -213,7 +230,7 @@ public class ApiService {
     }
 
     public void setCurrentlyPlayingMedia(MediaObject mediaObject){
-        currentlyPlaying.setMedia(mediaObject);
+        currentlyPlaying.setVideo(mediaObject);
     }
 
     public void updateCurrentlyPlayingInfo(Duration currentTime, Duration totalTime, boolean mute, int volume){

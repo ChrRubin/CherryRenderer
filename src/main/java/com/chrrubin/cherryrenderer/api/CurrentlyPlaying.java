@@ -6,7 +6,7 @@ import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import java.net.URI;
 
 public class CurrentlyPlaying implements GetResponse {
-    private MediaObject media = new ApiMediaObject(URI.create(""), "");
+    private MediaObject video = new ApiMediaObject(URI.create(""), "");
     private RendererState status = RendererState.STOPPED;
     private int currentTime = 0;
     private int totalTime = 0;
@@ -15,12 +15,12 @@ public class CurrentlyPlaying implements GetResponse {
 
     public CurrentlyPlaying(){}
 
-    public MediaObject getMedia() {
-        return media;
+    public MediaObject getVideo() {
+        return video;
     }
 
-    public void setMedia(MediaObject media) {
-        this.media = media;
+    public void setVideo(MediaObject video) {
+        this.video = video;
     }
 
     public RendererState getStatus() {

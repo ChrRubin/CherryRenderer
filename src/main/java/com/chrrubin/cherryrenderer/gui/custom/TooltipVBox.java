@@ -27,15 +27,15 @@ public class TooltipVBox extends VBox {
         getStylesheets().add(getClass().getResource("/fxml/custom/TooltipVBox.css").toExternalForm());
     }
 
+    public StringProperty textProperty() {
+        return tooltipLabel.textProperty();
+    }
+
     public String getText() {
         return textProperty().get();
     }
 
     public void setText(String value) {
         textProperty().set(value);
-    }
-
-    public StringProperty textProperty() {
-        return tooltipLabel.textProperty();
     }
 }

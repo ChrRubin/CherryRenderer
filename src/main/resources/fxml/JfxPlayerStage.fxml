@@ -12,7 +12,7 @@
     <MediaView fx:id="videoMediaView" fitHeight="360.0" fitWidth="640.0" focusTraversable="true" StackPane.alignment="CENTER" />
     <CustomMenuBar fx:id="menuBar" useSystemMenuBar="true" StackPane.alignment="TOP_CENTER" onMediaInfo="#onMediaInfo" onPlayPause="#onPlayPause" onStop="#onStop" onRewind="#onRewind" onForward="#onForward" onVolumeUp="#onIncreaseVolume" onVolumeDown="#onDecreaseVolume" onToggleMute="#onToggleMute" onToggleFullscreen="#onToggleFullScreen"/>
     <MediaToolbar fx:id="mediaToolbar" StackPane.alignment="BOTTOM_CENTER" onPlayPause="#onPlayPause" onRewind="#onRewind" onStop="#onStop" onForward="#onForward" onVolumeImageMouseReleased="#onToggleMute"/>
-    <TooltipVBox fx:id="timeTooltipVBox" visible="false"/>
-    <TooltipVBox fx:id="volumeTooltipVBox" visible="false"/>
+    <TooltipVBox fx:id="timeTooltipVBox" visible="false" text="0:00:00&#10;[-0:00:00]" maxHeight="-Infinity" maxWidth="-Infinity"/>
+    <TooltipVBox fx:id="volumeTooltipVBox" visible="false" text="100%" maxHeight="-Infinity" maxWidth="-Infinity"/>
     <LoadingVBox fx:id="loadingVBox" StackPane.alignment="CENTER"/>
 </StackPane>

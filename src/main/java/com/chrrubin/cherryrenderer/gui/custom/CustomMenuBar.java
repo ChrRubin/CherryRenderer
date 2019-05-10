@@ -130,7 +130,7 @@ public class CustomMenuBar extends MenuBar {
             updateImage = new Image("icons/update.png");
             volumeDownImage = new Image("icons/volume-down.png");
 
-            getStylesheets().add(getClass().getResource("/fxml/custom/CustomMenuBar.css").toExternalForm());
+            getStylesheets().add(getClass().getResource("/fxml/custom/CustomMenuBar-Default.css").toExternalForm());
         }
 
         preferencesMenuItem.setGraphic(createMenuImageView(preferencesImage));

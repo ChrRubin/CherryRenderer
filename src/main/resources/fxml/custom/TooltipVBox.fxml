@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-<fx:root styleClass="tooltip-vbox" type="javafx.scene.layout.VBox" alignment="CENTER" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+<?import javafx.scene.text.Font?>
+<fx:root alignment="CENTER" styleClass="tooltip-vbox" type="javafx.scene.layout.VBox" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Label fx:id="tooltipLabel" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" text="LabelText" />
+      <Label fx:id="tooltipLabel" alignment="CENTER" text="LabelText" textAlignment="CENTER">
+         <font>
+            <Font size="11.0" />
+         </font></Label>
    </children>
    <padding>
       <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />

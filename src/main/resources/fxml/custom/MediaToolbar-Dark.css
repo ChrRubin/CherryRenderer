@@ -1,3 +1,7 @@
+.label{
+    -fx-text-fill: #bbbbbb;
+}
+
 .media-toolbar{
     -fx-background-color: #2b2b2b;
 }
