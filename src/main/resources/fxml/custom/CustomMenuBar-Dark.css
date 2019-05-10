@@ -1,0 +1,18 @@
+.menu-bar{
+    -fx-background-color: #3c3f41;
+}
+
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing,
+.menu-item:focused {
+    -fx-background: #2f65ca;
+}
+
+.context-menu{
+    -fx-background-color: #515151, #3c3f41;
+}
+
+.context-menu .separator:horizontal .line {
+    -fx-border-color: #515151 transparent transparent transparent;
+}

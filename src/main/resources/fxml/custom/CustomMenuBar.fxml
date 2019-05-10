@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
+<fx:root maxHeight="-Infinity" type="javafx.scene.control.MenuBar" useSystemMenuBar="true" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+    <menus>
+        <Menu mnemonicParsing="false" text="Menu">
+            <items>
+                <MenuItem fx:id="preferencesMenuItem" mnemonicParsing="false" text="Preferences">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+                <SeparatorMenuItem mnemonicParsing="false" />
+                <MenuItem fx:id="exitMenuItem" mnemonicParsing="false" text="Exit">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+            </items>
+        </Menu>
+        <Menu fx:id="playbackMenu" mnemonicParsing="false" text="Playback">
+            <items>
+                <MenuItem fx:id="mediaInfoMenuItem" disable="true" mnemonicParsing="false" text="Media Information">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+                <MenuItem fx:id="snapshotMenuItem" disable="true" mnemonicParsing="false" text="Take Snapshot">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="F12" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+                <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+                <MenuItem fx:id="playPauseMenuItem" disable="true" mnemonicParsing="false" text="Play" />
+                <MenuItem fx:id="stopMenuItem" disable="true" mnemonicParsing="false" text="Stop" />
+                <MenuItem fx:id="rewindMenuItem" disable="true" mnemonicParsing="false" text="Rewind" />
+                <MenuItem fx:id="forwardMenuItem" disable="true" mnemonicParsing="false" text="Fast Forward" />
+                <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+                <MenuItem fx:id="volUpMenuItem" disable="true" mnemonicParsing="false" text="Increase Volume" />
+                <MenuItem fx:id="volDownMenuItem" disable="true" mnemonicParsing="false" text="Decrease Volume" />
+                <MenuItem fx:id="muteMenuItem" disable="true" mnemonicParsing="false" text="Toggle Mute" />
+                <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+                <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" text="Toggle Fullscreen">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="F11" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+            </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Help">
+            <items>
+                <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" text="Help">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="F1" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+                <SeparatorMenuItem mnemonicParsing="false" />
+                <MenuItem fx:id="updateMenuItem" mnemonicParsing="false" text="Check for Updates..." />
+                <MenuItem fx:id="aboutMenuItem" mnemonicParsing="false" text="About">
+                    <accelerator>
+                        <KeyCodeCombination alt="UP" code="F1" control="UP" meta="UP" shift="DOWN" shortcut="UP" />
+                    </accelerator>
+                </MenuItem>
+            </items>
+        </Menu>
+    </menus>
+</fx:root>

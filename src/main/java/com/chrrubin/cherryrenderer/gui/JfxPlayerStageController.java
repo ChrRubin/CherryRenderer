@@ -4,9 +4,11 @@ import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.api.ApiService;
+import com.chrrubin.cherryrenderer.gui.custom.CustomMenuBar;
+import com.chrrubin.cherryrenderer.gui.custom.LoadingVBox;
+import com.chrrubin.cherryrenderer.gui.custom.MediaToolbar;
+import com.chrrubin.cherryrenderer.gui.custom.TooltipVBox;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
-import com.chrrubin.cherryrenderer.upnp.RendererService;
-import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -15,128 +17,50 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PlayerStageController implements IController {
+public class JfxPlayerStageController extends AbstractPlayerStageController{
     @FXML
     private StackPane rootStackPane;
     @FXML
+    private CustomMenuBar menuBar;
+    @FXML
     private MediaView videoMediaView;
     @FXML
-    private Label currentTimeLabel;
+    private MediaToolbar mediaToolbar;
     @FXML
-    private Slider timeSlider;
+    private TooltipVBox timeTooltipVBox;
     @FXML
-    private Label totalTimeLabel;
+    private TooltipVBox volumeTooltipVBox;
     @FXML
-    private Slider volumeSlider;
-    @FXML
-    private VBox bottomBarVBox;
-    @FXML
-    private MenuBar menuBar;
-    @FXML
-    private VBox timeTooltipVBox;
-    @FXML
-    private Label timeTooltipLabel;
-    @FXML
-    private ImageView playPauseImageView;
-    @FXML
-    private ImageView volumeImageView;
-    @FXML
-    private VBox volumeTooltipVBox;
-    @FXML
-    private Label volumeTooltipLabel;
-    @FXML
-    private ImageView rewindImageView;
-    @FXML
-    private ImageView stopImageView;
-    @FXML
-    private ImageView fastForwardImageView;
-    @FXML
-    private MenuItem preferencesMenuItem;
-    @FXML
-    private MenuItem aboutMenuItem;
-    @FXML
-    private MenuItem exitMenuItem;
-    @FXML
-    private MenuItem mediaInfoMenuItem;
-    @FXML
-    private MenuItem snapshotMenuItem;
-    @FXML
-    private MenuItem playPauseMenuItem;
-    @FXML
-    private MenuItem stopMenuItem;
-    @FXML
-    private MenuItem rewindMenuItem;
-    @FXML
-    private MenuItem forwardMenuItem;
-    @FXML
-    private MenuItem volUpMenuItem;
-    @FXML
-    private MenuItem volDownMenuItem;
-    @FXML
-    private MenuItem muteMenuItem;
-    @FXML
-    private MenuItem fullscreenMenuItem;
-    @FXML
-    private MenuItem helpMenuItem;
-    @FXML
-    private MenuItem updateMenuItem;
-    @FXML
-    private Menu playbackMenu;
-    @FXML
-    private VBox waitingVBox;
-    @FXML
-    private Label waitingLabel;
+    private LoadingVBox loadingVBox;
 
-    private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
-
-    private MediaObject currentMediaObject = null;
-    private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
-    private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
-    private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
-    private ApiService apiService = null;
-    private Image playImage;
-    private Image pauseImage;
-    private Image volumeFullImage;
-    private Image volumeMuteImage;
+    private final Logger LOGGER = Logger.getLogger(JfxPlayerStageController.class.getName());
     private ScheduledService<Void> updateTimeService;
-    private final String WAITING_CONNECTION = "Awaiting connection from control point app...";
-    private final String WAITING_VIDEO = "Video is loading...";
+
+    public JfxPlayerStageController(){
+        super(Logger.getLogger(JfxPlayerStageController.class.getName()));
+    }
 
     /*
     Start of property listeners and event handlers
@@ -144,14 +68,14 @@ public class PlayerStageController implements IController {
     /**
      * Listener for statusProperty of videoMediaView.getMediaPlayer()
      */
-    private ChangeListener<Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
+    private ChangeListener<MediaPlayer.Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
         if(oldStatus == null){
             return;
         }
 
         LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
 
-        if(newStatus == Status.STALLED){
+        if(newStatus == MediaPlayer.Status.STALLED){
             LOGGER.fine("(Caught by listener) Media player in entered STALLED status. Video is currently buffering (?)");
         }
     };
@@ -162,9 +86,9 @@ public class PlayerStageController implements IController {
      */
     // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
     private ChangeListener<Duration> playerCurrentTimeListener = (observable, oldValue, newValue) -> {
-        currentTimeLabel.setText(CherryUtil.durationToString(newValue));
-        if(!timeSlider.isValueChanging()){
-            timeSlider.setValue(newValue.divide(videoMediaView.getMediaPlayer().getTotalDuration().toMillis()).toMillis() * 100.0);
+        mediaToolbar.setCurrentTimeText(CherryUtil.durationToString(newValue));
+        if(!mediaToolbar.isTimeSliderValueChanging()){
+            mediaToolbar.setTimeSliderValue(newValue.divide(videoMediaView.getMediaPlayer().getTotalDuration().toMillis()).toMillis() * 100.0);
         }
     };
 
@@ -175,8 +99,8 @@ public class PlayerStageController implements IController {
      */
     private InvalidationListener playerMuteListener = ((observable) -> {
         boolean isMute = videoMediaView.getMediaPlayer().muteProperty().get();
-        changeVolumeImage(isMute);
-        renderingControlHandler.setRendererMute(isMute);
+        mediaToolbar.changeVolumeImage(isMute);
+        getRenderingControlHandler().setRendererMute(isMute);
     });
 
     /**
@@ -185,10 +109,10 @@ public class PlayerStageController implements IController {
      * Also notifies RenderingControlService of volume changes.
      */
     private ChangeListener<Number> playerVolumeListener = ((observable, oldVolume, newVolume) -> {
-        if(!volumeSlider.isValueChanging()){
-            volumeSlider.setValue(newVolume.doubleValue() * 100);
+        if(!mediaToolbar.isVolumeSliderValueChanging()){
+            mediaToolbar.setVolumeSliderValue(newVolume.doubleValue() * 100);
         }
-        renderingControlHandler.setRendererVolume(newVolume.doubleValue() * 100);
+        getRenderingControlHandler().setRendererVolume(newVolume.doubleValue() * 100);
     });
 
     /**
@@ -197,7 +121,7 @@ public class PlayerStageController implements IController {
      */
     private ChangeListener<Boolean> timeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
-            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(timeSlider.getValue() / 100.0));
+            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(mediaToolbar.getTimeSliderValue() / 100.0));
             updateCurrentTime();
         }
     };
@@ -207,7 +131,7 @@ public class PlayerStageController implements IController {
      * Seeks video based on timeSlider value.
      */
     private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
-        if(!timeSlider.isValueChanging() && Math.abs(newValue.doubleValue() - oldValue.doubleValue()) > 0.5){
+        if(!mediaToolbar.isTimeSliderValueChanging() && Math.abs(newValue.doubleValue() - oldValue.doubleValue()) > 0.5){
             double newTime = newValue.doubleValue();
             videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
             updateCurrentTime();
@@ -220,7 +144,7 @@ public class PlayerStageController implements IController {
      */
     private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
-            videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+            videoMediaView.getMediaPlayer().setVolume(mediaToolbar.getVolumeSliderValue() / 100.0);
         }
     };
 
@@ -229,8 +153,8 @@ public class PlayerStageController implements IController {
      * Changes volume of video based on volumeSlider value.
      */
     private InvalidationListener volumeInvalidationListener = observable -> {
-        if(!volumeSlider.isValueChanging()){
-            videoMediaView.getMediaPlayer().setVolume(volumeSlider.getValue() / 100.0);
+        if(!mediaToolbar.isVolumeSliderValueChanging()){
+            videoMediaView.getMediaPlayer().setVolume(mediaToolbar.getVolumeSliderValue() / 100.0);
         }
     };
 
@@ -262,17 +186,17 @@ public class PlayerStageController implements IController {
             currentTimeCalcProperty.set(videoMediaView.getMediaPlayer().getCurrentTime());
         }
 
-        double sliderValue = timeSlider.getValue();
+        double sliderValue = mediaToolbar.getTimeSliderValue();
         Duration sliderDragTime = videoMediaView.getMediaPlayer().getTotalDuration().multiply(sliderValue / 100.0);
         Duration timeDifference = sliderDragTime.subtract(currentTimeCalcProperty.get());
         String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
                 "[" + CherryUtil.durationToString(timeDifference) + "]";
 
-        timeTooltipLabel.setText(output);
+        timeTooltipVBox.setText(output);
 
         timeTooltipVBox.setVisible(true);
 
-        Bounds timeSliderBounds = timeSlider.localToScene(timeSlider.getBoundsInLocal());
+        Bounds timeSliderBounds = mediaToolbar.getTimeSlider().localToScene(mediaToolbar.getTimeSlider().getBoundsInLocal());
         if(event.getSceneX() < timeSliderBounds.getMinX()){
             timeTooltipVBox.setLayoutX(timeSliderBounds.getMinX() - (timeTooltipVBox.getWidth() / 2));
         }
@@ -300,13 +224,13 @@ public class PlayerStageController implements IController {
      * Shows a tooltip containing seek info when user drags on volumeSlider.
      */
     private EventHandler<MouseEvent> volumeMouseDraggedEvent = event -> {
-        int sliderValue = (int)Math.round(volumeSlider.getValue());
+        int sliderValue = (int)Math.round(mediaToolbar.getVolumeSliderValue());
 
-        volumeTooltipLabel.setText(sliderValue + "%");
+        volumeTooltipVBox.setText(sliderValue + "%");
 
         volumeTooltipVBox.setVisible(true);
 
-        Bounds volumeSliderBounds = volumeSlider.localToScene(volumeSlider.getBoundsInLocal());
+        Bounds volumeSliderBounds = mediaToolbar.getVolumeSlider().localToScene(mediaToolbar.getVolumeSlider().getBoundsInLocal());
         if(event.getSceneX() < volumeSliderBounds.getMinX()){
             volumeTooltipVBox.setLayoutX(volumeSliderBounds.getMinX() - (volumeTooltipVBox.getWidth() / 2));
         }
@@ -335,7 +259,7 @@ public class PlayerStageController implements IController {
     private EventHandler<KeyEvent> videoKeyReleasedEvent = event -> {
         switch (event.getCode()){
             case SPACE:
-                onPlay();
+                onPlayPause();
                 break;
             case S:
                 onStop();
@@ -353,10 +277,10 @@ public class PlayerStageController implements IController {
                 onForward();
                 break;
             case UP:
-                volumeSlider.increment();
+                onIncreaseVolume();
                 break;
             case DOWN:
-                volumeSlider.decrement();
+                onDecreaseVolume();
                 break;
         }
     };
@@ -364,125 +288,39 @@ public class PlayerStageController implements IController {
     End of property listeners and event handlers
      */
 
-
     @Override
     public AbstractStage getStage() {
-        return (AbstractStage) rootStackPane.getScene().getWindow();
+        return (AbstractStage)rootStackPane.getScene().getWindow();
     }
 
     @FXML
     private void initialize(){
-        try{
-            apiService = new ApiService();
-        }
-        catch (IOException | RuntimeException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Platform.runLater(() -> {
-                Alert alert = getStage().createErrorAlert(e.toString());
-                alert.showAndWait();
-            });
-        }
-
-        String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
-        LOGGER.info("Current device friendly name is " + friendlyName);
-        RendererService rendererService = new RendererService(friendlyName);
-        rendererService.startService();
-
-        avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
-        avTransportHandler.getVideoSeekEvent().addListener(this::seekSpecificDuration);
-        renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChange);
-        renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChange);
-
-        apiService.getMediaObjectEvent().addListener(this::onApiReceiveMedia);
-        apiService.getTogglePauseEvent().addListener(object -> onPlay());
-        apiService.getSeekEvent().addListener(this::seekSpecificDuration);
-        apiService.getStopEvent().addListener(object -> onStop());
-        apiService.getToggleMuteEvent().addListener(object -> onToggleMute());
-        apiService.getSetVolumeEvent().addListener(this::onRendererVolumeChange);
-
-        Image rewindImage;
-        Image stopImage;
-        Image fastForwardImage;
-        Image preferencesImage;
-        Image infoImage;
-        Image exitImage;
-        Image snapshotImage;
-        Image fullscreenImage;
-        Image helpImage;
-        Image updateImage;
-        Image volumeDownImage;
-
-        if (CherryPrefs.Theme.LOADED_VALUE.equals("DARK")) {
-            playImage = new Image("icons/grey/play.png");
-            pauseImage = new Image("icons/grey/pause.png");
-            rewindImage = new Image("icons/grey/rewind.png");
-            stopImage = new Image("icons/grey/stop.png");
-            fastForwardImage = new Image("icons/grey/forward.png");
-            volumeFullImage = new Image("icons/grey/volume-full.png");
-            volumeMuteImage = new Image("icons/grey/volume-mute.png");
-
-            preferencesImage = new Image("icons/grey/pref.png");
-            infoImage = new Image("icons/grey/info.png");
-            exitImage = new Image("icons/grey/exit.png");
-            snapshotImage = new Image("icons/grey/snapshot.png");
-            fullscreenImage = new Image("icons/grey/fullscreen.png");
-            helpImage = new Image("icons/grey/help.png");
-            updateImage = new Image("icons/grey/update.png");
-            volumeDownImage = new Image("icons/grey/volume-down.png");
-        }
-        else {
-            playImage = new Image("icons/play.png");
-            pauseImage = new Image("icons/pause.png");
-            rewindImage = new Image("icons/rewind.png");
-            stopImage = new Image("icons/stop.png");
-            fastForwardImage = new Image("icons/forward.png");
-            volumeFullImage = new Image("icons/volume-full.png");
-            volumeMuteImage = new Image("icons/volume-mute.png");
-
-            preferencesImage = new Image("icons/pref.png");
-            infoImage = new Image("icons/info.png");
-            exitImage = new Image("icons/exit.png");
-            snapshotImage = new Image("icons/snapshot.png");
-            fullscreenImage = new Image("icons/fullscreen.png");
-            helpImage = new Image("icons/help.png");
-            updateImage = new Image("icons/update.png");
-            volumeDownImage = new Image("icons/volume-down.png");
-        }
-
-        playPauseImageView.setImage(playImage);
-        rewindImageView.setImage(rewindImage);
-        stopImageView.setImage(stopImage);
-        fastForwardImageView.setImage(fastForwardImage);
-        volumeImageView.setImage(volumeFullImage);
-
-        preferencesMenuItem.setGraphic(createMenuImageView(preferencesImage));
-        exitMenuItem.setGraphic(createMenuImageView(exitImage));
-        mediaInfoMenuItem.setGraphic(createMenuImageView(infoImage));
-        snapshotMenuItem.setGraphic(createMenuImageView(snapshotImage));
-        playPauseMenuItem.setGraphic(createMenuImageView(playImage));
-        stopMenuItem.setGraphic(createMenuImageView(stopImage));
-        rewindMenuItem.setGraphic(createMenuImageView(rewindImage));
-        forwardMenuItem.setGraphic(createMenuImageView(fastForwardImage));
-        volUpMenuItem.setGraphic(createMenuImageView(volumeFullImage));
-        volDownMenuItem.setGraphic(createMenuImageView(volumeDownImage));
-        muteMenuItem.setGraphic(createMenuImageView(volumeMuteImage));
-        fullscreenMenuItem.setGraphic(createMenuImageView(fullscreenImage));
-        helpMenuItem.setGraphic(createMenuImageView(helpImage));
-        updateMenuItem.setGraphic(createMenuImageView(updateImage));
-        aboutMenuItem.setGraphic(createMenuImageView(infoImage));
+        mediaToolbar.disableToolbar();
+        menuBar.setSnapshotNode(videoMediaView);
+        Platform.runLater(() -> {
+            menuBar.setParentStage(getStage());
+            if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE){
+                checkUpdate();
+            }
+        });
     }
 
     /**
      * Prepares MediaPlayer for video playing.
      * Attaches required property listeners and event handlers that are used during video playback.
      */
-    private void prepareMediaPlayback(){
+    void prepareMediaPlayback(){
         LOGGER.finer("Preparing Media Player for playback");
 
-        Platform.runLater(() -> waitingLabel.setText(WAITING_VIDEO));
+        AVTransportHandler avTransportHandler = getAvTransportHandler();
+        ApiService apiService = getApiService();
 
-        avTransportHandler.setMediaObject(currentMediaObject);
-        apiService.setCurrentlyPlayingMedia(currentMediaObject);
+        Platform.runLater(() -> loadingVBox.setWaitingVideo());
+
+        avTransportHandler.setMediaObject(getCurrentMediaObject());
+        if(apiService != null) {
+            apiService.setCurrentlyPlayingMedia(getCurrentMediaObject());
+        }
 
         prepareFullScreen(false);
 
@@ -491,36 +329,40 @@ public class PlayerStageController implements IController {
         player.setAutoPlay(true);
 
         player.setOnPlaying(() -> {
-            playPauseImageView.setImage(pauseImage);
-            playPauseMenuItem.setGraphic(createMenuImageView(pauseImage));
-            playPauseMenuItem.setText("Pause");
+            mediaToolbar.setPlayPauseToPause();
+            menuBar.setPlayPauseToPause();
 
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
-            apiService.setCurrentStatus(RendererState.PLAYING);
+            if(apiService != null){
+                apiService.setCurrentStatus(RendererState.PLAYING);
+            }
         });
 
         player.setOnPaused(() -> {
-            playPauseImageView.setImage(playImage);
-            playPauseMenuItem.setGraphic(createMenuImageView(playImage));
-            playPauseMenuItem.setText("Play");
+            mediaToolbar.setPlayPauseToPlay();
+            menuBar.setPlayPauseToPlay();
 
             avTransportHandler.setTransportInfo(TransportState.PAUSED_PLAYBACK);
-            apiService.setCurrentStatus(RendererState.PAUSED);
+            if(apiService != null) {
+                apiService.setCurrentStatus(RendererState.PAUSED);
+            }
         });
 
         player.setOnReady(() -> {
             videoMediaView.setVisible(true);
             Duration totalDuration = player.getTotalDuration();
 
-            totalTimeLabel.setText(CherryUtil.durationToString(totalDuration));
+            mediaToolbar.setTotalTimeText(CherryUtil.durationToString(totalDuration));
             avTransportHandler.setMediaInfoWithTotalTime(totalDuration);
             avTransportHandler.setPositionInfoWithTimes(totalDuration, Duration.ZERO);
             avTransportHandler.sendLastChangeMediaDuration(totalDuration);
             avTransportHandler.setTransportInfo(TransportState.PLAYING);
 
-            apiService.setCurrentStatus(RendererState.PLAYING);
+            if(apiService != null) {
+                apiService.setCurrentStatus(RendererState.PLAYING);
+            }
 
-            String title = currentMediaObject.getTitle();
+            String title = getCurrentMediaObject().getTitle();
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
 
@@ -529,12 +371,9 @@ public class PlayerStageController implements IController {
                 LOGGER.finer("Video title was not detected.");
             }
 
-            bottomBarVBox.setDisable(false);
-            for (MenuItem item : playbackMenu.getItems()) {
-                item.setDisable(false);
-            }
-            waitingVBox.setVisible(false);
-            volumeImageView.setOpacity(1);
+            mediaToolbar.enableToolbar();
+            menuBar.enablePlaybackMenu();
+            loadingVBox.setVisible(false);
         });
 
         player.setOnError(() -> {
@@ -544,13 +383,15 @@ public class PlayerStageController implements IController {
             Alert alert = getStage().createErrorAlert(error);
             alert.showAndWait();
 
-            currentMediaObject = null;
-            waitingLabel.setText(WAITING_CONNECTION);
+            setCurrentMediaObject(null);
+            loadingVBox.setWaitingConnection();
 
             avTransportHandler.clearInfo();
             avTransportHandler.setTransportInfo(TransportState.STOPPED);
 
-            apiService.setCurrentStatus(RendererState.STOPPED);
+            if(apiService != null) {
+                apiService.setCurrentStatus(RendererState.STOPPED);
+            }
         });
 
         player.setOnHalted(() -> {
@@ -571,16 +412,15 @@ public class PlayerStageController implements IController {
 
         player.volumeProperty().addListener(playerVolumeListener);
 
+        timeTooltipVBox.setManaged(false);
+
+        volumeTooltipVBox.setManaged(false);
+
         /*
-        Allow manipulation of video via timeSlider & volumeSlider
+        Set MediaToolbar listeners and handlers
          */
-        timeSlider.valueChangingProperty().addListener(timeIsChangingListener);
-
-        timeSlider.valueProperty().addListener(timeChangeListener);
-
-        volumeSlider.valueChangingProperty().addListener(volumeIsChangingListener);
-
-        volumeSlider.valueProperty().addListener(volumeInvalidationListener);
+        mediaToolbar.setTimeSliderListenersHandlers(timeChangeListener, timeIsChangingListener, timeMouseDraggedEvent, timeMouseReleasedEvent);
+        mediaToolbar.setVolumeSliderListenersHandlers(volumeInvalidationListener, volumeIsChangingListener, volumeMouseDraggedEvent, volumeMouseReleasedEvent);
 
         /*
         Toggle fullscreen via double click
@@ -588,24 +428,6 @@ public class PlayerStageController implements IController {
         videoMediaView.setOnMouseClicked(mediaViewClickEvent);
 
         getStage().fullScreenProperty().addListener(isFullScreenListener);
-
-        /*
-        Shows tooltip when dragging the thumb of timeSlider
-         */
-        timeTooltipVBox.setManaged(false);
-
-        timeSlider.setOnMouseDragged(timeMouseDraggedEvent);
-
-        timeSlider.setOnMouseReleased(timeMouseReleasedEvent);
-
-        /*
-        Shows tooltip when dragging the thumb of volumeSlider
-         */
-        volumeTooltipVBox.setManaged(false);
-
-        volumeSlider.setOnMouseDragged(volumeMouseDraggedEvent);
-
-        volumeSlider.setOnMouseReleased(volumeMouseReleasedEvent);
 
         /*
         Allow key press handling on videoMediaView
@@ -631,7 +453,7 @@ public class PlayerStageController implements IController {
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == Status.PLAYING) {
+                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == MediaPlayer.Status.PLAYING) {
                             updateCurrentTime();
                         }
                         return null;
@@ -654,26 +476,25 @@ public class PlayerStageController implements IController {
      * Disposes media player.
      * Disables and resets UI elements.
      */
-    private void endOfMedia(){
+    void endOfMedia(){
         LOGGER.fine("Running end of media function");
+
+        AVTransportHandler avTransportHandler = getAvTransportHandler();
+        ApiService apiService = getApiService();
 
         avTransportHandler.clearInfo();
         avTransportHandler.setTransportInfo(TransportState.STOPPED);
 
-        apiService.clearInfo();
-        apiService.setCurrentStatus(RendererState.STOPPED);
+        if(apiService != null) {
+            apiService.clearInfo();
+            apiService.setCurrentStatus(RendererState.STOPPED);
+        }
 
         getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
 
         LOGGER.finer("Clearing property listeners & event handlers");
-        timeSlider.valueChangingProperty().removeListener(timeIsChangingListener);
-        timeSlider.valueProperty().removeListener(timeChangeListener);
-        volumeSlider.valueChangingProperty().removeListener(volumeIsChangingListener);
-        volumeSlider.valueProperty().removeListener(volumeInvalidationListener);
-        timeSlider.setOnMouseDragged(null);
-        timeSlider.setOnMouseReleased(null);
-        volumeSlider.setOnMouseDragged(null);
-        volumeSlider.setOnMouseReleased(null);
+        mediaToolbar.clearTimeSliderListenersHandlers(timeChangeListener, timeIsChangingListener);
+        mediaToolbar.clearVolumeSliderListenersHandlers(volumeInvalidationListener, volumeIsChangingListener);
         rootStackPane.setOnKeyReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
 
@@ -682,25 +503,21 @@ public class PlayerStageController implements IController {
             updateTimeService.cancel();
         }
 
-        if(videoMediaView.getMediaPlayer().getStatus() != Status.DISPOSED){
+        if(videoMediaView.getMediaPlayer().getStatus() != MediaPlayer.Status.DISPOSED){
             LOGGER.finer("Disposing MediaPlayer");
             videoMediaView.getMediaPlayer().dispose();
         }
 
-        currentTimeLabel.setText("--:--:--");
-        totalTimeLabel.setText("--:--:--");
-        timeSlider.setValue(0);
-        volumeSlider.setValue(100);
+        mediaToolbar.setCurrentTimeText("--:--:--");
+        mediaToolbar.setTotalTimeText("--:--:--");
+        mediaToolbar.setTimeSliderValue(0);
+        mediaToolbar.setVolumeSliderValue(100);
+        mediaToolbar.disableToolbar();
+        menuBar.disablePlaybackMenu();
+        loadingVBox.setWaitingConnection();
+        loadingVBox.setVisible(true);
 
-        bottomBarVBox.setDisable(true);
-        for (MenuItem item : playbackMenu.getItems()) {
-            item.setDisable(true);
-        }
-        waitingLabel.setText(WAITING_CONNECTION);
-        waitingVBox.setVisible(true);
-        volumeImageView.setOpacity(0.4);
-
-        currentMediaObject = null;
+        setCurrentMediaObject(null);
 
         videoMediaView.setOnMouseClicked(null);
         if(getStage().isFullScreen()){
@@ -711,21 +528,21 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onPlay(){
+    void onPlayPause(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null){
             LOGGER.warning("MediaPlayer is null when tried to play/pause.");
             return;
         }
 
-        Status status = player.getStatus();
+        MediaPlayer.Status status = player.getStatus();
 
-        if(status == Status.UNKNOWN){
+        if(status == MediaPlayer.Status.UNKNOWN){
             LOGGER.warning("Attempted to pause/play video while player is still initializing. Ignoring.");
             return;
         }
 
-        if(status == Status.PAUSED || status == Status.STOPPED || status == Status.READY){
+        if(status == MediaPlayer.Status.PAUSED || status == MediaPlayer.Status.STOPPED || status == MediaPlayer.Status.READY){
             player.play();
             updateCurrentTime();
         }
@@ -736,7 +553,7 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onRewind(){
+    void onRewind(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null){
             LOGGER.warning("MediaPlayer is null when tried to rewind.");
@@ -758,20 +575,20 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onStop(){
+    void onStop(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null){
             LOGGER.warning("MediaPlayer is null when tried to stop.");
             return;
         }
 
-        Status status = player.getStatus();
+        MediaPlayer.Status status = player.getStatus();
 
-        if(status == Status.PAUSED || status == Status.PLAYING || status == Status.STALLED){
+        if(status == MediaPlayer.Status.PAUSED || status == MediaPlayer.Status.PLAYING || status == MediaPlayer.Status.STALLED){
             LOGGER.finer("Stopping playback");
             player.stop();
         }
-        else if(status == Status.UNKNOWN){
+        else if(status == MediaPlayer.Status.UNKNOWN){
             LOGGER.warning("Attempted to stop while player is still initializing. Will stop after finish initializing");
             player.stop();
         }
@@ -782,7 +599,7 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onForward(){
+    void onForward(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
         if(player == null){
             LOGGER.warning("MediaPlayer is null when tried to fast forward.");
@@ -804,70 +621,7 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onMenuPreferences(){
-        AbstractStage preferencesStage = new PreferencesStage(getStage());
-        try{
-            preferencesStage.prepareStage();
-            preferencesStage.show();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
-
-    }
-
-    @FXML
-    private void onMenuHelp(){
-        AbstractStage helpStage = new HelpStage(getStage());
-        try{
-            helpStage.prepareStage();
-            helpStage.show();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
-    }
-
-    @FXML
-    private void onMenuUpdate(){
-        AbstractStage updaterStage = new UpdaterStage(getStage());
-        try{
-            updaterStage.prepareStage();
-            updaterStage.show();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
-    }
-
-    @FXML
-    private void onMenuAbout(){
-        AbstractStage aboutStage = new AboutStage(getStage());
-        try{
-            aboutStage.prepareStage();
-            aboutStage.show();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
-
-    }
-
-    @FXML
-    private void onMenuExit(){
-        System.exit(0);
-    }
-
-    @FXML
-    private void onToggleFullScreen() {
+    void onToggleFullScreen() {
         if(!getStage().isFullScreen()){
             getStage().setFullScreen(true);
         }
@@ -877,9 +631,9 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onToggleMute(){
+    void onToggleMute(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
             return;
         }
 
@@ -892,70 +646,24 @@ public class PlayerStageController implements IController {
     }
 
     @FXML
-    private void onIncreaseVolume(){
-        volumeSlider.increment();
+    void onIncreaseVolume(){
+        mediaToolbar.getVolumeSlider().increment();
     }
 
     @FXML
-    private void onDecreaseVolume(){
-        volumeSlider.decrement();
-    }
-
-    @FXML
-    private void onMediaInfo(){
-        AbstractStage mediaInfoStage = new MediaInfoStage(getStage(), currentMediaObject);
-        try{
-            mediaInfoStage.prepareStage();
-            mediaInfoStage.show();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
-    }
-
-    @FXML
-    private void onSnapshot(){
-        try{
-            WritableImage snapshot = videoMediaView.snapshot(new SnapshotParameters(), null);
-            File snapshotFile;
-            String defaultFileName = "cherrysnap-" + new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'SSS").format(new Date()) + ".png";
-
-            if(CherryPrefs.AutoSaveSnapshots.LOADED_VALUE){
-                snapshotFile = new File(System.getProperty("user.home"), defaultFileName);
-            }
-            else {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setInitialFileName(defaultFileName);
-                fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
-                fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-                fileChooser.setTitle("Save snapshot as..");
-
-                snapshotFile = fileChooser.showSaveDialog(getStage());
-            }
-
-            if(snapshotFile == null){
-                return;
-            }
-            ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", snapshotFile);
-            Alert alert = getStage().createInfoAlert("Saved snapshot to " + snapshotFile.getPath());
-            alert.showAndWait();
-        }
-        catch (IOException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
+    void onDecreaseVolume(){
+        mediaToolbar.getVolumeSlider().decrement();
     }
 
     /**
      * Handles RendererStateChanged events, triggered by uPnP state classes via eventing thru RendererHandler.
      * @param rendererState Current RendererState of MediaRenderer
      */
-    private void onRendererStateChanged(RendererState rendererState){
+    void onRendererStateChanged(RendererState rendererState){
         LOGGER.fine("Detected RendererState change to " + rendererState.name());
         MediaPlayer player = videoMediaView.getMediaPlayer();
+        MediaObject currentMediaObject = getCurrentMediaObject();
+        AVTransportHandler avTransportHandler = getAvTransportHandler();
 
         switch (rendererState){
             case NOMEDIAPRESENT:
@@ -983,10 +691,9 @@ public class PlayerStageController implements IController {
                 }
 
                 if(!mediaObject.getUri().equals(currentUri)) {
-                    avTransportHandler.setTransportInfo(TransportState.TRANSITIONING);
                     playNewMedia(mediaObject);
                 }
-                else if(player.getStatus() == Status.PAUSED){
+                else if(player.getStatus() == MediaPlayer.Status.PAUSED){
                     LOGGER.finer("Resuming playback");
                     player.play();
                     updateCurrentTime();
@@ -1003,26 +710,15 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Switches the volume image between volume-full.png and volume-mute.png based on the mute boolean.
-     * @param mute Whether player is muted
-     */
-    private void changeVolumeImage(boolean mute){
-        if(mute && !volumeImageView.getImage().equals(volumeMuteImage)){
-            volumeImageView.setImage(volumeMuteImage);
-        }
-        else if(!volumeImageView.getImage().equals(volumeFullImage)){
-            volumeImageView.setImage(volumeFullImage);
-        }
-    }
-
-    /**
      * Prepares UI elements based on whether fullscreen is triggered.
      * During fullscreen, cursor and bottom bar will be hidden when mouse is idle for 1 second.
      * @param isFullScreen Whether the application is in fullscreen mode.
      */
-    private void prepareFullScreen(boolean isFullScreen){
+    void prepareFullScreen(boolean isFullScreen){
         videoMediaView.fitHeightProperty().unbind();
         videoMediaView.fitWidthProperty().unbind();
+
+        PauseTransition mouseIdleTimer = getMouseIdleTimer();
 
         if(isFullScreen){
             StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
@@ -1030,24 +726,24 @@ public class PlayerStageController implements IController {
             videoMediaView.fitHeightProperty().bind(getStage().heightProperty());
             videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
 
-            bottomBarVBox.setMaxWidth(Region.USE_PREF_SIZE);
-            bottomBarVBox.setOpacity(0);
+            mediaToolbar.setMaxWidth(Region.USE_PREF_SIZE);
+            mediaToolbar.setOpacity(0);
             getStage().getScene().setCursor(Cursor.NONE);
             menuBar.setOpacity(0);
 
             mouseIdleTimer.setOnFinished(event -> {
                 getStage().getScene().setCursor(Cursor.NONE);
-                bottomBarVBox.setOpacity(0);
+                mediaToolbar.setOpacity(0);
                 menuBar.setOpacity(0);
             });
 
             videoMediaView.setOnMouseMoved(event -> {
                 getStage().getScene().setCursor(Cursor.DEFAULT);
-                bottomBarVBox.setOpacity(1);
+                mediaToolbar.setOpacity(1);
                 mouseIdleTimer.playFromStart();
             });
 
-            bottomBarVBox.setOnMouseEntered(event -> mouseIdleTimer.pause());
+            mediaToolbar.setOnMouseEntered(event -> mouseIdleTimer.pause());
 
             menuBar.setOnMouseEntered(event -> {
                 mouseIdleTimer.pause();
@@ -1057,20 +753,20 @@ public class PlayerStageController implements IController {
         else {
             mouseIdleTimer.setOnFinished(null);
             videoMediaView.setOnMouseMoved(null);
-            bottomBarVBox.setOnMouseEntered(null);
+            mediaToolbar.setOnMouseEntered(null);
             menuBar.setOnMouseEntered(null);
 
-            double bottomBarHeight = bottomBarVBox.getHeight();
+            double bottomBarHeight = mediaToolbar.getHeight();
             double menuBarHeight = menuBar.getHeight();
             StackPane.setMargin(videoMediaView, new Insets(menuBarHeight,0, bottomBarHeight,0));
 
             videoMediaView.fitHeightProperty().bind(getStage().getScene().heightProperty().subtract(bottomBarHeight + menuBarHeight));
             videoMediaView.fitWidthProperty().bind(getStage().getScene().widthProperty());
 
-            bottomBarVBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
+            mediaToolbar.setMaxWidth(Region.USE_COMPUTED_SIZE);
 
             getStage().getScene().setCursor(Cursor.DEFAULT);
-            bottomBarVBox.setOpacity(1);
+            mediaToolbar.setOpacity(1);
             menuBar.setOpacity(1);
         }
     }
@@ -1078,26 +774,28 @@ public class PlayerStageController implements IController {
     /**
      * Notifies control point of current time changes via transportHandler
      */
-    private void updateCurrentTime(){
+    void updateCurrentTime(){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
             return;
         }
 
         Duration currentDuration = player.getCurrentTime();
         Duration totalDuration = player.getTotalDuration();
 
-        avTransportHandler.setPositionInfoWithTimes(totalDuration, currentDuration);
-        apiService.updateCurrentlyPlayingInfo(currentDuration, totalDuration, videoMediaView.getMediaPlayer().isMute(), (int)Math.round(volumeSlider.getValue()));
+        getAvTransportHandler().setPositionInfoWithTimes(totalDuration, currentDuration);
+        if(getApiService() != null) {
+            getApiService().updateCurrentlyPlayingInfo(currentDuration, totalDuration, videoMediaView.getMediaPlayer().isMute(), (int) Math.round(mediaToolbar.getVolumeSliderValue()));
+        }
     }
 
     /**
      * Handles RendererVolumeChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
      * @param volume volume set by control point
      */
-    private void onRendererVolumeChange(double volume){
+    void onRendererVolumeChanged(double volume){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+        if(player != null && Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
             player.setVolume(volume / 100.0);
         }
     }
@@ -1106,71 +804,32 @@ public class PlayerStageController implements IController {
      * Handles RendererMuteChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
      * @param isMute whether control point enabled/disabled mute
      */
-    private void onRendererMuteChange(boolean isMute){
+    void onRendererMuteChanged(boolean isMute){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player != null && Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+        if(player != null && Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
             player.setMute(isMute);
         }
-    }
-
-    private ImageView createMenuImageView(Image image){
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(15);
-        imageView.setFitWidth(15);
-
-        return imageView;
-    }
-
-    /**
-     * Checks for update on program startup
-     */
-    public void checkUpdate(){
-        LOGGER.info("Checking for updates...");
-        Service<String> getLatestVersionService = CherryUtil.getLatestVersionJFXService();
-
-        getLatestVersionService.setOnSucceeded(event ->{
-            String latestVersion = getLatestVersionService.getValue();
-            LOGGER.info("Latest version is " + latestVersion);
-            if(CherryUtil.isOutdated(latestVersion)){
-                LOGGER.info("Current version is outdated!");
-                AbstractStage updaterStage = new UpdaterStage(getStage(), latestVersion);
-                try{
-                    updaterStage.prepareStage();
-                    updaterStage.show();
-                }
-                catch (IOException e){
-                    LOGGER.log(Level.SEVERE, e.toString(), e);
-                    Alert alert = getStage().createErrorAlert(e.toString());
-                    alert.showAndWait();
-                }
-            }
-        });
-
-        getLatestVersionService.setOnFailed(event -> {
-            Throwable e = getLatestVersionService.getException();
-
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        });
-
-        getLatestVersionService.start();
     }
 
     /**
      * Set MediaPlayer to play a new media
      * @param mediaObject media to play
      */
-    private void playNewMedia(MediaObject mediaObject){
+    void playNewMedia(MediaObject mediaObject){
         Platform.runLater(() -> {
+            getAvTransportHandler().setTransportInfo(TransportState.TRANSITIONING);
+            if(getApiService() != null){
+                getApiService().setCurrentStatus(RendererState.TRANSITIONING);
+            }
+
             MediaPlayer player = videoMediaView.getMediaPlayer();
-            if(player != null && player.getStatus() != Status.DISPOSED){
+            if(player != null && player.getStatus() != MediaPlayer.Status.DISPOSED){
                 LOGGER.warning("Tried to create new player while existing player still running. Forcing endOfMedia.");
                 endOfMedia();
             }
 
-            LOGGER.finer("Creating new player for URI " + mediaObject.getUriString());
-            currentMediaObject = mediaObject;
+            LOGGER.fine("Creating new player for URI " + mediaObject.getUriString());
+            setCurrentMediaObject(mediaObject);
 
             videoMediaView.setMediaPlayer(new MediaPlayer(mediaObject.toJFXMedia()));
 
@@ -1182,20 +841,16 @@ public class PlayerStageController implements IController {
      * For use when seeking to a specific duration
      * @param target target to seek to
      */
-    private void seekSpecificDuration(Duration target){
+    void seekSpecificDuration(Duration target){
         MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(Status.PAUSED, Status.PLAYING, Status.READY).contains(player.getStatus())){
+        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
             return;
         }
 
         if(target.lessThanOrEqualTo(player.getTotalDuration())){
+            LOGGER.finer("Seeking to " + CherryUtil.durationToString(target));
             player.seek(target);
             updateCurrentTime();
         }
-    }
-
-    private void onApiReceiveMedia(MediaObject mediaObject){
-        apiService.setCurrentStatus(RendererState.TRANSITIONING);
-        playNewMedia(mediaObject);
     }
 }

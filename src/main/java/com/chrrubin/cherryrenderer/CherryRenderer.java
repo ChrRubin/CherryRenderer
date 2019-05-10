@@ -1,7 +1,7 @@
 package com.chrrubin.cherryrenderer;
 
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
-import com.chrrubin.cherryrenderer.gui.PlayerStage;
+import com.chrrubin.cherryrenderer.gui.JfxPlayerStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -49,7 +49,7 @@ public class CherryRenderer extends Application {
         }
 
         try{
-            AbstractStage stage = new PlayerStage();
+            AbstractStage stage = new JfxPlayerStage();
             stage.prepareStage();
             stage.show();
         }
