@@ -166,6 +166,10 @@ public class MediaToolbar extends VBox {
     public void disableToolbar(){
         setDisable(true);
         volumeImageView.setOpacity(0.4);
+        setCurrentTimeText("--:--:--");
+        setTotalTimeText("--:--:--");
+        setTimeSliderValue(0);
+        setVolumeSliderValue(100);
     }
 
     public void enableToolbar(){

@@ -4,11 +4,10 @@ import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.api.ApiService;
-import com.chrrubin.cherryrenderer.gui.custom.CustomMenuBar;
-import com.chrrubin.cherryrenderer.gui.custom.LoadingVBox;
-import com.chrrubin.cherryrenderer.gui.custom.MediaToolbar;
-import com.chrrubin.cherryrenderer.gui.custom.TooltipVBox;
+import com.chrrubin.cherryrenderer.gui.custom.*;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
+import com.chrrubin.cherryrenderer.upnp.RendererService;
+import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
 import com.chrrubin.cherryrenderer.upnp.states.RendererState;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -17,6 +16,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -29,23 +29,21 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
+import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JfxPlayerStageController extends AbstractPlayerStageController{
+public class PlayerStageController implements IController {
     @FXML
     private StackPane rootStackPane;
     @FXML
-    private CustomMenuBar menuBar;
+    private IPlayer player;
     @FXML
-    private MediaView videoMediaView;
+    private CustomMenuBar menuBar;
     @FXML
     private MediaToolbar mediaToolbar;
     @FXML
@@ -55,31 +53,17 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     @FXML
     private LoadingVBox loadingVBox;
 
-    private final Logger LOGGER = Logger.getLogger(JfxPlayerStageController.class.getName());
+    private Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
+    private MediaObject currentMediaObject = null;
+    private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
+    private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
+    private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
+    private ApiService apiService = null;
     private ScheduledService<Void> updateTimeService;
-
-    public JfxPlayerStageController(){
-        super(Logger.getLogger(JfxPlayerStageController.class.getName()));
-    }
 
     /*
     Start of property listeners and event handlers
      */
-    /**
-     * Listener for statusProperty of videoMediaView.getMediaPlayer()
-     */
-    private ChangeListener<MediaPlayer.Status> playerStatusListener = (observable, oldStatus, newStatus) -> {
-        if(oldStatus == null){
-            return;
-        }
-
-        LOGGER.finer("Media player exited "+ oldStatus.name() + " status, going into " + newStatus.name() + " status.");
-
-        if(newStatus == MediaPlayer.Status.STALLED){
-            LOGGER.fine("(Caught by listener) Media player in entered STALLED status. Video is currently buffering (?)");
-        }
-    };
-
     /**
      * Listener for currentTimeProperty of videoMediaView.getMediaPlayer()
      * Updates currentTimeLabel and timeSlider based on the current time of the media player.
@@ -88,7 +72,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     private ChangeListener<Duration> playerCurrentTimeListener = (observable, oldValue, newValue) -> {
         mediaToolbar.setCurrentTimeText(CherryUtil.durationToString(newValue));
         if(!mediaToolbar.isTimeSliderValueChanging()){
-            mediaToolbar.setTimeSliderValue(newValue.divide(videoMediaView.getMediaPlayer().getTotalDuration().toMillis()).toMillis() * 100.0);
+            mediaToolbar.setTimeSliderValue(newValue.divide(player.getTotalTime().toMillis()).toMillis() * 100.0);
         }
     };
 
@@ -98,9 +82,9 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * Also notifies RenderingControlService of mute changes.
      */
     private InvalidationListener playerMuteListener = ((observable) -> {
-        boolean isMute = videoMediaView.getMediaPlayer().muteProperty().get();
+        boolean isMute = player.isMute();
         mediaToolbar.changeVolumeImage(isMute);
-        getRenderingControlHandler().setRendererMute(isMute);
+        renderingControlHandler.setRendererMute(isMute);
     });
 
     /**
@@ -112,7 +96,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         if(!mediaToolbar.isVolumeSliderValueChanging()){
             mediaToolbar.setVolumeSliderValue(newVolume.doubleValue() * 100);
         }
-        getRenderingControlHandler().setRendererVolume(newVolume.doubleValue() * 100);
+        renderingControlHandler.setRendererVolume(newVolume.doubleValue() * 100);
     });
 
     /**
@@ -121,7 +105,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      */
     private ChangeListener<Boolean> timeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
-            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(mediaToolbar.getTimeSliderValue() / 100.0));
+            player.seek(player.getTotalTime().multiply(mediaToolbar.getTimeSliderValue() / 100.0));
             updateCurrentTime();
         }
     };
@@ -133,7 +117,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     private ChangeListener<Number> timeChangeListener = (observable, oldValue, newValue) -> {
         if(!mediaToolbar.isTimeSliderValueChanging() && Math.abs(newValue.doubleValue() - oldValue.doubleValue()) > 0.5){
             double newTime = newValue.doubleValue();
-            videoMediaView.getMediaPlayer().seek(videoMediaView.getMediaPlayer().getTotalDuration().multiply(newTime / 100.0));
+            player.seek(player.getTotalTime().multiply(newTime / 100.0));
             updateCurrentTime();
         }
     };
@@ -144,7 +128,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      */
     private ChangeListener<Boolean> volumeIsChangingListener = (observable, wasChanging, isChanging) -> {
         if(!isChanging){
-            videoMediaView.getMediaPlayer().setVolume(mediaToolbar.getVolumeSliderValue() / 100.0);
+            player.setVolume(mediaToolbar.getVolumeSliderValue());
         }
     };
 
@@ -154,7 +138,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      */
     private InvalidationListener volumeInvalidationListener = observable -> {
         if(!mediaToolbar.isVolumeSliderValueChanging()){
-            videoMediaView.getMediaPlayer().setVolume(mediaToolbar.getVolumeSliderValue() / 100.0);
+            player.setVolume(mediaToolbar.getVolumeSliderValue());
         }
     };
 
@@ -183,11 +167,11 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      */
     private EventHandler<MouseEvent> timeMouseDraggedEvent = event -> {
         if(currentTimeCalcProperty.get() == null){
-            currentTimeCalcProperty.set(videoMediaView.getMediaPlayer().getCurrentTime());
+            currentTimeCalcProperty.set(player.getCurrentTime());
         }
 
         double sliderValue = mediaToolbar.getTimeSliderValue();
-        Duration sliderDragTime = videoMediaView.getMediaPlayer().getTotalDuration().multiply(sliderValue / 100.0);
+        Duration sliderDragTime = player.getTotalTime().multiply(sliderValue / 100.0);
         Duration timeDifference = sliderDragTime.subtract(currentTimeCalcProperty.get());
         String output = CherryUtil.durationToString(sliderDragTime) + System.lineSeparator() +
                 "[" + CherryUtil.durationToString(timeDifference) + "]";
@@ -216,7 +200,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     private EventHandler<MouseEvent> timeMouseReleasedEvent = event -> {
         timeTooltipVBox.setVisible(false);
         currentTimeCalcProperty.set(null);
-        videoMediaView.requestFocus();
+        player.getNode().requestFocus();
     };
 
     /**
@@ -249,7 +233,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      */
     private EventHandler<MouseEvent> volumeMouseReleasedEvent = event -> {
         volumeTooltipVBox.setVisible(false);
-        videoMediaView.requestFocus();
+        player.getNode().requestFocus();
     };
 
     /**
@@ -295,8 +279,35 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
 
     @FXML
     private void initialize(){
+        try{
+            apiService = new ApiService();
+            apiService.getMediaObjectEvent().addListener(this::playNewMedia);
+            apiService.getTogglePauseEvent().addListener(object -> onPlayPause());
+            apiService.getSeekEvent().addListener(this::seekSpecificDuration);
+            apiService.getStopEvent().addListener(object -> onStop());
+            apiService.getToggleMuteEvent().addListener(object -> onToggleMute());
+            apiService.getSetVolumeEvent().addListener(this::onRendererVolumeChanged);
+        }
+        catch (IOException | RuntimeException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Platform.runLater(() -> {
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
+            });
+        }
+
+        String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
+        LOGGER.info("Current device friendly name is " + friendlyName);
+        RendererService rendererService = new RendererService(friendlyName);
+        rendererService.startService();
+
+        avTransportHandler.getRendererStateChangedEvent().addListener(this::onRendererStateChanged);
+        avTransportHandler.getVideoSeekEvent().addListener(this::seekSpecificDuration);
+        renderingControlHandler.getVideoVolumeEvent().addListener(this::onRendererVolumeChanged);
+        renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChanged);
+
         mediaToolbar.disableToolbar();
-        menuBar.setSnapshotNode(videoMediaView);
+        menuBar.setSnapshotNode(player.getNode());
         Platform.runLater(() -> {
             menuBar.setParentStage(getStage());
             if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE){
@@ -305,28 +316,58 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         });
     }
 
+    private void checkUpdate(){
+        LOGGER.info("Checking for updates...");
+        Service<String> getLatestVersionService = CherryUtil.getLatestVersionJFXService();
+
+        getLatestVersionService.setOnSucceeded(event ->{
+            String latestVersion = getLatestVersionService.getValue();
+            LOGGER.info("Latest version is " + latestVersion);
+            if(CherryUtil.isOutdated(latestVersion)){
+                LOGGER.info("Current version is outdated!");
+                AbstractStage updaterStage = new UpdaterStage(getStage(), latestVersion);
+                try{
+                    updaterStage.prepareStage();
+                    updaterStage.show();
+                }
+                catch (IOException e){
+                    LOGGER.log(Level.SEVERE, e.toString(), e);
+                    Alert alert = getStage().createErrorAlert(e.toString());
+                    alert.showAndWait();
+                }
+            }
+        });
+
+        getLatestVersionService.setOnFailed(event -> {
+            Throwable e = getLatestVersionService.getException();
+
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
+        });
+
+        getLatestVersionService.start();
+    }
+
+    void shutdown(){
+        player.releaseResources();
+    }
+
     /**
      * Prepares MediaPlayer for video playing.
      * Attaches required property listeners and event handlers that are used during video playback.
      */
-    void prepareMediaPlayback(){
+    private void prepareMediaPlayback(){
         LOGGER.finer("Preparing Media Player for playback");
-
-        AVTransportHandler avTransportHandler = getAvTransportHandler();
-        ApiService apiService = getApiService();
 
         Platform.runLater(() -> loadingVBox.setWaitingVideo());
 
-        avTransportHandler.setMediaObject(getCurrentMediaObject());
+        avTransportHandler.setMediaObject(currentMediaObject);
         if(apiService != null) {
-            apiService.setCurrentlyPlayingMedia(getCurrentMediaObject());
+            apiService.setCurrentlyPlayingMedia(currentMediaObject);
         }
 
         prepareFullScreen(false);
-
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-
-        player.setAutoPlay(true);
 
         player.setOnPlaying(() -> {
             mediaToolbar.setPlayPauseToPause();
@@ -349,8 +390,8 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         });
 
         player.setOnReady(() -> {
-            videoMediaView.setVisible(true);
-            Duration totalDuration = player.getTotalDuration();
+            player.getNode().setVisible(true);
+            Duration totalDuration = player.getTotalTime();
 
             mediaToolbar.setTotalTimeText(CherryUtil.durationToString(totalDuration));
             avTransportHandler.setMediaInfoWithTotalTime(totalDuration);
@@ -362,7 +403,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
                 apiService.setCurrentStatus(RendererState.PLAYING);
             }
 
-            String title = getCurrentMediaObject().getTitle();
+            String title = currentMediaObject.getTitle();
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
 
@@ -377,13 +418,19 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         });
 
         player.setOnError(() -> {
-            String error = player.getError().toString();
+            Throwable error = player.getError();
+            String errorMessage = player.getErrorMessage();
 
-            LOGGER.log(Level.SEVERE, error, player.getError());
-            Alert alert = getStage().createErrorAlert(error);
+            if(error != null) {
+                LOGGER.log(Level.SEVERE, errorMessage, error);
+            }
+            else {
+                LOGGER.severe(errorMessage);
+            }
+            Alert alert = getStage().createErrorAlert(errorMessage);
             alert.showAndWait();
 
-            setCurrentMediaObject(null);
+            currentMediaObject = null;
             loadingVBox.setWaitingConnection();
 
             avTransportHandler.clearInfo();
@@ -394,17 +441,10 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
             }
         });
 
-        player.setOnHalted(() -> {
-            LOGGER.warning("Media player reached HALTED status. Disposing media player...");
-            endOfMedia();
-        });
-
         // TODO: Implement buffering handling
         //  For some reason Status.STALLED can't be used to determine whether player is buffering...
-        player.setOnStalled(() ->
-                LOGGER.fine("(Caught by setOnStalled) Media player in STALLED status. Video is currently buffering (?)"));
-
-        player.statusProperty().addListener(playerStatusListener);
+        player.setOnBuffering(() ->
+                LOGGER.fine("(Caught by setOnBuffering) Video is currently buffering (?)"));
 
         player.currentTimeProperty().addListener(playerCurrentTimeListener);
 
@@ -425,16 +465,16 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         /*
         Toggle fullscreen via double click
          */
-        videoMediaView.setOnMouseClicked(mediaViewClickEvent);
+        player.getNode().setOnMouseClicked(mediaViewClickEvent);
 
         getStage().fullScreenProperty().addListener(isFullScreenListener);
 
         /*
         Allow key press handling on videoMediaView
          */
-        videoMediaView.setOnKeyReleased(videoKeyReleasedEvent);
+        player.getNode().setOnKeyReleased(videoKeyReleasedEvent);
 
-        player.setOnEndOfMedia(() -> {
+        player.setOnFinished(() -> {
             LOGGER.finest("player.setOnEndOfMedia triggered");
             endOfMedia();
         });
@@ -453,7 +493,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-                        if(videoMediaView.getMediaPlayer() != null && videoMediaView.getMediaPlayer().getStatus() == MediaPlayer.Status.PLAYING) {
+                        if(player.getStatus() == PlayerStatus.PLAYING) {
                             updateCurrentTime();
                         }
                         return null;
@@ -465,7 +505,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         updateTimeService.setPeriod(Duration.seconds(1));
         updateTimeService.start();
 
-        videoMediaView.requestFocus();
+        player.getNode().requestFocus();
 
     }
 
@@ -476,11 +516,8 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * Disposes media player.
      * Disables and resets UI elements.
      */
-    void endOfMedia(){
+    private void endOfMedia(){
         LOGGER.fine("Running end of media function");
-
-        AVTransportHandler avTransportHandler = getAvTransportHandler();
-        ApiService apiService = getApiService();
 
         avTransportHandler.clearInfo();
         avTransportHandler.setTransportInfo(TransportState.STOPPED);
@@ -503,63 +540,52 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
             updateTimeService.cancel();
         }
 
-        if(videoMediaView.getMediaPlayer().getStatus() != MediaPlayer.Status.DISPOSED){
-            LOGGER.finer("Disposing MediaPlayer");
-            videoMediaView.getMediaPlayer().dispose();
-        }
+        LOGGER.finer("Disposing player");
+        player.disposePlayer();
 
-        mediaToolbar.setCurrentTimeText("--:--:--");
-        mediaToolbar.setTotalTimeText("--:--:--");
-        mediaToolbar.setTimeSliderValue(0);
-        mediaToolbar.setVolumeSliderValue(100);
         mediaToolbar.disableToolbar();
         menuBar.disablePlaybackMenu();
         loadingVBox.setWaitingConnection();
         loadingVBox.setVisible(true);
 
-        setCurrentMediaObject(null);
+        currentMediaObject = null;
 
-        videoMediaView.setOnMouseClicked(null);
+        player.getNode().setOnMouseClicked(null);
         if(getStage().isFullScreen()){
             getStage().setFullScreen(false);
         }
 
-        videoMediaView.setVisible(false);
+        player.getNode().setVisible(false);
     }
 
     @FXML
-    void onPlayPause(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null){
-            LOGGER.warning("MediaPlayer is null when tried to play/pause.");
-            return;
+    private void onMediaInfo(){
+        AbstractStage mediaInfoStage = new MediaInfoStage(getStage(), currentMediaObject);
+        try{
+            mediaInfoStage.prepareStage();
+            mediaInfoStage.show();
         }
-
-        MediaPlayer.Status status = player.getStatus();
-
-        if(status == MediaPlayer.Status.UNKNOWN){
-            LOGGER.warning("Attempted to pause/play video while player is still initializing. Ignoring.");
-            return;
+        catch (IOException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
+            alert.showAndWait();
         }
+    }
 
-        if(status == MediaPlayer.Status.PAUSED || status == MediaPlayer.Status.STOPPED || status == MediaPlayer.Status.READY){
-            player.play();
-            updateCurrentTime();
-        }
-        else{
+    @FXML
+    private void onPlayPause(){
+        if(player.getStatus() == PlayerStatus.PLAYING){
             player.pause();
-            updateCurrentTime();
         }
+        else if(player.getStatus() == PlayerStatus.PAUSED){
+            player.play();
+        }
+
+        updateCurrentTime();
     }
 
     @FXML
-    void onRewind(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null){
-            LOGGER.warning("MediaPlayer is null when tried to rewind.");
-            return;
-        }
-
+    private void onRewind(){
         Duration currentTime = player.getCurrentTime();
 
         if(currentTime.greaterThanOrEqualTo(Duration.seconds(10))){
@@ -575,53 +601,28 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     }
 
     @FXML
-    void onStop(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null){
-            LOGGER.warning("MediaPlayer is null when tried to stop.");
-            return;
-        }
-
-        MediaPlayer.Status status = player.getStatus();
-
-        if(status == MediaPlayer.Status.PAUSED || status == MediaPlayer.Status.PLAYING || status == MediaPlayer.Status.STALLED){
-            LOGGER.finer("Stopping playback");
-            player.stop();
-        }
-        else if(status == MediaPlayer.Status.UNKNOWN){
-            LOGGER.warning("Attempted to stop while player is still initializing. Will stop after finish initializing");
-            player.stop();
-        }
-        else{
-            LOGGER.warning("Attempted to stop while player has no status. Yes apparently this is a thing even though THERE IS A STATUS CALLED UNKNOWN THAT YOU'RE SUPPOSED TO USE");
-            player.stop();
-        }
+    private void onStop(){
+        player.stop();
     }
 
     @FXML
-    void onForward(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null){
-            LOGGER.warning("MediaPlayer is null when tried to fast forward.");
-            return;
-        }
-
+    private void onForward(){
         Duration currentTime = player.getCurrentTime();
 
-        if(currentTime.add(Duration.seconds(10)).lessThanOrEqualTo(player.getTotalDuration())){
+        if(currentTime.add(Duration.seconds(10)).lessThanOrEqualTo(player.getTotalTime())){
             LOGGER.finest("Seeking 10 seconds forward");
             player.seek(currentTime.add(Duration.seconds(10)));
         }
         else{
             LOGGER.finest("Seeking to end of media");
-            player.seek(player.getTotalDuration());
+            player.seek(player.getTotalTime());
         }
 
         updateCurrentTime();
     }
 
     @FXML
-    void onToggleFullScreen() {
+    private void onToggleFullScreen() {
         if(!getStage().isFullScreen()){
             getStage().setFullScreen(true);
         }
@@ -631,13 +632,8 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     }
 
     @FXML
-    void onToggleMute(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
-            return;
-        }
-
-        if(player.muteProperty().get()){
+    private void onToggleMute(){
+        if(player.isMute()){
             player.setMute(false);
         }
         else{
@@ -646,12 +642,12 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     }
 
     @FXML
-    void onIncreaseVolume(){
+    private void onIncreaseVolume(){
         mediaToolbar.getVolumeSlider().increment();
     }
 
     @FXML
-    void onDecreaseVolume(){
+    private void onDecreaseVolume(){
         mediaToolbar.getVolumeSlider().decrement();
     }
 
@@ -659,11 +655,8 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * Handles RendererStateChanged events, triggered by uPnP state classes via eventing thru RendererHandler.
      * @param rendererState Current RendererState of MediaRenderer
      */
-    void onRendererStateChanged(RendererState rendererState){
+    private void onRendererStateChanged(RendererState rendererState){
         LOGGER.fine("Detected RendererState change to " + rendererState.name());
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        MediaObject currentMediaObject = getCurrentMediaObject();
-        AVTransportHandler avTransportHandler = getAvTransportHandler();
 
         switch (rendererState){
             case NOMEDIAPRESENT:
@@ -693,7 +686,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
                 if(!mediaObject.getUri().equals(currentUri)) {
                     playNewMedia(mediaObject);
                 }
-                else if(player.getStatus() == MediaPlayer.Status.PAUSED){
+                else if(player.getStatus() == PlayerStatus.PAUSED){
                     LOGGER.finer("Resuming playback");
                     player.play();
                     updateCurrentTime();
@@ -714,17 +707,15 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * During fullscreen, cursor and bottom bar will be hidden when mouse is idle for 1 second.
      * @param isFullScreen Whether the application is in fullscreen mode.
      */
-    void prepareFullScreen(boolean isFullScreen){
-        videoMediaView.fitHeightProperty().unbind();
-        videoMediaView.fitWidthProperty().unbind();
-
-        PauseTransition mouseIdleTimer = getMouseIdleTimer();
+    private void prepareFullScreen(boolean isFullScreen){
+        player.heightProperty().unbind();
+        player.widthProperty().unbind();
 
         if(isFullScreen){
-            StackPane.setMargin(videoMediaView, new Insets(0,0,0,0));
+            StackPane.setMargin(player.getNode(), new Insets(0,0,0,0));
 
-            videoMediaView.fitHeightProperty().bind(getStage().heightProperty());
-            videoMediaView.fitWidthProperty().bind(getStage().widthProperty());
+            player.heightProperty().bind(getStage().heightProperty());
+            player.widthProperty().bind(getStage().widthProperty());
 
             mediaToolbar.setMaxWidth(Region.USE_PREF_SIZE);
             mediaToolbar.setOpacity(0);
@@ -737,7 +728,7 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
                 menuBar.setOpacity(0);
             });
 
-            videoMediaView.setOnMouseMoved(event -> {
+            player.getNode().setOnMouseMoved(event -> {
                 getStage().getScene().setCursor(Cursor.DEFAULT);
                 mediaToolbar.setOpacity(1);
                 mouseIdleTimer.playFromStart();
@@ -752,16 +743,16 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
         }
         else {
             mouseIdleTimer.setOnFinished(null);
-            videoMediaView.setOnMouseMoved(null);
+            player.getNode().setOnMouseMoved(null);
             mediaToolbar.setOnMouseEntered(null);
             menuBar.setOnMouseEntered(null);
 
             double bottomBarHeight = mediaToolbar.getHeight();
             double menuBarHeight = menuBar.getHeight();
-            StackPane.setMargin(videoMediaView, new Insets(menuBarHeight,0, bottomBarHeight,0));
+            StackPane.setMargin(player.getNode(), new Insets(menuBarHeight,0, bottomBarHeight,0));
 
-            videoMediaView.fitHeightProperty().bind(getStage().getScene().heightProperty().subtract(bottomBarHeight + menuBarHeight));
-            videoMediaView.fitWidthProperty().bind(getStage().getScene().widthProperty());
+            player.heightProperty().bind(getStage().getScene().heightProperty().subtract(bottomBarHeight + menuBarHeight));
+            player.widthProperty().bind(getStage().getScene().widthProperty());
 
             mediaToolbar.setMaxWidth(Region.USE_COMPUTED_SIZE);
 
@@ -774,18 +765,13 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
     /**
      * Notifies control point of current time changes via transportHandler
      */
-    void updateCurrentTime(){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
-            return;
-        }
-
+    private void updateCurrentTime(){
         Duration currentDuration = player.getCurrentTime();
-        Duration totalDuration = player.getTotalDuration();
+        Duration totalDuration = player.getTotalTime();
 
-        getAvTransportHandler().setPositionInfoWithTimes(totalDuration, currentDuration);
-        if(getApiService() != null) {
-            getApiService().updateCurrentlyPlayingInfo(currentDuration, totalDuration, videoMediaView.getMediaPlayer().isMute(), (int) Math.round(mediaToolbar.getVolumeSliderValue()));
+        avTransportHandler.setPositionInfoWithTimes(totalDuration, currentDuration);
+        if(apiService != null) {
+            apiService.updateCurrentlyPlayingInfo(currentDuration, totalDuration, player.isMute(), (int)Math.round(player.getVolume()));
         }
     }
 
@@ -793,45 +779,32 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * Handles RendererVolumeChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
      * @param volume volume set by control point
      */
-    void onRendererVolumeChanged(double volume){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player != null && Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
-            player.setVolume(volume / 100.0);
-        }
+    private void onRendererVolumeChanged(double volume){
+        player.setVolume(volume);
     }
 
     /**
      * Handles RendererMuteChanged events, triggered by RenderingControlService via eventing thru RenderingControlHandler
      * @param isMute whether control point enabled/disabled mute
      */
-    void onRendererMuteChanged(boolean isMute){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player != null && Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
-            player.setMute(isMute);
-        }
+    private void onRendererMuteChanged(boolean isMute){
+        player.setMute(isMute);
     }
 
     /**
      * Set MediaPlayer to play a new media
      * @param mediaObject media to play
      */
-    void playNewMedia(MediaObject mediaObject){
+    private void playNewMedia(MediaObject mediaObject){
         Platform.runLater(() -> {
-            getAvTransportHandler().setTransportInfo(TransportState.TRANSITIONING);
-            if(getApiService() != null){
-                getApiService().setCurrentStatus(RendererState.TRANSITIONING);
-            }
-
-            MediaPlayer player = videoMediaView.getMediaPlayer();
-            if(player != null && player.getStatus() != MediaPlayer.Status.DISPOSED){
-                LOGGER.warning("Tried to create new player while existing player still running. Forcing endOfMedia.");
-                endOfMedia();
+            avTransportHandler.setTransportInfo(TransportState.TRANSITIONING);
+            if(apiService != null){
+                apiService.setCurrentStatus(RendererState.TRANSITIONING);
             }
 
             LOGGER.fine("Creating new player for URI " + mediaObject.getUriString());
-            setCurrentMediaObject(mediaObject);
-
-            videoMediaView.setMediaPlayer(new MediaPlayer(mediaObject.toJFXMedia()));
+            currentMediaObject = mediaObject;
+            player.playNewMedia(mediaObject);
 
             prepareMediaPlayback();
         });
@@ -841,13 +814,8 @@ public class JfxPlayerStageController extends AbstractPlayerStageController{
      * For use when seeking to a specific duration
      * @param target target to seek to
      */
-    void seekSpecificDuration(Duration target){
-        MediaPlayer player = videoMediaView.getMediaPlayer();
-        if(player == null || !Arrays.asList(MediaPlayer.Status.PAUSED, MediaPlayer.Status.PLAYING, MediaPlayer.Status.READY).contains(player.getStatus())){
-            return;
-        }
-
-        if(target.lessThanOrEqualTo(player.getTotalDuration())){
+    private void seekSpecificDuration(Duration target){
+        if(target.lessThanOrEqualTo(player.getTotalTime())){
             LOGGER.finer("Seeking to " + CherryUtil.durationToString(target));
             player.seek(target);
             updateCurrentTime();

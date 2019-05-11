@@ -6,6 +6,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.PixelFormat;
@@ -32,7 +33,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 
-public class VlcPlayerCanvas extends Canvas {
+public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private PixelWriter pixelWriter = this.getGraphicsContext2D().getPixelWriter();
     private WritablePixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteBgraInstance();
     private MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory();
@@ -49,8 +50,8 @@ public class VlcPlayerCanvas extends Canvas {
     private Runnable onError;
     private Runnable onMediaPlayerReady;
     private BooleanProperty isMute = new SimpleBooleanProperty(false);
-    private FloatProperty volume = new SimpleFloatProperty();
-    private LongProperty currentTime = new SimpleLongProperty();
+    private DoubleProperty volume = new SimpleDoubleProperty();
+    private ObjectProperty<Duration> currentTime = new SimpleObjectProperty<>();
     private ObjectProperty<State> state = new SimpleObjectProperty<>();
 
     public VlcPlayerCanvas(){
@@ -126,8 +127,7 @@ public class VlcPlayerCanvas extends Canvas {
                     timeline.play();
                     timeline.pause();
                 }
-                
-                currentTime.set(newTime);
+                currentTime.set(Duration.millis(newTime));
             }
 
             @Override
@@ -232,107 +232,146 @@ public class VlcPlayerCanvas extends Canvas {
         }
     }
 
-    public State getState(){
-        return mediaPlayer.status().state();
-    }
-
-    /**
-     * Get current playback time
-     * @return current time in milliseconds
-     */
-    public long getCurrentTime(){
-        return mediaPlayer.status().time();
-    }
-
-    /**
-     * Get total playback time
-     * @return total time in milliseconds
-     */
-    public long getTotalTime(){
-        return mediaPlayer.status().length();
-    }
-
-    public boolean isMute(){
-        return mediaPlayer.audio().isMute();
-    }
-
-    public void setMute(boolean mute){
-        mediaPlayer.audio().setMute(mute);
-    }
-
-    public int getVolume(){
-        return mediaPlayer.audio().volume();
-    }
-
-    public void setVolume(int volume){
-        mediaPlayer.audio().setVolume(volume);
-    }
-
+    @Override
     public void playNewMedia(MediaObject mediaObject){
         mediaPlayer.media().play(mediaObject.getUriString());
     }
 
+    @Override
     public void play(){
         mediaPlayer.controls().play();
     }
 
+    @Override
     public void pause(){
         mediaPlayer.controls().pause();
     }
 
-    public void seek(int seconds){
-        mediaPlayer.controls().setTime(seconds * 1000);
-    }
-
-    public void skip(int secondsDelta){
-        mediaPlayer.controls().skipTime(secondsDelta * 1000);
-    }
-
+    @Override
     public void stop(){
         mediaPlayer.controls().stop();
     }
 
+    @Override
+    public void seek(Duration target){
+        mediaPlayer.controls().setTime((long)target.toMillis());
+    }
+
+    @Override
+    public boolean isMute(){
+        return mediaPlayer.audio().isMute();
+    }
+
+    @Override
+    public void setMute(boolean mute){
+        mediaPlayer.audio().setMute(mute);
+    }
+
+    @Override
+    public double getVolume(){
+        return mediaPlayer.audio().volume();
+    }
+
+    @Override
+    public void setVolume(double volume){
+        mediaPlayer.audio().setVolume((int)volume);
+    }
+
+    @Override
+    public Duration getCurrentTime(){
+        return Duration.millis(mediaPlayer.status().time());
+    }
+
+    @Override
+    public Duration getTotalTime(){
+        return Duration.millis(mediaPlayer.status().length());
+    }
+
+    @Override
+    public PlayerStatus getStatus(){
+        switch(mediaPlayer.status().state()){
+            case STOPPED:
+                return PlayerStatus.STOPPED;
+            case PLAYING:
+                return PlayerStatus.PLAYING;
+            case PAUSED:
+                return PlayerStatus.PAUSED;
+            case ERROR:
+                return PlayerStatus.ERROR;
+            case BUFFERING:
+                return PlayerStatus.BUFFERING;
+            default:
+                return PlayerStatus.UNKNOWN;
+        }
+    }
+
+    @Override
     public void setOnBuffering(Runnable onBuffering) {
         this.onBuffering = onBuffering;
     }
 
+    @Override
     public void setOnPlaying(Runnable onPlaying) {
         this.onPlaying = onPlaying;
     }
 
+    @Override
     public void setOnPaused(Runnable onPaused) {
         this.onPaused = onPaused;
     }
 
+    @Override
     public void setOnStopped(Runnable onStopped) {
         this.onStopped = onStopped;
     }
 
+    @Override
     public void setOnFinished(Runnable onFinished) {
         this.onFinished = onFinished;
     }
 
+    @Override
     public void setOnError(Runnable onError) {
         this.onError = onError;
     }
 
-    public void setOnMediaPlayerReady(Runnable onMediaPlayerReady) {
+    @Override
+    public void setOnReady(Runnable onMediaPlayerReady) {
         this.onMediaPlayerReady = onMediaPlayerReady;
     }
 
-    public BooleanProperty isMuteProperty() {
+    @Override
+    public void disposePlayer() {
+    }
+
+    @Override
+    public BooleanProperty muteProperty() {
         return isMute;
     }
 
-    public FloatProperty volumeProperty() {
+    @Override
+    public DoubleProperty volumeProperty() {
         return volume;
     }
 
-    public LongProperty currentTimeProperty() {
+    @Override
+    public ReadOnlyObjectProperty<Duration> currentTimeProperty() {
         return currentTime;
     }
 
-    public ObjectProperty<State> stateProperty() {
-        return state;
+    @Override
+    public Node getNode() {
+        return this;
+    }
+
+    // TODO: Figure out if there's a way to get VLC's error messages
+    @Override
+    public Throwable getError() {
+        return null;
+    }
+
+    @Override
+    public String getErrorMessage() {
+        return "Unknown VLC player error";
     }
 }
