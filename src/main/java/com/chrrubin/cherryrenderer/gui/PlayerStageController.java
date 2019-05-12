@@ -70,10 +70,12 @@ public class PlayerStageController implements IController {
      */
     // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
     private ChangeListener<Duration> playerCurrentTimeListener = (observable, oldValue, newValue) -> {
-        mediaToolbar.setCurrentTimeText(CherryUtil.durationToString(newValue));
-        if(!mediaToolbar.isTimeSliderValueChanging()){
-            mediaToolbar.setTimeSliderValue(newValue.divide(player.getTotalTime().toMillis()).toMillis() * 100.0);
-        }
+        Platform.runLater(() -> {
+            mediaToolbar.setCurrentTimeText(CherryUtil.durationToString(newValue));
+            if(!mediaToolbar.isTimeSliderValueChanging()){
+                mediaToolbar.setTimeSliderValue(newValue.divide(player.getTotalTime().toMillis()).toMillis() * 100.0);
+            }
+        });
     };
 
     /**
@@ -82,9 +84,11 @@ public class PlayerStageController implements IController {
      * Also notifies RenderingControlService of mute changes.
      */
     private InvalidationListener playerMuteListener = ((observable) -> {
-        boolean isMute = player.isMute();
-        mediaToolbar.changeVolumeImage(isMute);
-        renderingControlHandler.setRendererMute(isMute);
+        Platform.runLater(() -> {
+            boolean isMute = player.isMute();
+            mediaToolbar.changeVolumeImage(isMute);  // FIXME: Not changing image on vlc player
+            renderingControlHandler.setRendererMute(isMute);
+        });
     });
 
     /**
@@ -93,10 +97,12 @@ public class PlayerStageController implements IController {
      * Also notifies RenderingControlService of volume changes.
      */
     private ChangeListener<Number> playerVolumeListener = ((observable, oldVolume, newVolume) -> {
-        if(!mediaToolbar.isVolumeSliderValueChanging()){
-            mediaToolbar.setVolumeSliderValue(newVolume.doubleValue() * 100);
-        }
-        renderingControlHandler.setRendererVolume(newVolume.doubleValue() * 100);
+        Platform.runLater(() -> {
+            if(!mediaToolbar.isVolumeSliderValueChanging()){
+                mediaToolbar.setVolumeSliderValue(newVolume.doubleValue() * 100);
+            }
+            renderingControlHandler.setRendererVolume(newVolume.doubleValue() * 100);
+        });
     });
 
     /**
@@ -307,7 +313,10 @@ public class PlayerStageController implements IController {
         renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChanged);
 
         mediaToolbar.disableToolbar();
-        menuBar.setSnapshotNode(player.getNode());
+        // FIXME: VLC player will straight up hard crash JVM when try to take snapshot
+        if(player.getClass() == JfxMediaView.class){
+            menuBar.setSnapshotNode(player.getNode()); //Temporarily only allow snapshot when using JfxMediaView
+        }
         Platform.runLater(() -> {
             menuBar.setParentStage(getStage());
             if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE){
@@ -347,10 +356,6 @@ public class PlayerStageController implements IController {
         });
 
         getLatestVersionService.start();
-    }
-
-    void shutdown(){
-        player.releaseResources();
     }
 
     /**
@@ -441,10 +446,10 @@ public class PlayerStageController implements IController {
             }
         });
 
-        // TODO: Implement buffering handling
-        //  For some reason Status.STALLED can't be used to determine whether player is buffering...
-        player.setOnBuffering(() ->
-                LOGGER.fine("(Caught by setOnBuffering) Video is currently buffering (?)"));
+        player.setOnBuffering(() -> {
+            // JFX doesn't handle buffering for some reason, VLC handles buffering but doesn't have a clear way to tell when buffering has ended
+            // I'm just keeping this here in case I figure something out to handle buffering
+        });
 
         player.currentTimeProperty().addListener(playerCurrentTimeListener);
 
@@ -480,7 +485,7 @@ public class PlayerStageController implements IController {
         });
 
         player.setOnStopped(() -> {
-            LOGGER.finest("player.setOnStopped triggered");
+            LOGGER.finest("player.setOnStopped triggered");  // FIXME: VLC will still "stop" when playing new media while already stopped, causing endOfMedia to run while preparing new media
             endOfMedia();
         });
 
@@ -529,19 +534,24 @@ public class PlayerStageController implements IController {
 
         getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
 
+        player.setOnPlaying(null);
+        player.setOnPaused(null);
+        player.setOnReady(null);
+        player.setOnError(null);
+        player.setOnFinished(null);
+        player.setOnStopped(null);
+        player.disposePlayer();
+
         LOGGER.finer("Clearing property listeners & event handlers");
         mediaToolbar.clearTimeSliderListenersHandlers(timeChangeListener, timeIsChangingListener);
         mediaToolbar.clearVolumeSliderListenersHandlers(volumeInvalidationListener, volumeIsChangingListener);
-        rootStackPane.setOnKeyReleased(null);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
+        player.getNode().setOnKeyReleased(null);
 
         if(updateTimeService != null && updateTimeService.isRunning()){
             LOGGER.finer("Stopping auto update of PositionInfo service");
             updateTimeService.cancel();
         }
-
-        LOGGER.finer("Disposing player");
-        player.disposePlayer();
 
         mediaToolbar.disableToolbar();
         menuBar.disablePlaybackMenu();

@@ -2,8 +2,10 @@ package com.chrrubin.cherryrenderer;
 
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.JfxPlayerStage;
+import com.chrrubin.cherryrenderer.gui.VlcPlayerStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,8 +50,17 @@ public class CherryRenderer extends Application {
             System.setProperty("prism.order", "sw");
         }
 
-        try{
-            AbstractStage stage = new JfxPlayerStage();
+        try {
+            AbstractStage stage;
+            NativeDiscovery vlcDiscovery = new NativeDiscovery();
+            if (vlcDiscovery.discover()) {
+                LOGGER.info("VLC installation detected. Using embedded VLC player.");
+                stage = new VlcPlayerStage();
+            }
+            else{
+                LOGGER.info("VLC installation not detected. Using default JavaFX media player.");
+                stage = new JfxPlayerStage();
+            }
             stage.prepareStage();
             stage.show();
         }

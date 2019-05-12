@@ -11,8 +11,5 @@ public class VlcPlayerStage extends AbstractStage {
                 loadCss("DarkBase.css");
             }
         });
-        this.setOnHidden(event -> {
-            ((PlayerStageController)getController()).shutdown();
-        });
     }
 }

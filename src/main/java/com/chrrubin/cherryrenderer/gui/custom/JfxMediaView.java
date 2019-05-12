@@ -241,6 +241,7 @@ public class JfxMediaView extends MediaView implements IPlayer {
             return;
         }
         if(getMediaPlayer().getStatus() != MediaPlayer.Status.DISPOSED) {
+            LOGGER.finer("Disposing JFX player");
             getMediaPlayer().dispose();
         }
     }
@@ -295,10 +296,5 @@ public class JfxMediaView extends MediaView implements IPlayer {
     @Override
     public String getErrorMessage() {
         return getMediaPlayer().getError().toString();
-    }
-
-    @Override
-    public void releaseResources() {
-
     }
 }

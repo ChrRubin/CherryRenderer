@@ -8,5 +8,6 @@ public enum PlayerStatus {
     STOPPED,
     UNKNOWN,
     ERROR,
-    DISPOSED
+    DISPOSED,
+    OPENING
 }

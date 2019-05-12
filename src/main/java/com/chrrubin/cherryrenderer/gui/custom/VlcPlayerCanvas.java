@@ -1,7 +1,6 @@
 package com.chrrubin.cherryrenderer.gui.custom;
 
 import com.chrrubin.cherryrenderer.MediaObject;
-import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -32,8 +31,11 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 public class VlcPlayerCanvas extends Canvas implements IPlayer{
+    private final Logger LOGGER = Logger.getLogger(VlcPlayerCanvas.class.getName());
+
     private PixelWriter pixelWriter = this.getGraphicsContext2D().getPixelWriter();
     private WritablePixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteBgraInstance();
     private MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory();
@@ -53,6 +55,8 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private DoubleProperty volume = new SimpleDoubleProperty();
     private ObjectProperty<Duration> currentTime = new SimpleObjectProperty<>();
     private ObjectProperty<State> state = new SimpleObjectProperty<>();
+    private Integer videoWidth = null;
+    private Integer videoHeight = null;
 
     public VlcPlayerCanvas(){
         mediaPlayer.videoSurface().set(new JavaFxVideoSurface());
@@ -64,6 +68,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter(){
             @Override
             public void buffering(MediaPlayer mediaPlayer, float newCache) {
+                LOGGER.finest("VLC media player buffering");
                 if(onBuffering != null){
                     Platform.runLater(onBuffering);
                 }
@@ -71,9 +76,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void playing(MediaPlayer mediaPlayer) {
-                if(timeline.getStatus() != Animation.Status.RUNNING){
-                    timeline.playFromStart();
-                }
+                LOGGER.finest("VLC media player playing");
 
                 if(onPlaying != null) {
                     Platform.runLater(onPlaying);
@@ -82,9 +85,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void paused(MediaPlayer mediaPlayer) {
-                if(timeline.getStatus() == Animation.Status.RUNNING){
-                    timeline.pause();
-                }
+                LOGGER.finest("VLC media player paused");
 
                 if(onPaused != null) {
                     Platform.runLater(onPaused);
@@ -93,7 +94,10 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void stopped(MediaPlayer mediaPlayer) {
+                LOGGER.finest("VLC media player stopped");
                 timeline.stop();
+                videoWidth = null;
+                videoHeight = null;
 
                 if(onStopped != null) {
                     Platform.runLater(onStopped);
@@ -102,6 +106,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void finished(MediaPlayer mediaPlayer) {
+                LOGGER.finest("VLC media player finished");
                 if(onFinished != null) {
                     Platform.runLater(onFinished);
                 }
@@ -109,6 +114,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void error(MediaPlayer mediaPlayer) {
+                LOGGER.finest("VLC media player reached an error");
                 if(onError != null) {
                     Platform.runLater(onError);
                 }
@@ -116,6 +122,9 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void mediaPlayerReady(MediaPlayer mediaPlayer) {
+                LOGGER.finest("VLC media player is ready");
+                System.out.println("Video dimensions are " + mediaPlayer.video().videoDimension().toString());
+                timeline.playFromStart();
                 if(onMediaPlayerReady != null) {
                     Platform.runLater(onMediaPlayerReady);
                 }
@@ -123,20 +132,18 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-                if(timeline.getStatus() == Animation.Status.PAUSED){
-                    timeline.play();
-                    timeline.pause();
-                }
                 currentTime.set(Duration.millis(newTime));
             }
 
             @Override
             public void muted(MediaPlayer mediaPlayer, boolean muted) {
+                LOGGER.finest("VLC muted changed to " + muted);
                 isMute.set(muted);
             }
 
             @Override
             public void volumeChanged(MediaPlayer mediaPlayer, float volume) {
+                LOGGER.finest("VLC volume changed to " + volume);  // For some reason this gets triggered with 1.0 whenever toggling between pause and play
                 VlcPlayerCanvas.this.volume.set(volume);
             }
         });
@@ -144,34 +151,35 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         mediaPlayer.events().addMediaEventListener(new MediaEventAdapter(){
             @Override
             public void mediaStateChanged(Media media, State newState) {
+                LOGGER.finest("VLC state changed to " + newState.name());  // I like how this doesn't get triggered when player is buffering even though there's a BUFFERING state.
                 state.set(newState);
             }
         });
-    }
 
-    /**
-     * Releases all (including native) resources associated with mediaPlayer and mediaPlayerFactory
-     * Best to run on application close.
-     */
-    public void releaseResources(){
-        mediaPlayer.release();
-        mediaPlayerFactory.release();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.fine("Releasing VLC player resources...");
+            mediaPlayer.release();
+            mediaPlayerFactory.release();
+        }));
     }
 
     private class JavaFxVideoSurface extends CallbackVideoSurface {
         JavaFxVideoSurface() {
             super(new JavaFxBufferFormatCallback(), new JavaFxRenderCallback(), true, VideoSurfaceAdapters.getVideoSurfaceAdapter());
         }
-
     }
 
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            videoImage = new WritableImage(sourceWidth, sourceHeight);
+            if(videoWidth == null && videoHeight == null){
+                videoWidth = sourceWidth;  // Workaround for libvlc 3.0 giving buffer dimensions instead of video resolution
+                videoHeight = sourceHeight;
+            }
+            videoImage = new WritableImage(videoWidth, videoHeight);
             pixelWriter = videoImage.getPixelWriter();
 
-            return new RV32BufferFormat(sourceWidth, sourceHeight);
+            return new RV32BufferFormat(videoWidth, videoHeight);
         }
     }
 
@@ -189,46 +197,46 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     }
 
     private void renderFrame() {
-        GraphicsContext g = this.getGraphicsContext2D();
+        GraphicsContext graphicsContext = this.getGraphicsContext2D();
 
-        double width = this.getWidth();
-        double height = this.getHeight();
+        double canvasWidth = this.getWidth();
+        double canvasHeight = this.getHeight();
 
-        g.setFill(new Color(0, 0, 0, 1));
-        g.fillRect(0, 0, width, height);
+        graphicsContext.setFill(new Color(0, 0, 0, 1));
+        graphicsContext.fillRect(0, 0, canvasWidth, canvasHeight);
 
         if (videoImage != null) {
-            double imageWidth = videoImage.getWidth();
+            double imageWidth = videoImage.getWidth();  //FIXME: this is using buffer dimensions rather than video resolution
             double imageHeight = videoImage.getHeight();
 
-            double sx = width / imageWidth;
-            double sy = height / imageHeight;
+            double sx = canvasWidth / imageWidth;
+            double sy = canvasHeight / imageHeight;
 
             double sf = Math.min(sx, sy);
 
-            double scaledW = imageWidth * sf;
-            double scaledH = imageHeight * sf;
+            double scaledWidth = imageWidth * sf;
+            double scaledHeight = imageHeight * sf;
 
-            Affine ax = g.getTransform();
+            Affine ax = graphicsContext.getTransform();
 
-            g.translate(
-                    (width - scaledW) / 2,
-                    (height - scaledH) / 2
+            graphicsContext.translate(
+                    (canvasWidth - scaledWidth) / 2,
+                    (canvasHeight - scaledHeight) / 2
             );
 
             if (sf != 1.0) {
-                g.scale(sf, sf);
+                graphicsContext.scale(sf, sf);
             }
 
             try {
                 renderingSemaphore.acquire();
-                g.drawImage(videoImage, 0, 0);
+                graphicsContext.drawImage(videoImage, 0, 0);
                 renderingSemaphore.release();
             }
             catch (InterruptedException e) {
             }
 
-            g.setTransform(ax);
+            graphicsContext.setTransform(ax);
         }
     }
 
@@ -259,7 +267,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public boolean isMute(){
-        return mediaPlayer.audio().isMute();
+        return isMute.get();
     }
 
     @Override
@@ -289,7 +297,9 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public PlayerStatus getStatus(){
-        switch(mediaPlayer.status().state()){
+        switch(state.get()){
+            case OPENING:
+                return PlayerStatus.OPENING;
             case STOPPED:
                 return PlayerStatus.STOPPED;
             case PLAYING:

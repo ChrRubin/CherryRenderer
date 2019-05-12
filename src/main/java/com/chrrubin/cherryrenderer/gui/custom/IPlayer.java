@@ -36,5 +36,4 @@ public interface IPlayer {
     DoubleProperty widthProperty();
     Throwable getError();
     String getErrorMessage();
-    void releaseResources();
 }
