@@ -16,6 +16,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.util.Duration;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.log.LogLevel;
+import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.media.Media;
 import uk.co.caprica.vlcj.media.MediaEventAdapter;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
@@ -29,10 +31,15 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
+/**
+ * Media player based on an embedded VLC media player rendered on a JavaFX Canvas.
+ * The video data from VLC is drawn onto the Canvas in 60FPS.
+ */
 public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private final Logger LOGGER = Logger.getLogger(VlcPlayerCanvas.class.getName());
 
@@ -40,6 +47,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private WritablePixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteBgraInstance();
     private MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory();
     private EmbeddedMediaPlayer mediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
+    private NativeLog nativeLog = mediaPlayerFactory.application().newLog();
     private WritableImage videoImage;
     private final Semaphore renderingSemaphore = new Semaphore(1);
     private final Timeline timeline = new Timeline();
@@ -68,7 +76,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter(){
             @Override
             public void buffering(MediaPlayer mediaPlayer, float newCache) {
-                LOGGER.finest("VLC media player buffering");
+//                LOGGER.finest("VLC media player buffering");
                 if(onBuffering != null){
                     Platform.runLater(onBuffering);
                 }
@@ -132,6 +140,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
+//                LOGGER.finest("VLC time changed to " + (int)newTime);
                 currentTime.set(Duration.millis(newTime));
             }
 
@@ -160,7 +169,21 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             LOGGER.fine("Releasing VLC player resources...");
             mediaPlayer.release();
             mediaPlayerFactory.release();
+            nativeLog.release();
         }));
+
+        nativeLog.setLevel(LogLevel.WARNING);
+        nativeLog.addLogListener((level, module, file, line, name, header, id, message) -> {
+            String logMessage = "[" + module + "]" + " " + name + ": " + message;
+            switch(level){
+                case WARNING:
+                    LOGGER.warning(logMessage);
+                    break;
+                case ERROR:
+                    LOGGER.severe(logMessage);
+                    break;
+            }
+        });
     }
 
     private class JavaFxVideoSurface extends CallbackVideoSurface {
@@ -173,7 +196,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
             if(videoWidth == null && videoHeight == null){
-                videoWidth = sourceWidth;  // Workaround for libvlc 3.0 giving buffer dimensions instead of video resolution
+                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions instead of video resolution
                 videoHeight = sourceHeight;
             }
             videoImage = new WritableImage(videoWidth, videoHeight);
@@ -206,7 +229,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         graphicsContext.fillRect(0, 0, canvasWidth, canvasHeight);
 
         if (videoImage != null) {
-            double imageWidth = videoImage.getWidth();  //FIXME: this is using buffer dimensions rather than video resolution
+            double imageWidth = videoImage.getWidth();
             double imageHeight = videoImage.getHeight();
 
             double sx = canvasWidth / imageWidth;
@@ -374,7 +397,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         return this;
     }
 
-    // TODO: Figure out if there's a way to get VLC's error messages
     @Override
     public Throwable getError() {
         return null;
@@ -382,6 +404,12 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public String getErrorMessage() {
-        return "Unknown VLC player error";
+        return "Native VLC Error!";
+    }
+
+    @Override
+    public BufferedImage getSnapshot() {
+        LOGGER.fine("Requesting VLC snapshot");
+        return mediaPlayer.snapshots().get();
     }
 }

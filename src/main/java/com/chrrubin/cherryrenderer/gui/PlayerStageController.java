@@ -65,10 +65,9 @@ public class PlayerStageController implements IController {
     Start of property listeners and event handlers
      */
     /**
-     * Listener for currentTimeProperty of videoMediaView.getMediaPlayer()
+     * Listener for currentTimeProperty of media player
      * Updates currentTimeLabel and timeSlider based on the current time of the media player.
      */
-    // TODO: Previous InvalidationListener was causing deadlocks on edge cases. Continue testing this for deadlocks
     private ChangeListener<Duration> playerCurrentTimeListener = (observable, oldValue, newValue) -> {
         Platform.runLater(() -> {
             mediaToolbar.setCurrentTimeText(CherryUtil.durationToString(newValue));
@@ -79,20 +78,20 @@ public class PlayerStageController implements IController {
     };
 
     /**
-     * Listener for MuteProperty of videoMediaView.getMediaPlayer()
+     * Listener for MuteProperty of media player
      * Changes the volume image based on whether player is muted.
      * Also notifies RenderingControlService of mute changes.
      */
     private InvalidationListener playerMuteListener = ((observable) -> {
         Platform.runLater(() -> {
             boolean isMute = player.isMute();
-            mediaToolbar.changeVolumeImage(isMute);  // FIXME: Not changing image on vlc player
+            mediaToolbar.changeVolumeImage(isMute);
             renderingControlHandler.setRendererMute(isMute);
         });
     });
 
     /**
-     * Listener for VolumeProperty of videoMediaView.getMediaPlayer()
+     * Listener for VolumeProperty of media player
      * Updates volumeSlider based on volume changes.
      * Also notifies RenderingControlService of volume changes.
      */
@@ -243,7 +242,7 @@ public class PlayerStageController implements IController {
     };
 
     /**
-     * EventHandler for onKeyReleased of videoMediaView
+     * EventHandler for onKeyReleased of player
      * Allows keyboard interactions with media playback.
      */
     private EventHandler<KeyEvent> videoKeyReleasedEvent = event -> {
@@ -313,10 +312,7 @@ public class PlayerStageController implements IController {
         renderingControlHandler.getVideoMuteEvent().addListener(this::onRendererMuteChanged);
 
         mediaToolbar.disableToolbar();
-        // FIXME: VLC player will straight up hard crash JVM when try to take snapshot
-        if(player.getClass() == JfxMediaView.class){
-            menuBar.setSnapshotNode(player.getNode()); //Temporarily only allow snapshot when using JfxMediaView
-        }
+        menuBar.setSnapshotImageSupplier(player::getSnapshot);
         Platform.runLater(() -> {
             menuBar.setParentStage(getStage());
             if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE){
@@ -359,7 +355,7 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Prepares MediaPlayer for video playing.
+     * Prepares media player for video playing.
      * Attaches required property listeners and event handlers that are used during video playback.
      */
     private void prepareMediaPlayback(){
@@ -485,7 +481,7 @@ public class PlayerStageController implements IController {
         });
 
         player.setOnStopped(() -> {
-            LOGGER.finest("player.setOnStopped triggered");  // FIXME: VLC will still "stop" when playing new media while already stopped, causing endOfMedia to run while preparing new media
+            LOGGER.finest("player.setOnStopped triggered");
             endOfMedia();
         });
 
@@ -518,7 +514,7 @@ public class PlayerStageController implements IController {
      * Runs the following cleanup tasks after video playback is done:
      * Properly removes property listeners and event handlers that should only be applied during playback.
      * Stops the service that auto updates PositionInfo
-     * Disposes media player.
+     * Disposes media player (for JFX Media Player).
      * Disables and resets UI elements.
      */
     private void endOfMedia(){
@@ -534,19 +530,25 @@ public class PlayerStageController implements IController {
 
         getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
 
+        LOGGER.finer("Clearing player runnables and property listeners");
         player.setOnPlaying(null);
         player.setOnPaused(null);
         player.setOnReady(null);
         player.setOnError(null);
         player.setOnFinished(null);
         player.setOnStopped(null);
+        player.currentTimeProperty().removeListener(playerCurrentTimeListener);
+        player.muteProperty().removeListener(playerMuteListener);
+        player.volumeProperty().removeListener(playerVolumeListener);
+        player.getNode().setOnMouseClicked(null);
+        player.getNode().setOnKeyReleased(null);
+        player.getNode().setVisible(false);
         player.disposePlayer();
 
-        LOGGER.finer("Clearing property listeners & event handlers");
+        LOGGER.finer("Clearing UI property listeners & event handlers");
         mediaToolbar.clearTimeSliderListenersHandlers(timeChangeListener, timeIsChangingListener);
         mediaToolbar.clearVolumeSliderListenersHandlers(volumeInvalidationListener, volumeIsChangingListener);
         getStage().fullScreenProperty().removeListener(isFullScreenListener);
-        player.getNode().setOnKeyReleased(null);
 
         if(updateTimeService != null && updateTimeService.isRunning()){
             LOGGER.finer("Stopping auto update of PositionInfo service");
@@ -560,12 +562,9 @@ public class PlayerStageController implements IController {
 
         currentMediaObject = null;
 
-        player.getNode().setOnMouseClicked(null);
         if(getStage().isFullScreen()){
             getStage().setFullScreen(false);
         }
-
-        player.getNode().setVisible(false);
     }
 
     @FXML
@@ -773,7 +772,7 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Notifies control point of current time changes via transportHandler
+     * Notifies control point of current time changes via avTransportHandler
      */
     private void updateCurrentTime(){
         Duration currentDuration = player.getCurrentTime();
@@ -802,7 +801,7 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Set MediaPlayer to play a new media
+     * Set media player to play a new media
      * @param mediaObject media to play
      */
     private void playNewMedia(MediaObject mediaObject){

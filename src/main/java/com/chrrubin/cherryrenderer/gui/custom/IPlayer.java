@@ -7,6 +7,12 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
+import java.awt.image.BufferedImage;
+
+/**
+ * Specification for media players.
+ * Allows reuse of PlayerStageController for different players.
+ */
 public interface IPlayer {
     void playNewMedia(MediaObject mediaObject);
     void play();
@@ -36,4 +42,5 @@ public interface IPlayer {
     DoubleProperty widthProperty();
     Throwable getError();
     String getErrorMessage();
+    BufferedImage getSnapshot();
 }

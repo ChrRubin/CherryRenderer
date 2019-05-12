@@ -3,27 +3,25 @@ package com.chrrubin.cherryrenderer.gui.custom;
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.gui.*;
 import javafx.beans.property.ObjectProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.stage.FileChooser;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -316,20 +314,21 @@ public class CustomMenuBar extends MenuBar {
         playPauseMenuItem.setGraphic(createMenuImageView(pauseImage));
     }
 
-    public void setSnapshotNode(Node videoNode){
-        snapshotMenuItem.setOnAction(event -> onSnapshot(videoNode));
+    public void setSnapshotImageSupplier(Supplier<BufferedImage> imageSupplier){
+        snapshotMenuItem.setOnAction(event -> onSnapshot(imageSupplier.get()));
     }
 
-    private void onSnapshot(Node videoNode){
-        try{
-            WritableImage snapshot = videoNode.snapshot(new SnapshotParameters(), null);
+    private void onSnapshot(BufferedImage snapshot){
+        try {
             File snapshotFile;
             String defaultFileName = "cherrysnap-" + new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'SSS").format(new Date()) + ".png";
 
-            if(CherryPrefs.AutoSaveSnapshots.LOADED_VALUE){
+            if (CherryPrefs.AutoSaveSnapshots.LOADED_VALUE) {
                 snapshotFile = new File(System.getProperty("user.home"), defaultFileName);
             }
             else {
+                // FIXME: JVM hard crashes when showing file chooser to save VLC snapshot
+                //  Seems to be a Linux issue. See https://github.com/caprica/vlcj/issues/834
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setInitialFileName(defaultFileName);
                 fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("PNG Image", "*.png"));
@@ -339,10 +338,10 @@ public class CustomMenuBar extends MenuBar {
                 snapshotFile = fileChooser.showSaveDialog(parentStage);
             }
 
-            if(snapshotFile == null){
+            if (snapshotFile == null) {
                 return;
             }
-            ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", snapshotFile);
+            ImageIO.write(snapshot, "png", snapshotFile);
             Alert alert = parentStage.createInfoAlert("Saved snapshot to " + snapshotFile.getPath());
             alert.showAndWait();
         }

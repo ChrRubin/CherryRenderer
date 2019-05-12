@@ -4,14 +4,22 @@ import com.chrrubin.cherryrenderer.MediaObject;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.WritableImage;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+/**
+ * Media player based on JavaFX's MediaView.
+ * Most functions are directly equivalent to MediaView's MediaPlayer component.
+ */
 public class JfxMediaView extends MediaView implements IPlayer {
     private final Logger LOGGER = Logger.getLogger(JfxMediaView.class.getName());
 
@@ -19,6 +27,7 @@ public class JfxMediaView extends MediaView implements IPlayer {
     public void playNewMedia(MediaObject mediaObject) {
         MediaPlayer mediaPlayer = getMediaPlayer();
         if(mediaPlayer != null && mediaPlayer.getStatus() != MediaPlayer.Status.DISPOSED){
+            LOGGER.warning("MediaPlayer not disposed. Disposing player before creating new media.");
             disposePlayer();
         }
         mediaPlayer = new MediaPlayer(mediaObject.toJFXMedia());
@@ -296,5 +305,11 @@ public class JfxMediaView extends MediaView implements IPlayer {
     @Override
     public String getErrorMessage() {
         return getMediaPlayer().getError().toString();
+    }
+
+    @Override
+    public BufferedImage getSnapshot() {
+        WritableImage snapshot = this.snapshot(new SnapshotParameters(), null);
+        return SwingFXUtils.fromFXImage(snapshot, null);
     }
 }

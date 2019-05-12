@@ -1,3 +1,7 @@
 .media-toolbar{
     -fx-background-color: #f4f4f4;
 }
+
+.slider .track {
+    -fx-pref-height: 10;
+}
