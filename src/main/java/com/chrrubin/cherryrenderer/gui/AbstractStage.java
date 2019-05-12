@@ -62,6 +62,12 @@ public abstract class AbstractStage extends Stage {
             this.setMinHeight(minHeight);
             this.setOnCloseRequest(event -> System.exit(0));
         }
+
+        this.setOnShown(event -> {
+            if(CherryPrefs.Theme.LOADED_VALUE.equals("DARK")){
+                getScene().getStylesheets().add(getClass().getClassLoader().getResource("fxml/DarkBase.css").toExternalForm());
+            }
+        });
     }
 
     public IController getController(){
@@ -98,10 +104,6 @@ public abstract class AbstractStage extends Stage {
         prepareAlertDialog(alert.getDialogPane());
 
         return alert;
-    }
-
-    public void loadCss(String cssName){
-        getScene().getStylesheets().add(getClass().getClassLoader().getResource("fxml/" + cssName).toExternalForm());
     }
 
     private void prepareAlertDialog(DialogPane dialogPane){

@@ -2,6 +2,7 @@ package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
+import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -51,37 +52,41 @@ public class UpdaterStageController implements IController {
         getStage().close();
     }
 
-    public void checkForUpdate(){
-        getLatestVersionService.setOnSucceeded(event -> {
-            String latestVersion = getLatestVersionService.getValue();
+    void checkForUpdate(){
+        Platform.runLater(() -> {
+            getLatestVersionService.setOnSucceeded(event -> {
+                String latestVersion = getLatestVersionService.getValue();
 
-            latestLabel.setText(latestVersion);
-            if(CherryUtil.isOutdated(latestVersion)){
-                currentLabel.setStyle("-fx-text-fill: red");
-                statusLabel.setText(OUTDATED);
-            }
-            else{
-                currentLabel.setStyle("-fx-text-fill: green");
-                statusLabel.setText(UP_TO_DATE);
-            }
+                latestLabel.setText(latestVersion);
+                if(CherryUtil.isOutdated(latestVersion)){
+                    currentLabel.setStyle("-fx-text-fill: red");
+                    statusLabel.setText(OUTDATED);
+                }
+                else{
+                    currentLabel.setStyle("-fx-text-fill: green");
+                    statusLabel.setText(UP_TO_DATE);
+                }
+            });
+
+            getLatestVersionService.setOnFailed(event -> {
+                latestLabel.setText("???");
+                statusLabel.setText(ERROR);
+                Throwable e = getLatestVersionService.getException();
+
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
+            });
+
+            getLatestVersionService.start();
         });
-
-        getLatestVersionService.setOnFailed(event -> {
-            latestLabel.setText("???");
-            statusLabel.setText(ERROR);
-            Throwable e = getLatestVersionService.getException();
-
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        });
-
-        getLatestVersionService.start();
     }
 
-    public void skipUpdateCheck(String latestVersion){
-        latestLabel.setText(latestVersion);
-        currentLabel.setStyle("-fx-text-fill: red");
-        statusLabel.setText(OUTDATED);
+    void skipUpdateCheck(String latestVersion){
+        Platform.runLater(() -> {
+            latestLabel.setText(latestVersion);
+            currentLabel.setStyle("-fx-text-fill: red");
+            statusLabel.setText(OUTDATED);
+        });
     }
 }

@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.MediaObject;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
@@ -31,21 +32,23 @@ public class MediaInfoStageController implements IController {
         getStage().close();
     }
 
-    public void loadMediaInfo(MediaObject mediaObject){
-        try {
-            uriTextField.setText(mediaObject.getUriString());
-            titleTextField.setText(mediaObject.getTitle());
-            if(!mediaObject.getXmlMetadata().isEmpty()) {
-                metadataTextArea.setText(mediaObject.getPrettyXmlMetadata());
+    void loadMediaInfo(MediaObject mediaObject){
+        Platform.runLater(() -> {
+            try {
+                uriTextField.setText(mediaObject.getUriString());
+                titleTextField.setText(mediaObject.getTitle());
+                if(!mediaObject.getXmlMetadata().isEmpty()) {
+                    metadataTextArea.setText(mediaObject.getPrettyXmlMetadata());
+                }
+                else {
+                    metadataTextArea.setText("Not available");
+                }
             }
-            else {
-                metadataTextArea.setText("Not available");
+            catch (Exception e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Alert alert = getStage().createErrorAlert(e.toString());
+                alert.showAndWait();
             }
-        }
-        catch (Exception e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Alert alert = getStage().createErrorAlert(e.toString());
-            alert.showAndWait();
-        }
+        });
     }
 }
