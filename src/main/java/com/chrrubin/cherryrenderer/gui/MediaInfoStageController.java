@@ -20,6 +20,8 @@ public class MediaInfoStageController implements IController {
     @FXML
     private TextField titleTextField;
     @FXML
+    private TextField resolutionTextField;
+    @FXML
     private TextArea metadataTextArea;
 
     @Override
@@ -32,11 +34,12 @@ public class MediaInfoStageController implements IController {
         getStage().close();
     }
 
-    void loadMediaInfo(MediaObject mediaObject){
+    void loadMediaInfo(MediaObject mediaObject, int width, int height){
         Platform.runLater(() -> {
             try {
                 uriTextField.setText(mediaObject.getUriString());
                 titleTextField.setText(mediaObject.getTitle());
+                resolutionTextField.setText(width + "x" + height);
                 if(!mediaObject.getXmlMetadata().isEmpty()) {
                     metadataTextArea.setText(mediaObject.getPrettyXmlMetadata());
                 }

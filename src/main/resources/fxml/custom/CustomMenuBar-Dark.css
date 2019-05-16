@@ -12,11 +12,3 @@
 .menu-item:focused {
     -fx-background: #2f65ca;
 }
-
-.context-menu{
-    -fx-background-color: #515151, #3c3f41;
-}
-
-.context-menu .separator:horizontal .line {
-    -fx-border-color: #515151 transparent transparent transparent;
-}

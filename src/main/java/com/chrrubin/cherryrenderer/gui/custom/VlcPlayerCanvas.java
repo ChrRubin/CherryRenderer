@@ -33,12 +33,13 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 /**
  * Media player based on an embedded VLC media player rendered on a JavaFX Canvas.
- * The video data from VLC is drawn onto the Canvas in 60FPS.
+ * The video data from VLC is drawn onto the Canvas in 60FPS cause of course you need to manually render every frame if you're using JavaFX instead of Swing. Of course.
  */
 public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private final Logger LOGGER = Logger.getLogger(VlcPlayerCanvas.class.getName());
@@ -62,7 +63,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private BooleanProperty isMute = new SimpleBooleanProperty(false);
     private DoubleProperty volume = new SimpleDoubleProperty();
     private ObjectProperty<Duration> currentTime = new SimpleObjectProperty<>();
-    private ObjectProperty<State> state = new SimpleObjectProperty<>();
+    private ObjectProperty<State> state = new SimpleObjectProperty<>(State.NOTHING_SPECIAL);
     private Integer videoWidth = null;
     private Integer videoHeight = null;
 
@@ -124,14 +125,13 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             public void error(MediaPlayer mediaPlayer) {
                 LOGGER.finest("VLC media player reached an error");
                 if(onError != null) {
-                    Platform.runLater(onError);
+                    Platform.runLater(onError);   // TODO: File reading errors (eg expired links) for m3u8 files doesn't trigger error event. Not sure what to do about that.
                 }
             }
 
             @Override
             public void mediaPlayerReady(MediaPlayer mediaPlayer) {
                 LOGGER.finest("VLC media player is ready");
-                System.out.println("Video dimensions are " + mediaPlayer.video().videoDimension().toString());
                 timeline.playFromStart();
                 if(onMediaPlayerReady != null) {
                     Platform.runLater(onMediaPlayerReady);
@@ -176,6 +176,12 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         nativeLog.addLogListener((level, module, file, line, name, header, id, message) -> {
             String logMessage = "[" + module + "]" + " " + name + ": " + message;
             switch(level){
+                case NOTICE:
+                    LOGGER.fine(logMessage);
+                    break;
+                case DEBUG:
+                    LOGGER.finer(logMessage);
+                    break;
                 case WARNING:
                     LOGGER.warning(logMessage);
                     break;
@@ -265,6 +271,9 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public void playNewMedia(MediaObject mediaObject){
+        if(Arrays.asList(PlayerStatus.PLAYING, PlayerStatus.PAUSED).contains(getStatus())){
+            disposePlayer();
+        }
         mediaPlayer.media().play(mediaObject.getUriString());
     }
 
@@ -375,6 +384,13 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public void disposePlayer() {
+        LOGGER.finer("Setting all VLC player runnables to null.");
+        onPlaying = null;
+        onPaused = null;
+        onMediaPlayerReady = null;
+        onError = null;
+        onFinished = null;
+        onStopped = null;
     }
 
     @Override
@@ -404,12 +420,22 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     @Override
     public String getErrorMessage() {
-        return "Native VLC Error!";
+        return "Native VLC Error.";
     }
 
     @Override
     public BufferedImage getSnapshot() {
         LOGGER.fine("Requesting VLC snapshot");
         return mediaPlayer.snapshots().get();
+    }
+
+    @Override
+    public int getVideoWidth() {
+        return videoWidth;
+    }
+
+    @Override
+    public int getVideoHeight() {
+        return videoHeight;
     }
 }

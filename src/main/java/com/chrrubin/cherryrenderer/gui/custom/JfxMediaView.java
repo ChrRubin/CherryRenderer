@@ -312,4 +312,14 @@ public class JfxMediaView extends MediaView implements IPlayer {
         WritableImage snapshot = this.snapshot(new SnapshotParameters(), null);
         return SwingFXUtils.fromFXImage(snapshot, null);
     }
+
+    @Override
+    public int getVideoWidth() {
+        return getMediaPlayer().getMedia().getWidth();
+    }
+
+    @Override
+    public int getVideoHeight() {
+        return getMediaPlayer().getMedia().getHeight();
+    }
 }

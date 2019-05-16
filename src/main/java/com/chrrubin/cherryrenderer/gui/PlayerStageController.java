@@ -60,6 +60,7 @@ public class PlayerStageController implements IController {
     private PauseTransition mouseIdleTimer = new PauseTransition(Duration.seconds(1));
     private ApiService apiService = null;
     private ScheduledService<Void> updateTimeService;
+    private String playerName;
 
     /*
     Start of property listeners and event handlers
@@ -319,6 +320,16 @@ public class PlayerStageController implements IController {
                 checkUpdate();
             }
         });
+
+        if(player.getClass() == JfxMediaView.class){
+            playerName = " [JFX]";
+        }
+        else if(player.getClass() == VlcPlayerCanvas.class){
+            playerName = " [VLC]";
+        }
+        else {
+            playerName = " [???]";
+        }
     }
 
     private void checkUpdate(){
@@ -405,10 +416,11 @@ public class PlayerStageController implements IController {
             }
 
             String title = currentMediaObject.getTitle();
+
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
 
-                getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + " - " + title);
+                getStage().setTitle(title + " - CherryRenderer " + CherryPrefs.VERSION + playerName);
             } else {
                 LOGGER.finer("Video title was not detected.");
             }
@@ -528,15 +540,9 @@ public class PlayerStageController implements IController {
             apiService.setCurrentStatus(RendererState.STOPPED);
         }
 
-        getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION);
+        getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + playerName);
 
-        LOGGER.finer("Clearing player runnables and property listeners");
-        player.setOnPlaying(null);
-        player.setOnPaused(null);
-        player.setOnReady(null);
-        player.setOnError(null);
-        player.setOnFinished(null);
-        player.setOnStopped(null);
+        LOGGER.finer("Clearing player property listeners");
         player.currentTimeProperty().removeListener(playerCurrentTimeListener);
         player.muteProperty().removeListener(playerMuteListener);
         player.volumeProperty().removeListener(playerVolumeListener);
@@ -569,7 +575,7 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void onMediaInfo(){
-        AbstractStage mediaInfoStage = new MediaInfoStage(getStage(), currentMediaObject);
+        AbstractStage mediaInfoStage = new MediaInfoStage(getStage(), currentMediaObject, player.getVideoWidth(), player.getVideoHeight());
         try{
             mediaInfoStage.prepareStage();
             mediaInfoStage.show();

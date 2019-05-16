@@ -1,3 +1,11 @@
 .root {
     -fx-base: rgba(60, 63, 65, 255);
 }
+
+.context-menu{
+    -fx-background-color: #515151, #3c3f41;
+}
+
+.context-menu .separator:horizontal .line {
+    -fx-border-color: #515151 transparent transparent transparent;
+}

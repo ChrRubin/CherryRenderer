@@ -43,4 +43,6 @@ public interface IPlayer {
     Throwable getError();
     String getErrorMessage();
     BufferedImage getSnapshot();
+    int getVideoWidth();
+    int getVideoHeight();
 }
