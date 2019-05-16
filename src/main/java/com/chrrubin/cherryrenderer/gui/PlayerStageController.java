@@ -22,13 +22,16 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 import org.fourthline.cling.support.model.TransportState;
 
@@ -428,6 +431,8 @@ public class PlayerStageController implements IController {
             mediaToolbar.enableToolbar();
             menuBar.enablePlaybackMenu();
             loadingVBox.setVisible(false);
+
+            setWindowSizeToVideo();
         });
 
         player.setOnError(() -> {
@@ -834,6 +839,35 @@ public class PlayerStageController implements IController {
             LOGGER.finer("Seeking to " + CherryUtil.durationToString(target));
             player.seek(target);
             updateCurrentTime();
+        }
+    }
+
+    private void setWindowSizeToVideo(){
+        if(getStage().isMaximized()){
+            return;
+        }
+
+        double videoWidth = player.getVideoWidth();
+        double videoHeight = player.getVideoHeight();
+        double uiHeight = menuBar.getHeight() + mediaToolbar.getHeight();
+
+        Scene scene = getStage().getScene();
+        double windowTopInset = scene.getY();
+        double windowLeftInset = scene.getX();
+        double windowBottomInset = getStage().getHeight() - scene.getHeight() - windowTopInset;
+        double windowRightInset = getStage().getWidth() - scene.getWidth() - windowLeftInset;
+
+        double resultHeight = videoHeight + uiHeight + windowTopInset + windowBottomInset;
+        double resultWidth = videoWidth + windowLeftInset + windowRightInset;
+
+        Rectangle2D screenRectangle = Screen.getScreensForRectangle(getStage().getX(), getStage().getY(), getStage().getWidth(), getStage().getHeight()).get(0).getVisualBounds();
+
+        if(resultHeight >= screenRectangle.getHeight() || resultWidth >= screenRectangle.getWidth()){
+            getStage().setMaximized(true);
+        }
+        else{
+            getStage().setWidth(resultWidth);
+            getStage().setHeight(resultHeight);
         }
     }
 }

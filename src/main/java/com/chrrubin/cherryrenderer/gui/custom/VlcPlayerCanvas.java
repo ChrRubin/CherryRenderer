@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -166,7 +167,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         });
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.fine("Releasing VLC player resources...");
+            LOGGER.info("Releasing VLC player resources...");
             mediaPlayer.release();
             mediaPlayerFactory.release();
             nativeLog.release();
@@ -201,7 +202,8 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            if(videoWidth == null && videoHeight == null){
+            // FIXME: Workaround kinda breaks playlist formats that lets VLC choose which resolution to use
+            if(videoWidth == null || videoHeight == null){
                 videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions instead of video resolution
                 videoHeight = sourceHeight;
             }
@@ -263,6 +265,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
                 renderingSemaphore.release();
             }
             catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, e.toString(), e);
             }
 
             graphicsContext.setTransform(ax);
@@ -391,6 +394,9 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         onError = null;
         onFinished = null;
         onStopped = null;
+
+        videoWidth = null;
+        videoHeight = null;
     }
 
     @Override
