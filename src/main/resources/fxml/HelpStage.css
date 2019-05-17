@@ -1,3 +1,7 @@
+.root {
+    -fx-control-inner-background-alt: -fx-control-inner-background ;
+}
+
 .paragraph{
     -fx-font-family: "System";
 }
@@ -24,4 +28,15 @@
 
 #content-grid-pane{
     -fx-background-color: -fx-control-inner-background;
+}
+
+.table-view:focused,
+.scroll-pane:focused{
+    -fx-background-color: -fx-box-border, -fx-control-inner-background;;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 1;
+}
+
+.scroll-pane:focused{
+    -fx-background-color: -fx-box-border, -fx-background;
 }

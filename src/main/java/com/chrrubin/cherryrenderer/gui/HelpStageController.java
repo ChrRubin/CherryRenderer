@@ -29,7 +29,8 @@ public class HelpStageController implements IController {
         return (AbstractStage)rootGridPane.getScene().getWindow();
     }
 
-    public void initialize(){
+    @FXML
+    private void initialize(){
         functionTableColumn.setCellValueFactory(new PropertyValueFactory<>("function"));
         keyTableColumn.setCellValueFactory(new PropertyValueFactory<>("key"));
 

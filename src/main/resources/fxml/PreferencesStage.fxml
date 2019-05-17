@@ -1,124 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-<GridPane fx:id="rootGridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PreferencesStageController">
-  <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" />
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-      <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-    <RowConstraints vgrow="SOMETIMES" />
-      <RowConstraints vgrow="SOMETIMES" />
-  </rowConstraints>
+<?import javafx.scene.text.Font?>
+<?import java.net.URL?>
+<GridPane fx:id="rootGridPane" hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chrrubin.cherryrenderer.gui.PreferencesStageController">
+   <stylesheets><URL value="@/fxml/PreferencesStage.css" /></stylesheets>
    <children>
-      <TitledPane animated="false" collapsible="false" text="General">
-         <GridPane.margin>
-            <Insets />
-         </GridPane.margin>
+      <VBox spacing="5.0">
+         <children>
+            <Label text="Select Category:" />
+            <ListView fx:id="prefListView" prefHeight="200.0" prefWidth="150.0" VBox.vgrow="ALWAYS" />
+         </children>
+      </VBox>
+      <TitledPane fx:id="prefTitledPane" collapsible="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
          <content>
-            <GridPane hgap="10.0" vgap="5.0">
-              <columnConstraints>
-                <ColumnConstraints hgrow="NEVER" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <Label text="Device Name:" GridPane.halignment="RIGHT" />
-                  <TextField fx:id="nameTextField" minWidth="200.0" GridPane.columnIndex="1" />
-                  <Label disable="true" text="(This will be announced to UPnP control point apps)" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-                     <font>
-                        <Font name="System Italic" size="13.0" />
-                     </font>
-                     <GridPane.margin>
-                        <Insets bottom="10.0" />
-                     </GridPane.margin></Label>
-                  <Label text="Theme:" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
-                     <GridPane.margin>
-                        <Insets bottom="10.0" />
-                     </GridPane.margin></Label>
-                  <ComboBox fx:id="themeComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                     <GridPane.margin>
-                        <Insets bottom="10.0" />
-                     </GridPane.margin></ComboBox>
-                  <Label text="Check for Updates:" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
-                  <CheckBox fx:id="updateCheckBox" mnemonicParsing="false" selected="true" text="Automatically check for updates on startup" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                  <Label text="Autosave Snapshots:" GridPane.rowIndex="3" />
-                  <CheckBox fx:id="autosaveCheckBox" mnemonicParsing="false" text="Skip the file chooser dialog when taking snapshots" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                  <Label disable="true" text="(Snapshots will be automatically saved to your user home directory)" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                     <GridPane.margin>
-                        <Insets bottom="10.0" />
-                     </GridPane.margin>
-                     <font>
-                        <Font name="System Italic" size="13.0" />
-                     </font>
-                  </Label>
-               </children>
-            </GridPane>
+            <ScrollPane fx:id="prefScrollPane" fitToWidth="true" minHeight="250.0" />
          </content>
       </TitledPane>
-      <TitledPane animated="false" collapsible="false" text="Advanced" GridPane.rowIndex="1">
-         <content>
-            <GridPane hgap="10.0" vgap="5.0">
-              <columnConstraints>
-                <ColumnConstraints hgrow="NEVER" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-              </columnConstraints>
-              <rowConstraints>
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <Label text="Hardware Acceleration:" />
-                  <CheckBox fx:id="hardwareCheckBox" mnemonicParsing="false" selected="true" text="Use hardware acceleration" GridPane.columnIndex="1" />
-                  <Label text="Logging Level:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-                  <ComboBox fx:id="logLevelComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
-                  <Label disable="true" text="(Opening the log file might stop the logging process)" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                     <font>
-                        <Font name="System Italic" size="13.0" />
-                     </font></Label>
-                  <Label disable="true" text="(Disabling hardware acceleration may fix certain visual glitches.&#10;It may also slow down UI rendering significantly. Use with care.)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-                     <font>
-                        <Font name="System Italic" size="13.0" />
-                     </font>
-                     <GridPane.margin>
-                        <Insets bottom="10.0" />
-                     </GridPane.margin>
-                  </Label>
-               </children>
-            </GridPane>
-         </content>
-      </TitledPane>
-      <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.rowIndex="2">
+      <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
          <children>
             <Button mnemonicParsing="false" onAction="#onResetDefault" text="Reset Defaults" />
             <Button mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
             <Button mnemonicParsing="false" onAction="#onSave" text="Save" />
          </children>
-         <GridPane.margin>
-            <Insets top="30.0" />
-         </GridPane.margin>
       </HBox>
-      <Label disable="true" text="(Preferences will be applied after the next progam restart)" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+      <Label disable="true" text="(Preferences will be applied after the next progam restart)" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
          <font>
             <Font name="System Italic" size="13.0" />
-         </font></Label>
+         </font>
+      </Label>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
    </padding>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints prefWidth="525.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
 </GridPane>

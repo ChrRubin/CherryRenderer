@@ -1,0 +1,19 @@
+.root {
+    -fx-control-inner-background: -fx-base;
+    -fx-control-inner-background-alt: -fx-control-inner-background ;
+}
+
+.list-view:focused,
+.scroll-pane:focused{
+    -fx-background-color: -fx-box-border, -fx-control-inner-background;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 1;
+}
+
+.scroll-pane:focused{
+    -fx-background-color: -fx-box-border, -fx-background;
+}
+
+.list-cell:filled:selected{
+    -fx-background: -fx-selection-bar;
+}

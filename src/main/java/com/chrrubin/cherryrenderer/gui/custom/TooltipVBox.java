@@ -14,11 +14,11 @@ public class TooltipVBox extends VBox {
 
     public TooltipVBox(){
         try {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/custom/TooltipVBox.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-        fxmlLoader.setClassLoader(getClass().getClassLoader());
-        fxmlLoader.load();
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/custom/TooltipVBox.fxml"));
+            fxmlLoader.setRoot(this);
+            fxmlLoader.setController(this);
+            fxmlLoader.setClassLoader(getClass().getClassLoader());
+            fxmlLoader.load();
         }
         catch (IOException exception) {
             throw new RuntimeException(exception);

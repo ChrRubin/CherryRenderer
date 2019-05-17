@@ -1,5 +1,6 @@
 .root {
     -fx-base: rgba(60, 63, 65, 255);
+    -fx-accent: #2f65ca;
 }
 
 .context-menu{

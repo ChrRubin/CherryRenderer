@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label text="Theme:">
+         <GridPane.margin>
+            <Insets bottom="10.0" />
+         </GridPane.margin>
+      </Label>
+      <ComboBox fx:id="themeComboBox" minWidth="150.0" GridPane.columnIndex="1">
+         <GridPane.margin>
+            <Insets bottom="10.0" />
+         </GridPane.margin>
+      </ComboBox>
+      <Label text="Auto Resize Window:" GridPane.rowIndex="1" />
+      <Label disable="true" text="(When enabled, the window will automatically resize&#10;to the set size when a video is loaded.)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
+         <font>
+            <Font name="System Italic" size="13.0" />
+         </font>
+         <GridPane.margin>
+            <Insets bottom="10.0" />
+         </GridPane.margin>
+      </Label>
+      <RadioButton fx:id="resizeDisabledRadioButton" mnemonicParsing="false" text="Disabled" GridPane.columnIndex="1" GridPane.rowIndex="1">
+         <toggleGroup>
+            <ToggleGroup fx:id="resizeToggleGroup" />
+         </toggleGroup>
+      </RadioButton>
+      <RadioButton fx:id="resizeQuarterRadioButton" mnemonicParsing="false" text="Quarter video size" toggleGroup="$resizeToggleGroup" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <RadioButton fx:id="resizeHalfRadioButton" mnemonicParsing="false" text="Half video size" toggleGroup="$resizeToggleGroup" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <RadioButton fx:id="resizeOriginalRadioButton" mnemonicParsing="false" text="Original video size" toggleGroup="$resizeToggleGroup" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+      <RadioButton fx:id="resizeDoubleRadioButton" mnemonicParsing="false" text="Double video size" toggleGroup="$resizeToggleGroup" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
+      <ColumnConstraints hgrow="SOMETIMES" />
+   </columnConstraints>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</fx:root>

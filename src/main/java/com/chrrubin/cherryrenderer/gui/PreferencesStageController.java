@@ -1,16 +1,16 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.gui.prefs.AdvancedPrefs;
+import com.chrrubin.cherryrenderer.gui.prefs.GeneralPrefs;
+import com.chrrubin.cherryrenderer.gui.prefs.InterfacePrefs;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class PreferencesStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(PreferencesStageController.class.getName());
@@ -18,17 +18,15 @@ public class PreferencesStageController implements IController {
     @FXML
     private GridPane rootGridPane;
     @FXML
-    private TextField nameTextField;
+    private ListView<String> prefListView;
     @FXML
-    private ComboBox<String> logLevelComboBox;
+    private TitledPane prefTitledPane;
     @FXML
-    private CheckBox hardwareCheckBox;
-    @FXML
-    private ComboBox<String> themeComboBox;
-    @FXML
-    private CheckBox updateCheckBox;
-    @FXML
-    private CheckBox autosaveCheckBox;
+    private ScrollPane prefScrollPane;
+
+    private GeneralPrefs generalPrefs = new GeneralPrefs();
+    private InterfacePrefs interfacePrefs = new InterfacePrefs();
+    private AdvancedPrefs advancedPrefs;
 
     @Override
     public AbstractStage getStage() {
@@ -37,61 +35,30 @@ public class PreferencesStageController implements IController {
 
     @FXML
     private void initialize(){
-        nameTextField.setText(CherryPrefs.FriendlyName.get());
+        Platform.runLater(() -> advancedPrefs = new AdvancedPrefs(getStage()));
 
-        autosaveCheckBox.setSelected(CherryPrefs.AutoSaveSnapshots.get());
-        updateCheckBox.setSelected(CherryPrefs.AutoCheckUpdate.get());
-        hardwareCheckBox.setSelected(CherryPrefs.HardwareAcceleration.get());
+        prefListView.getItems().add("General");
+        prefListView.getItems().add("Interface");
+        prefListView.getItems().add("Advanced");
 
-        logLevelComboBox.getItems().add("DEBUG");
-        logLevelComboBox.getItems().add("DEBUG+");
-        logLevelComboBox.getItems().add("ALL");
-        logLevelComboBox.setValue(CherryPrefs.LogLevel.get());
-        logLevelComboBox.setOnAction(event -> onLogLevelSelect());
-
-        themeComboBox.getItems().add("DEFAULT");
-        themeComboBox.getItems().add("DARK");
-        themeComboBox.setValue(CherryPrefs.Theme.get());
-    }
-
-    private void onLogLevelSelect(){
-        Alert alert;
-        switch(logLevelComboBox.getValue()){
-            case "DEBUG+":
-                alert = getStage().createInfoAlert("DEBUG+ generates a more detailed debug log that includes UPnP's SOAP protocol contents." +
-                        System.lineSeparator() + System.lineSeparator() +
-                        "You should only enable this if DEBUG does not provide the necessary logging required.");
-                alert.showAndWait();
-                break;
-            case "ALL":
-                alert = getStage().createWarningAlert(
-                        "ALL is an extremely verbose debug level that will fill up the debug logs in a matter of minutes." +
-                        System.lineSeparator() + System.lineSeparator() +
-                        "The only reason this exists is as a LAST RESORT ONLY." + System.lineSeparator() + System.lineSeparator() +
-                        "Unless I specifically tell you to enable this logging level I will almost always ignore any bug requests accompanied by logs with this logging level.");
-                alert.showAndWait();
-                break;
-        }
-    }
-
-    @FXML
-    private void onOpenLogLocation(){
-        new Thread(() -> {
-            if(Desktop.isDesktopSupported()) {
-                try {
-                    Desktop.getDesktop().open(new File(System.getProperty("user.home")));
-                } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, e.toString(), e);
-                    Alert alert = getStage().createErrorAlert(e.toString());
-                    alert.showAndWait();
-                }
+        prefListView.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
+            switch (newValue){
+                case "General":
+                    prefTitledPane.setText("General Preferences");
+                    prefScrollPane.setContent(generalPrefs);
+                    break;
+                case "Interface":
+                    prefTitledPane.setText("Interface Preferences");
+                    prefScrollPane.setContent(interfacePrefs);
+                    break;
+                case "Advanced":
+                    prefTitledPane.setText("Advanced Preferences");
+                    prefScrollPane.setContent(advancedPrefs);
+                    break;
             }
-            else{
-                LOGGER.warning("This desktop does not support opening file manager.");
-                Alert alert = getStage().createWarningAlert("This desktop does not support opening file manager.");
-                alert.showAndWait();
-            }
-        }).start();
+        }));
+
+        prefListView.getSelectionModel().select("General");
     }
 
     @FXML
@@ -100,15 +67,11 @@ public class PreferencesStageController implements IController {
         alert.showAndWait();
 
         if(alert.getResult() == ButtonType.YES){
-            CherryPrefs.FriendlyName.reset();
-            CherryPrefs.LogLevel.reset();
-            CherryPrefs.HardwareAcceleration.reset();
-            CherryPrefs.Theme.reset();
-            CherryPrefs.AutoCheckUpdate.reset();
-            CherryPrefs.AutoSaveSnapshots.reset();
+            generalPrefs.resetToDefaults();
+            interfacePrefs.resetToDefaults();
+            advancedPrefs.resetToDefaults();
 
             LOGGER.fine("User preferences have been reset to their default values");
-
             Alert alertOk = getStage().createInfoAlert("Preferences have been reset to their default values.");
             alertOk.showAndWait();
 
@@ -123,33 +86,18 @@ public class PreferencesStageController implements IController {
 
     @FXML
     private void onSave(){
-        String friendlyName = nameTextField.getText().trim();
-        String theme = themeComboBox.getValue();
-        String logLevel = logLevelComboBox.getValue();
-
-        if(!friendlyName.equals("") && friendlyName.length() < 64) {
-            CherryPrefs.FriendlyName.put(friendlyName);
-            CherryPrefs.Theme.put(theme);
-            CherryPrefs.LogLevel.put(logLevel);
-            CherryPrefs.HardwareAcceleration.put(hardwareCheckBox.isSelected());
-            CherryPrefs.AutoCheckUpdate.put(updateCheckBox.isSelected());
-            CherryPrefs.AutoSaveSnapshots.put(autosaveCheckBox.isSelected());
-
-            LOGGER.fine("User preferences have been saved.");
-            LOGGER.finer(CherryPrefs.FriendlyName.KEY + " has been set to " + friendlyName);
-            LOGGER.finer(CherryPrefs.Theme.KEY + " has been set to " + theme);
-            LOGGER.finer(CherryPrefs.LogLevel.KEY + " has been set to " + logLevel);
-            LOGGER.finer(CherryPrefs.HardwareAcceleration.KEY + " has been set to " + hardwareCheckBox.isSelected());
-            LOGGER.finer(CherryPrefs.AutoCheckUpdate.KEY + " has been set to " + updateCheckBox.isSelected());
-            LOGGER.finer(CherryPrefs.AutoSaveSnapshots.KEY + " has been set to " + autosaveCheckBox.isSelected());
+        try{
+            generalPrefs.savePreferences();
+            interfacePrefs.savePreferences();
+            advancedPrefs.savePreferences();
 
             Alert alert = getStage().createInfoAlert("Preferences have been saved. It will be applied on the next program restart.");
             alert.showAndWait();
-
             getStage().close();
         }
-        else{
-            Alert alert = getStage().createWarningAlert("Invalid device name entered! Please ensure it is not empty and has a max of 64 characters.");
+        catch (RuntimeException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();
         }
     }
