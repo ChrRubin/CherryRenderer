@@ -1,6 +1,5 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
@@ -14,7 +13,6 @@ import java.util.logging.Logger;
 
 public class UpdaterStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(UpdaterStageController.class.getName());
-
     @FXML
     private GridPane rootGridPane;
     @FXML
@@ -39,7 +37,7 @@ public class UpdaterStageController implements IController {
 
     @FXML
     private void initialize(){
-        currentLabel.setText(CherryPrefs.VERSION);
+        currentLabel.setText(CherryUtil.VERSION);
     }
 
     @FXML

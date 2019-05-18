@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer;
 
+import com.chrrubin.cherryrenderer.prefs.ThemePreference;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import javafx.concurrent.Service;
@@ -15,6 +16,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CherryUtil {
+    public static final String VERSION = "1.5-dev";
+    public static final String LOADED_THEME = new ThemePreference().get();
+
     public static String durationToString(Duration duration){
         int intSeconds = (int)Math.floor(duration.toSeconds());
         int hours = intSeconds / 60 / 60;
@@ -94,7 +98,7 @@ public class CherryUtil {
     }
 
     public static boolean isOutdated(String latestVersion) {
-        int[] currentIntArray = semanticToIntArray(CherryPrefs.VERSION);
+        int[] currentIntArray = semanticToIntArray(VERSION);
         int[] latestIntArray = semanticToIntArray(latestVersion);
 
         int maxLength = Math.max(currentIntArray.length, latestIntArray.length);

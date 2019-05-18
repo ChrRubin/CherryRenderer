@@ -1,31 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Label text="Hardware Acceleration:" />
-      <CheckBox fx:id="hardwareCheckBox" mnemonicParsing="false" selected="true" text="Use hardware acceleration" GridPane.columnIndex="1" />
-      <Label disable="true" text="(Disabling hardware acceleration may fix certain visual glitches.&#10;It may also slow down UI rendering significantly. Use with care.)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+      <Label text="Hardware Acceleration:">
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin></Label>
+      <CheckBox fx:id="hardwareCheckBox" mnemonicParsing="false" selected="true" text="Use hardware acceleration (if available)" GridPane.columnIndex="1">
+         <tooltip>
+            <Tooltip text="Disabling hardware acceleration may fix certain visual glitches.&#10;It may also slow down UI rendering significantly on older systems.&#10;Use with care." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin></CheckBox>
+      <Label text="Logging Level:" GridPane.rowIndex="1">
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin></Label>
+      <ComboBox fx:id="logLevelComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+         <tooltip>
+            <Tooltip text="Logging level to be used for debugging purposes.&#10;Logs are saved in your user home directory." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin></ComboBox>
+      <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+      <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
          <font>
             <Font name="System Italic" size="13.0" />
          </font>
          <GridPane.margin>
-            <Insets bottom="10.0" />
+            <Insets bottom="20.0" />
          </GridPane.margin>
       </Label>
-      <Label text="Logging Level:" GridPane.rowIndex="2" />
-      <ComboBox fx:id="logLevelComboBox" minWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-      <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="Open log location" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
-      <Label disable="true" text="(Opening the log file might stop the logging process)" GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
+      <Label text="* All changes in this category requires application restart&#10;to be applied" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4">
          <font>
-            <Font name="System Italic" size="13.0" />
+            <Font name="System Bold" size="13.0" />
          </font>
          <GridPane.margin>
-            <Insets bottom="10.0" />
+            <Insets />
          </GridPane.margin>
       </Label>
    </children>

@@ -3,6 +3,8 @@ package com.chrrubin.cherryrenderer;
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.JfxPlayerStage;
 import com.chrrubin.cherryrenderer.gui.VlcPlayerStage;
+import com.chrrubin.cherryrenderer.prefs.HardwareAccelerationPreference;
+import com.chrrubin.cherryrenderer.prefs.LogLevelPreference;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -18,11 +20,11 @@ public class CherryRenderer extends Application {
 
     @Override
     public void start(Stage primaryStage){
-        String agent = "CherryRenderer/" + CherryPrefs.VERSION + " (" + System.getProperty("os.name") + "; " + System.getProperty("os.arch") + "; " + System.getProperty("os.version") + ")";
+        String agent = "CherryRenderer/" + CherryUtil.VERSION + " (" + System.getProperty("os.name") + "; " + System.getProperty("os.arch") + "; " + System.getProperty("os.version") + ")";
         System.setProperty("http.agent", agent);
         try {
             String propertiesFileName;
-            switch (CherryPrefs.LogLevel.LOADED_VALUE) {
+            switch (new LogLevelPreference().get()) {
                 case "DEBUG":
                     propertiesFileName = "log-debug.properties";
                     break;
@@ -45,7 +47,7 @@ public class CherryRenderer extends Application {
             System.exit(1);
         }
 
-        if(!CherryPrefs.HardwareAcceleration.LOADED_VALUE){
+        if(!new HardwareAccelerationPreference().get()){
             LOGGER.info("Using software acceleration.");
             System.setProperty("prism.order", "sw");
         }

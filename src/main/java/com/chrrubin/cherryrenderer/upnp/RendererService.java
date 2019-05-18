@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.upnp;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.upnp.states.RendererNoMediaPresent;
 import com.chrrubin.cherryrenderer.upnp.states.RendererStateMachine;
 import org.fourthline.cling.UpnpService;
@@ -51,7 +51,7 @@ public class RendererService {
                 new ModelDetails(
                         "CherryRenderer",
                         "CherryRenderer - Standalone UPnP Media Renderer",
-                        CherryPrefs.VERSION,
+                        CherryUtil.VERSION,
                         "http://chrrubin.com"
                         )
         );

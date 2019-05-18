@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.prefs.ThemePreference;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ComboBox;
@@ -11,8 +11,8 @@ import javafx.scene.layout.GridPane;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public class InterfacePrefs extends GridPane implements IPrefs {
-    private final Logger LOGGER = Logger.getLogger(InterfacePrefs.class.getName());
+public class InterfacePrefsPane extends GridPane implements IPrefsPane {
+    private final Logger LOGGER = Logger.getLogger(InterfacePrefsPane.class.getName());
     @FXML
     private ComboBox<String> themeComboBox;
     @FXML
@@ -28,7 +28,9 @@ public class InterfacePrefs extends GridPane implements IPrefs {
     @FXML
     private RadioButton resizeDoubleRadioButton;
 
-    public InterfacePrefs(){
+    private ThemePreference themePreference = new ThemePreference();
+
+    public InterfacePrefsPane(){
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/prefs/InterfacePrefs.fxml"));
             fxmlLoader.setRoot(this);
@@ -42,22 +44,22 @@ public class InterfacePrefs extends GridPane implements IPrefs {
 
         themeComboBox.getItems().add("DEFAULT");
         themeComboBox.getItems().add("DARK");
-        themeComboBox.setValue(CherryPrefs.Theme.get());
+        themeComboBox.setValue(themePreference.get());
 
         resizeOriginalRadioButton.setSelected(true);
     }
 
     @Override
     public void resetToDefaults() {
-        CherryPrefs.Theme.reset();
+        themePreference.reset();
     }
 
     @Override
     public void savePreferences() {
         String theme = themeComboBox.getValue();
 
-        CherryPrefs.Theme.put(theme);
+        themePreference.put(theme);
 
-        LOGGER.finer(CherryPrefs.Theme.KEY + " has been set to " + theme);
+        LOGGER.finer(themePreference.getKey() + " has been set to " + theme);
     }
 }

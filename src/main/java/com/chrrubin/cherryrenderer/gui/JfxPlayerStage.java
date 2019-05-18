@@ -1,9 +1,9 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.CherryUtil;
 
 public class JfxPlayerStage extends AbstractStage {
     public JfxPlayerStage(){
-        super("CherryRenderer " + CherryPrefs.VERSION + " [JFX]", "JfxPlayerStage.fxml", 640, 450);
+        super("CherryRenderer " + CherryUtil.VERSION + " [JFX]", "JfxPlayerStage.fxml", 640, 450);
     }
 }

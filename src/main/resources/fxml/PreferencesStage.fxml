@@ -14,19 +14,19 @@
             <ListView fx:id="prefListView" prefHeight="200.0" prefWidth="150.0" VBox.vgrow="ALWAYS" />
          </children>
       </VBox>
-      <TitledPane fx:id="prefTitledPane" collapsible="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+      <TitledPane fx:id="prefTitledPane" collapsible="false" focusTraversable="false" GridPane.columnIndex="1">
          <content>
             <ScrollPane fx:id="prefScrollPane" fitToWidth="true" minHeight="250.0" />
          </content>
       </TitledPane>
-      <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
          <children>
             <Button mnemonicParsing="false" onAction="#onResetDefault" text="Reset Defaults" />
             <Button mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
             <Button mnemonicParsing="false" onAction="#onSave" text="Save" />
          </children>
       </HBox>
-      <Label disable="true" text="(Preferences will be applied after the next progam restart)" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+      <Label disable="true" text="(Hover over a preference to view its description.)" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
          <font>
             <Font name="System Italic" size="13.0" />
          </font>

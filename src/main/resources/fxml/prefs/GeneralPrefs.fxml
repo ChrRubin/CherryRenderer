@@ -3,8 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="25.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
       <ColumnConstraints hgrow="SOMETIMES" />
@@ -12,48 +11,36 @@
     <rowConstraints>
       <RowConstraints vgrow="SOMETIMES" />
       <RowConstraints vgrow="SOMETIMES" />
-      <RowConstraints vgrow="SOMETIMES" />
         <RowConstraints vgrow="SOMETIMES" />
-        <RowConstraints vgrow="SOMETIMES" />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
     </rowConstraints>
      <children>
-        <Label text="Device Name:" />
-        <TextField fx:id="nameTextField" minWidth="200.0" GridPane.columnIndex="1" />
-        <Label disable="true" text="(This will be announced to UPnP control point apps)" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
-           <font>
-              <Font name="System Italic" size="13.0" />
-           </font>
-           <GridPane.margin>
-              <Insets />
-           </GridPane.margin>
-           <padding>
-              <Insets bottom="10.0" />
-           </padding>
-        </Label>
-        <Label text="Autosave Snapshots:" GridPane.rowIndex="2" />
-        <CheckBox fx:id="autosaveCheckBox" mnemonicParsing="false" text="Skip the file chooser dialog when taking snapshots" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" />
-        <Label disable="true" text="(Snapshots will be automatically saved to your user home directory)" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
-           <font>
-              <Font name="System Italic" size="13.0" />
-           </font>
-           <padding>
-              <Insets bottom="10.0" />
-           </padding>
-           <GridPane.margin>
-              <Insets />
-           </GridPane.margin>
-        </Label>
-        <Label text="Check for Updates:" GridPane.rowIndex="4" />
-        <CheckBox fx:id="updateCheckBox" mnemonicParsing="false" selected="true" text="Automatically check for updates on startup" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-      <Label disable="true" text="(You will be notified when a new update is available)" GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
-         <font>
-            <Font name="System Italic" size="13.0" />
-         </font>
-         <padding>
-            <Insets bottom="10.0" />
-         </padding>
-      </Label>
+        <Label text="Device Name:">
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin></Label>
+        <TextField fx:id="nameTextField" minWidth="200.0" promptText="Please don't leave this empty. Seriously." GridPane.columnIndex="1">
+         <tooltip>
+            <Tooltip text="Device name that's announced to UPnP control point apps.&#10;Changes to this requires application restart to be applied." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin></TextField>
+        <Label text="Autosave Snapshots:" GridPane.rowIndex="1">
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin></Label>
+        <CheckBox fx:id="autosaveCheckBox" mnemonicParsing="false" text="Skip the file chooser dialog when taking snapshots" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+         <tooltip>
+            <Tooltip text="When enabled, snapshots will be automatically saved to your user home directory." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin></CheckBox>
+        <Label text="Check for Updates:" GridPane.rowIndex="2" />
+        <CheckBox fx:id="updateCheckBox" mnemonicParsing="false" selected="true" text="Automatically check for updates on startup" GridPane.columnIndex="1" GridPane.rowIndex="2">
+         <tooltip>
+            <Tooltip text="When enabled, you will be notified when a new update is available.&#10;Changes to this requires application restart to be applied." />
+         </tooltip></CheckBox>
      </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

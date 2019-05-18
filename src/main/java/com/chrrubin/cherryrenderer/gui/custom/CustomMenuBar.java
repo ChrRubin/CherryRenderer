@@ -1,7 +1,8 @@
 package com.chrrubin.cherryrenderer.gui.custom;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.gui.*;
+import com.chrrubin.cherryrenderer.prefs.AutoSaveSnapshotsPreference;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -90,7 +91,7 @@ public class CustomMenuBar extends MenuBar {
         Image updateImage;
         Image volumeDownImage;
 
-        if (CherryPrefs.Theme.LOADED_VALUE.equals("DARK")) {
+        if (CherryUtil.LOADED_THEME.equals("DARK")) {
             playImage = new Image("icons/grey/play.png");
             pauseImage = new Image("icons/grey/pause.png");
             rewindImage = new Image("icons/grey/rewind.png");
@@ -323,7 +324,7 @@ public class CustomMenuBar extends MenuBar {
             File snapshotFile;
             String defaultFileName = "cherrysnap-" + new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'SSS").format(new Date()) + ".png";
 
-            if (CherryPrefs.AutoSaveSnapshots.LOADED_VALUE) {
+            if (new AutoSaveSnapshotsPreference().get()) {
                 snapshotFile = new File(System.getProperty("user.home"), defaultFileName);
             }
             else {

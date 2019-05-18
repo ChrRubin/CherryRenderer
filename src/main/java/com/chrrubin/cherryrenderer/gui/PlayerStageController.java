@@ -1,10 +1,11 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.api.ApiService;
 import com.chrrubin.cherryrenderer.gui.custom.*;
+import com.chrrubin.cherryrenderer.prefs.AutoCheckUpdatePreference;
+import com.chrrubin.cherryrenderer.prefs.FriendlyNamePreference;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
@@ -41,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerStageController implements IController {
+    private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
     @FXML
     private StackPane rootStackPane;
     @FXML
@@ -56,7 +58,6 @@ public class PlayerStageController implements IController {
     @FXML
     private LoadingVBox loadingVBox;
 
-    private Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
     private MediaObject currentMediaObject = null;
     private AVTransportHandler avTransportHandler = AVTransportHandler.getInstance();
     private RenderingControlHandler renderingControlHandler = RenderingControlHandler.getInstance();
@@ -305,7 +306,7 @@ public class PlayerStageController implements IController {
             });
         }
 
-        String friendlyName = CherryPrefs.FriendlyName.LOADED_VALUE;
+        String friendlyName = new FriendlyNamePreference().get();
         LOGGER.info("Current device friendly name is " + friendlyName);
         RendererService rendererService = new RendererService(friendlyName);
         rendererService.startService();
@@ -319,7 +320,7 @@ public class PlayerStageController implements IController {
         menuBar.setSnapshotImageSupplier(player::getSnapshot);
         Platform.runLater(() -> {
             menuBar.setParentStage(getStage());
-            if(CherryPrefs.AutoCheckUpdate.LOADED_VALUE){
+            if(new AutoCheckUpdatePreference().get()){
                 checkUpdate();
             }
         });
@@ -423,7 +424,7 @@ public class PlayerStageController implements IController {
             if (!title.isEmpty()) {
                 LOGGER.finer("Video title is " + title);
 
-                getStage().setTitle(title + " - CherryRenderer " + CherryPrefs.VERSION + playerName);
+                getStage().setTitle(title + " - CherryRenderer " + CherryUtil.VERSION + playerName);
             } else {
                 LOGGER.finer("Video title was not detected.");
             }
@@ -545,7 +546,7 @@ public class PlayerStageController implements IController {
             apiService.setCurrentStatus(RendererState.STOPPED);
         }
 
-        getStage().setTitle("CherryRenderer " + CherryPrefs.VERSION + playerName);
+        getStage().setTitle("CherryRenderer " + CherryUtil.VERSION + playerName);
 
         LOGGER.finer("Clearing player property listeners");
         player.currentTimeProperty().removeListener(playerCurrentTimeListener);

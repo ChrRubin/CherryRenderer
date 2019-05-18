@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.gui;
 
-import com.chrrubin.cherryrenderer.CherryPrefs;
+import com.chrrubin.cherryrenderer.CherryUtil;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -23,7 +23,7 @@ public class AboutStageController implements IController {
 
     @FXML
     private void initialize(){
-        versionLabel.setText(CherryPrefs.VERSION);
+        versionLabel.setText(CherryUtil.VERSION);
     }
 
     @FXML

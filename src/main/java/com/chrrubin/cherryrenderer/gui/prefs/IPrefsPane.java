@@ -1,6 +1,6 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
-public interface IPrefs {
+public interface IPrefsPane {
     void resetToDefaults();
     void savePreferences();
 }

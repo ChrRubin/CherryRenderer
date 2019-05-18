@@ -10,3 +10,11 @@
 .context-menu .separator:horizontal .line {
     -fx-border-color: #515151 transparent transparent transparent;
 }
+
+.text-input{
+    -fx-prompt-text-fill: #81888C;
+}
+
+.text-input:focused{
+    -fx-prompt-text-fill: transparent;
+}
