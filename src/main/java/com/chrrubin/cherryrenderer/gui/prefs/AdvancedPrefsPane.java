@@ -3,6 +3,8 @@ package com.chrrubin.cherryrenderer.gui.prefs;
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.prefs.HardwareAccelerationPreference;
 import com.chrrubin.cherryrenderer.prefs.LogLevelPreference;
+import com.chrrubin.cherryrenderer.prefs.LogLevelPreferenceValue;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
@@ -21,7 +23,7 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
     @FXML
     private CheckBox hardwareCheckBox;
     @FXML
-    private ComboBox<String> logLevelComboBox;
+    private ComboBox<LogLevelPreferenceValue> logLevelComboBox;
 
     private AbstractStage windowParent;
     private HardwareAccelerationPreference hardwareAccelerationPreference = new HardwareAccelerationPreference();
@@ -41,9 +43,7 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
 
         hardwareCheckBox.setSelected(hardwareAccelerationPreference.get());
 
-        logLevelComboBox.getItems().add("DEBUG");
-        logLevelComboBox.getItems().add("DEBUG+");
-        logLevelComboBox.getItems().add("ALL");
+        logLevelComboBox.setItems(FXCollections.observableArrayList(LogLevelPreferenceValue.values()));
         logLevelComboBox.setValue(logLevelPreference.get());
         logLevelComboBox.setOnAction(event -> onLogLevelSelect());
 
@@ -53,13 +53,13 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
     private void onLogLevelSelect(){
         Alert alert;
         switch(logLevelComboBox.getValue()){
-            case "DEBUG+":
-                alert = windowParent.createInfoAlert("DEBUG+ generates a more detailed debug log that includes UPnP's SOAP protocol contents." +
+            case DEBUG_PLUS:
+                alert = windowParent.createInfoAlert("DEBUG_PLUS generates a more detailed debug log that includes UPnP's SOAP protocol contents." +
                         System.lineSeparator() + System.lineSeparator() +
                         "You should only enable this if DEBUG does not provide the necessary logging required.");
                 alert.showAndWait();
                 break;
-            case "ALL":
+            case ALL:
                 alert = windowParent.createWarningAlert(
                         "ALL is an extremely verbose debug level that will fill up the debug logs in a matter of minutes." +
                                 System.lineSeparator() + System.lineSeparator() +
@@ -78,12 +78,12 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
 
     @Override
     public void savePreferences() {
-        String logLevel = logLevelComboBox.getValue();
+        LogLevelPreferenceValue logLevel = logLevelComboBox.getValue();
 
         logLevelPreference.put(logLevel);
         hardwareAccelerationPreference.put(hardwareCheckBox.isSelected());
 
-        LOGGER.finer(logLevelPreference.getKey() + " has been set to " + logLevel);
+        LOGGER.finer(logLevelPreference.getKey() + " has been set to " + logLevel.name());
         LOGGER.finer(hardwareAccelerationPreference.getKey() + " has been set to " + hardwareCheckBox.isSelected());
     }
 

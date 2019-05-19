@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer;
 
 import com.chrrubin.cherryrenderer.prefs.ThemePreference;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import javafx.concurrent.Service;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 
 public class CherryUtil {
     public static final String VERSION = "1.5-dev";
-    public static final String LOADED_THEME = new ThemePreference().get();
+    public static final ThemePreferenceValue LOADED_THEME = new ThemePreference().get();
 
     public static String durationToString(Duration duration){
         int intSeconds = (int)Math.floor(duration.toSeconds());

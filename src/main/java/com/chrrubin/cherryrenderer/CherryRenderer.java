@@ -25,13 +25,13 @@ public class CherryRenderer extends Application {
         try {
             String propertiesFileName;
             switch (new LogLevelPreference().get()) {
-                case "DEBUG":
+                case DEBUG:
                     propertiesFileName = "log-debug.properties";
                     break;
-                case "DEBUG+":
+                case DEBUG_PLUS:
                     propertiesFileName = "log-debugplus.properties";
                     break;
-                case "ALL":
+                case ALL:
                     propertiesFileName = "log-all.properties";
                     break;
                 default:

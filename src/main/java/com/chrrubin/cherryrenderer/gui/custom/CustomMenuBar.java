@@ -3,6 +3,8 @@ package com.chrrubin.cherryrenderer.gui.custom;
 import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.gui.*;
 import com.chrrubin.cherryrenderer.prefs.AutoSaveSnapshotsPreference;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -91,7 +93,7 @@ public class CustomMenuBar extends MenuBar {
         Image updateImage;
         Image volumeDownImage;
 
-        if (CherryUtil.LOADED_THEME.equals("DARK")) {
+        if (CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK) {
             playImage = new Image("icons/grey/play.png");
             pauseImage = new Image("icons/grey/pause.png");
             rewindImage = new Image("icons/grey/rewind.png");
@@ -149,7 +151,7 @@ public class CustomMenuBar extends MenuBar {
         aboutMenuItem.setGraphic(createMenuImageView(infoImage));
 
         preferencesMenuItem.setOnAction(event -> openNewWindow(new PreferencesStage(parentStage)));
-        exitMenuItem.setOnAction(event -> System.exit(0));
+        exitMenuItem.setOnAction(event -> Platform.exit());
         helpMenuItem.setOnAction(event -> openNewWindow(new HelpStage(parentStage)));
         updateMenuItem.setOnAction(event -> openNewWindow(new UpdaterStage(parentStage)));
         aboutMenuItem.setOnAction(event -> openNewWindow(new AboutStage(parentStage)));

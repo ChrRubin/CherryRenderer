@@ -1,16 +1,13 @@
 package com.chrrubin.cherryrenderer.prefs;
 
 public abstract class BaseStringPreference extends AbstractPreference<String> {
-    private final String DEFAULT;
-
     BaseStringPreference(String KEY, String DEFAULT){
-        super(KEY);
-        this.DEFAULT = DEFAULT;
+        super(KEY, DEFAULT);
     }
 
     @Override
     public String get() {
-        return getPreferencesNode().get(getKey(), DEFAULT);
+        return getPreferencesNode().get(getKey(), getDefault());
     }
 
     @Override
@@ -20,6 +17,6 @@ public abstract class BaseStringPreference extends AbstractPreference<String> {
 
     @Override
     public void reset() {
-        getPreferencesNode().put(getKey(), DEFAULT);
+        getPreferencesNode().put(getKey(), getDefault());
     }
 }

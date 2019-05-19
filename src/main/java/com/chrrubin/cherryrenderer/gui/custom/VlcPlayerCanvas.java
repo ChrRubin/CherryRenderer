@@ -168,9 +168,13 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Releasing VLC player resources...");
-            mediaPlayer.release();
-            mediaPlayerFactory.release();
+            LOGGER.info("Releasing nativeLog");
             nativeLog.release();
+            LOGGER.info("Releasing mediaPlayer");
+            mediaPlayer.release();
+            LOGGER.info("Releasing mediaPlayerFactory");
+            mediaPlayerFactory.release();
+            // FIXME: one of these randomly causes JVM to crash.... Who knows which one...
         }));
 
         nativeLog.setLevel(LogLevel.WARNING);

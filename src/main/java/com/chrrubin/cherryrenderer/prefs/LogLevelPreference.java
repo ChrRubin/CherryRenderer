@@ -1,7 +1,7 @@
 package com.chrrubin.cherryrenderer.prefs;
 
-public class LogLevelPreference extends BaseStringPreference {
+public class LogLevelPreference extends BaseEnumPreference<LogLevelPreferenceValue> {
     public LogLevelPreference(){
-        super("logLevel", "DEBUG");
+        super("logLevel", LogLevelPreferenceValue.DEBUG );
     }
 }

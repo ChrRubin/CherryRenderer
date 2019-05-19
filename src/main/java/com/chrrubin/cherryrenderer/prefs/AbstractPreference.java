@@ -7,14 +7,16 @@ import java.util.prefs.Preferences;
 abstract class AbstractPreference<T> {
     private final Preferences NODE = Preferences.userNodeForPackage(CherryRenderer.class);
     private final String KEY;
+    private final T DEFAULT;
 
-    AbstractPreference(String KEY){
+    AbstractPreference(String KEY, T DEFAULT){
         this.KEY = KEY;
+        this.DEFAULT = DEFAULT;
     }
 
-    abstract T get();
-    abstract void put(T value);
-    abstract void reset();
+    public abstract T get();
+    public abstract void put(T value);
+    public abstract void reset();
 
     Preferences getPreferencesNode(){
         return NODE;
@@ -22,5 +24,9 @@ abstract class AbstractPreference<T> {
 
     public String getKey(){
         return KEY;
+    }
+
+    public T getDefault(){
+        return DEFAULT;
     }
 }

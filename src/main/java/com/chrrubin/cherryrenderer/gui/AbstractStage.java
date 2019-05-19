@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -64,7 +65,7 @@ public abstract class AbstractStage extends Stage {
         }
 
         this.setOnShown(event -> {
-            if(CherryUtil.LOADED_THEME.equals("DARK")){
+            if(CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK){
                 getScene().getStylesheets().add(getClass().getClassLoader().getResource("fxml/DarkBase.css").toExternalForm());
             }
         });
@@ -109,7 +110,7 @@ public abstract class AbstractStage extends Stage {
     private void prepareAlertDialog(DialogPane dialogPane){
         dialogPane.setMinWidth(500);
         dialogPane.setMinHeight(Region.USE_PREF_SIZE);
-        if(CherryUtil.LOADED_THEME.equals("DARK")){
+        if(CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK){
             dialogPane.getStylesheets().add(getClass().getClassLoader().getResource("fxml/DarkBase.css").toExternalForm());
         }
 

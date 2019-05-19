@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer.gui.custom;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -67,7 +68,7 @@ public class MediaToolbar extends VBox {
         Image stopImage;
         Image fastForwardImage;
 
-        if (CherryUtil.LOADED_THEME.equals("DARK")) {
+        if (CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK) {
             playImage = new Image("icons/grey/play.png");
             pauseImage = new Image("icons/grey/pause.png");
             rewindImage = new Image("icons/grey/rewind.png");

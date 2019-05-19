@@ -109,7 +109,7 @@ public class RendererService {
 
                 Runtime.getRuntime().addShutdownHook(new Thread(() ->{
                     // TODO: The service doesn't shutdown properly? Sometimes it doesn't show signs of it in the output/log
-                    LOGGER.info("Running shutdown hooks");
+                    LOGGER.info("Shutting down upnpService and executors");
                     upnpService.shutdown();
                     avTransportLastChangeExecutor.shutdown();
                     renderingControlLastChangeExecutor.shutdown();

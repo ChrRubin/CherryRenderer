@@ -1,16 +1,13 @@
 package com.chrrubin.cherryrenderer.prefs;
 
 public abstract class BaseBooleanPreference extends AbstractPreference<Boolean> {
-    private final boolean DEFAULT;
-
     BaseBooleanPreference(String KEY, boolean DEFAULT){
-        super(KEY);
-        this.DEFAULT = DEFAULT;
+        super(KEY, DEFAULT);
     }
 
     @Override
     public Boolean get() {
-        return getPreferencesNode().getBoolean(getKey(), DEFAULT);
+        return getPreferencesNode().getBoolean(getKey(), getDefault());
     }
 
     @Override
@@ -20,6 +17,6 @@ public abstract class BaseBooleanPreference extends AbstractPreference<Boolean> 
 
     @Override
     public void reset() {
-        getPreferencesNode().putBoolean(getKey(), DEFAULT);
+        getPreferencesNode().putBoolean(getKey(), getDefault());
     }
 }

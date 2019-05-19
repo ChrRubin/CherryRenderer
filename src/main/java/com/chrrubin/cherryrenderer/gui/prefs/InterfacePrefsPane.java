@@ -1,6 +1,10 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
+import com.chrrubin.cherryrenderer.prefs.AutoResizePreference;
+import com.chrrubin.cherryrenderer.prefs.AutoResizePreferenceValue;
 import com.chrrubin.cherryrenderer.prefs.ThemePreference;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ComboBox;
@@ -14,7 +18,7 @@ import java.util.logging.Logger;
 public class InterfacePrefsPane extends GridPane implements IPrefsPane {
     private final Logger LOGGER = Logger.getLogger(InterfacePrefsPane.class.getName());
     @FXML
-    private ComboBox<String> themeComboBox;
+    private ComboBox<ThemePreferenceValue> themeComboBox;
     @FXML
     private ToggleGroup resizeToggleGroup;
     @FXML
@@ -29,6 +33,7 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
     private RadioButton resizeDoubleRadioButton;
 
     private ThemePreference themePreference = new ThemePreference();
+    private AutoResizePreference autoResizePreference = new AutoResizePreference();
 
     public InterfacePrefsPane(){
         try {
@@ -42,11 +47,25 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
             throw new RuntimeException(exception);
         }
 
-        themeComboBox.getItems().add("DEFAULT");
-        themeComboBox.getItems().add("DARK");
+        themeComboBox.setItems(FXCollections.observableArrayList(ThemePreferenceValue.values()));
         themeComboBox.setValue(themePreference.get());
 
-        resizeOriginalRadioButton.setSelected(true);
+        switch (autoResizePreference.get()){
+            case DISABLED:
+                resizeDisabledRadioButton.setSelected(true);
+                break;
+            case QUARTER:
+                resizeQuarterRadioButton.setSelected(true);
+                break;
+            case HALF:
+                resizeHalfRadioButton.setSelected(true);
+                break;
+            case ORIGINAL:
+                resizeOriginalRadioButton.setSelected(true);
+                break;
+            case DOUBLE:
+                resizeDoubleRadioButton.setSelected(true);
+        }
     }
 
     @Override
@@ -56,10 +75,33 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
 
     @Override
     public void savePreferences() {
-        String theme = themeComboBox.getValue();
+        ThemePreferenceValue theme = themeComboBox.getValue();
+
+        RadioButton selectedResize = (RadioButton)resizeToggleGroup.getSelectedToggle();
+        AutoResizePreferenceValue resizeValue;
+        if(selectedResize == resizeDisabledRadioButton){
+            resizeValue = AutoResizePreferenceValue.DISABLED;
+        }
+        else if(selectedResize == resizeQuarterRadioButton){
+            resizeValue = AutoResizePreferenceValue.QUARTER;
+        }
+        else if(selectedResize == resizeHalfRadioButton){
+            resizeValue = AutoResizePreferenceValue.HALF;
+        }
+        else if(selectedResize == resizeOriginalRadioButton){
+            resizeValue = AutoResizePreferenceValue.ORIGINAL;
+        }
+        else if(selectedResize == resizeDoubleRadioButton){
+            resizeValue = AutoResizePreferenceValue.DOUBLE;
+        }
+        else {
+            throw new RuntimeException("None of the Auto Resize Window RadioButtons are selected.");
+        }
 
         themePreference.put(theme);
+        autoResizePreference.put(resizeValue);
 
-        LOGGER.finer(themePreference.getKey() + " has been set to " + theme);
+        LOGGER.finer(themePreference.getKey() + " has been set to " + theme.name());
+        LOGGER.finer(autoResizePreference.getKey() + " has been set to " + resizeValue.name());
     }
 }

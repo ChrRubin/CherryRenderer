@@ -4,6 +4,7 @@ import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.gui.prefs.AdvancedPrefsPane;
 import com.chrrubin.cherryrenderer.gui.prefs.GeneralPrefsPane;
 import com.chrrubin.cherryrenderer.gui.prefs.InterfacePrefsPane;
+import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -63,7 +64,7 @@ public class PreferencesStageController implements IController {
         Image generalImage;
         Image interfaceImage;
         Image advancedImage;
-        if (CherryUtil.LOADED_THEME.equals("DARK")) {
+        if (CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK) {
             generalImage = new Image("icons/grey/pref.png");
             interfaceImage = new Image("icons/grey/interface.png");
             advancedImage = new Image("icons/grey/advanced.png");
@@ -135,7 +136,7 @@ public class PreferencesStageController implements IController {
             interfacePrefsPane.savePreferences();
             advancedPrefsPane.savePreferences();
 
-            Alert alert = getStage().createInfoAlert("Preferences have been saved. It will be applied on the next program restart.");
+            Alert alert = getStage().createInfoAlert("Preferences have been saved.");
             alert.showAndWait();
             getStage().close();
         }

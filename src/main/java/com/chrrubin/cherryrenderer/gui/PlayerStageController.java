@@ -4,8 +4,7 @@ import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
 import com.chrrubin.cherryrenderer.api.ApiService;
 import com.chrrubin.cherryrenderer.gui.custom.*;
-import com.chrrubin.cherryrenderer.prefs.AutoCheckUpdatePreference;
-import com.chrrubin.cherryrenderer.prefs.FriendlyNamePreference;
+import com.chrrubin.cherryrenderer.prefs.*;
 import com.chrrubin.cherryrenderer.upnp.AVTransportHandler;
 import com.chrrubin.cherryrenderer.upnp.RendererService;
 import com.chrrubin.cherryrenderer.upnp.RenderingControlHandler;
@@ -323,6 +322,12 @@ public class PlayerStageController implements IController {
             if(new AutoCheckUpdatePreference().get()){
                 checkUpdate();
             }
+
+            double savedWidth = new WindowLastWidthPreference().get();
+            double savedHeight = new WindowLastHeightPreference().get();
+            LOGGER.info("Setting window size to " + savedWidth + " x " + savedHeight);
+            getStage().setWidth(savedWidth);
+            getStage().setHeight(savedHeight);
         });
 
         if(player.getClass() == JfxMediaView.class){
@@ -334,6 +339,18 @@ public class PlayerStageController implements IController {
         else {
             playerName = " [???]";
         }
+
+        // FIXME: Inconsistent. Shutdown hooks are weird.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if(getStage().isMaximized()){
+                return;
+            }
+            double lastWidth = getStage().getWidth();
+            double lastHeight = getStage().getHeight();
+            LOGGER.info("Saving window size as " + lastWidth + " x " + lastHeight);
+            new WindowLastWidthPreference().put(lastWidth);
+            new WindowLastHeightPreference().put(lastHeight);
+        }));
     }
 
     private void checkUpdate(){
@@ -433,7 +450,7 @@ public class PlayerStageController implements IController {
             menuBar.enablePlaybackMenu();
             loadingVBox.setVisible(false);
 
-            setWindowSizeToVideo();
+            resizeWindowToVideo();
         });
 
         player.setOnError(() -> {
@@ -843,9 +860,28 @@ public class PlayerStageController implements IController {
         }
     }
 
-    private void setWindowSizeToVideo(){
+    private void resizeWindowToVideo(){
         if(getStage().isMaximized()){
             return;
+        }
+
+        double ratio;
+
+        switch(new AutoResizePreference().get()){
+            case DISABLED:
+                return;
+            case QUARTER:
+                ratio = 0.25;
+                break;
+            case HALF:
+                ratio = 0.5;
+                break;
+            case DOUBLE:
+                ratio = 2.0;
+                break;
+            default:
+                ratio = 1.0;
+                break;
         }
 
         double videoWidth = player.getVideoWidth();
@@ -858,8 +894,8 @@ public class PlayerStageController implements IController {
         double windowBottomInset = getStage().getHeight() - scene.getHeight() - windowTopInset;
         double windowRightInset = getStage().getWidth() - scene.getWidth() - windowLeftInset;
 
-        double resultHeight = videoHeight + uiHeight + windowTopInset + windowBottomInset;
-        double resultWidth = videoWidth + windowLeftInset + windowRightInset;
+        double resultHeight = (videoHeight + uiHeight + windowTopInset + windowBottomInset) * ratio;
+        double resultWidth = (videoWidth + windowLeftInset + windowRightInset) * ratio;
 
         Rectangle2D screenRectangle = Screen.getScreensForRectangle(getStage().getX(), getStage().getY(), getStage().getWidth(), getStage().getHeight()).get(0).getVisualBounds();
 
