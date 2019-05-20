@@ -28,7 +28,7 @@
          <GridPane.margin>
             <Insets bottom="20.0" />
          </GridPane.margin></ComboBox>
-      <Button mnemonicParsing="false" onAction="#onOpenLogLocation" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+      <Button mnemonicParsing="false" onAction="#onOpenUserHome" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
       <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
          <font>
             <Font name="System Italic" size="13.0" />

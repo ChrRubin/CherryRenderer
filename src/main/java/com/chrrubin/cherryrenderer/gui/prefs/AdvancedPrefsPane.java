@@ -1,6 +1,7 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
+import com.chrrubin.cherryrenderer.prefs.AbstractPreference;
 import com.chrrubin.cherryrenderer.prefs.HardwareAccelerationPreference;
 import com.chrrubin.cherryrenderer.prefs.LogLevelPreference;
 import com.chrrubin.cherryrenderer.prefs.LogLevelPreferenceValue;
@@ -10,7 +11,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.layout.GridPane;
 
 import java.awt.*;
 import java.io.File;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
+public class AdvancedPrefsPane extends AbstractPrefsPane {
     private final Logger LOGGER = Logger.getLogger(AdvancedPrefsPane.class.getName());
     @FXML
     private CheckBox hardwareCheckBox;
@@ -26,12 +26,12 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
     private ComboBox<LogLevelPreferenceValue> logLevelComboBox;
 
     private AbstractStage windowParent;
-    private HardwareAccelerationPreference hardwareAccelerationPreference = new HardwareAccelerationPreference();
-    private LogLevelPreference logLevelPreference = new LogLevelPreference();
+    private AbstractPreference<Boolean> hardwareAccelerationPreference = new HardwareAccelerationPreference();
+    private AbstractPreference<LogLevelPreferenceValue> logLevelPreference = new LogLevelPreference();
 
     public AdvancedPrefsPane(AbstractStage windowParent){
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/prefs/AdvancedPrefs.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/prefs/AdvancedPrefsPane.fxml"));
             fxmlLoader.setRoot(this);
             fxmlLoader.setController(this);
             fxmlLoader.setClassLoader(getClass().getClassLoader());
@@ -88,7 +88,7 @@ public class AdvancedPrefsPane extends GridPane implements IPrefsPane {
     }
 
     @FXML
-    private void onOpenLogLocation(){
+    private void onOpenUserHome(){
         new Thread(() -> {
             if(Desktop.isDesktopSupported()) {
                 try {

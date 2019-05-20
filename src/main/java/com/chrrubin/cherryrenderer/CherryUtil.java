@@ -17,8 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CherryUtil {
-    public static final String VERSION = "1.5-dev";
-    public static final ThemePreferenceValue LOADED_THEME = new ThemePreference().get();
+    public static final String VERSION = "2.0-SNAPSHOT";
+    public static final ThemePreferenceValue LOADED_THEME = new ThemePreference().get(); // Ensures theme is consistent throughout application runtime
 
     public static String durationToString(Duration duration){
         int intSeconds = (int)Math.floor(duration.toSeconds());

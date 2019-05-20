@@ -108,7 +108,6 @@ public class RendererService {
                 final UpnpService upnpService = new UpnpServiceImpl();
 
                 Runtime.getRuntime().addShutdownHook(new Thread(() ->{
-                    // TODO: The service doesn't shutdown properly? Sometimes it doesn't show signs of it in the output/log
                     LOGGER.info("Shutting down upnpService and executors");
                     upnpService.shutdown();
                     avTransportLastChangeExecutor.shutdown();

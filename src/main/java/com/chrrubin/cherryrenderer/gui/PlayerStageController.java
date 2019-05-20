@@ -37,8 +37,10 @@ import org.fourthline.cling.support.model.TransportState;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 
 public class PlayerStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(PlayerStageController.class.getName());
@@ -64,6 +66,7 @@ public class PlayerStageController implements IController {
     private ApiService apiService = null;
     private ScheduledService<Void> updateTimeService;
     private String playerName;
+    private double currentResizeRatio;
 
     /*
     Start of property listeners and event handlers
@@ -275,6 +278,9 @@ public class PlayerStageController implements IController {
             case DOWN:
                 onDecreaseVolume();
                 break;
+            case Z:
+                toggleResizeWindow();
+                break;
         }
     };
     /*
@@ -323,11 +329,13 @@ public class PlayerStageController implements IController {
                 checkUpdate();
             }
 
-            double savedWidth = new WindowLastWidthPreference().get();
-            double savedHeight = new WindowLastHeightPreference().get();
-            LOGGER.info("Setting window size to " + savedWidth + " x " + savedHeight);
-            getStage().setWidth(savedWidth);
-            getStage().setHeight(savedHeight);
+            if(new SaveWindowSizePreference().get()) {
+                double savedWidth = new WindowLastWidthPreference().get();
+                double savedHeight = new WindowLastHeightPreference().get();
+                LOGGER.info("Setting window size to " + savedWidth + " x " + savedHeight);
+                getStage().setWidth(savedWidth);
+                getStage().setHeight(savedHeight);
+            }
         });
 
         if(player.getClass() == JfxMediaView.class){
@@ -340,16 +348,27 @@ public class PlayerStageController implements IController {
             playerName = " [???]";
         }
 
-        // FIXME: Inconsistent. Shutdown hooks are weird.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if(getStage().isMaximized()){
+            if(!(new SaveWindowSizePreference().get())){
                 return;
             }
             double lastWidth = getStage().getWidth();
             double lastHeight = getStage().getHeight();
+            if(getStage().isMaximized() || lastHeight == 0.0 || lastWidth == 0.0){
+                return;
+            }
             LOGGER.info("Saving window size as " + lastWidth + " x " + lastHeight);
-            new WindowLastWidthPreference().put(lastWidth);
-            new WindowLastHeightPreference().put(lastHeight);
+            try {
+                AbstractPreference<Double> lastHeightPreference = new WindowLastHeightPreference();
+                AbstractPreference<Double> lastWidthPreference = new WindowLastWidthPreference();
+                lastHeightPreference.put(lastHeight);
+                lastWidthPreference.put(lastWidth);
+
+                lastHeightPreference.forceFlush();
+            }
+            catch (BackingStoreException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
         }));
     }
 
@@ -450,7 +469,7 @@ public class PlayerStageController implements IController {
             menuBar.enablePlaybackMenu();
             loadingVBox.setVisible(false);
 
-            resizeWindowToVideo();
+            autoResizeWindow();
         });
 
         player.setOnError(() -> {
@@ -474,6 +493,7 @@ public class PlayerStageController implements IController {
 
             if(apiService != null) {
                 apiService.setCurrentStatus(RendererState.STOPPED);
+                apiService.clearInfo();
             }
         });
 
@@ -689,6 +709,26 @@ public class PlayerStageController implements IController {
         mediaToolbar.getVolumeSlider().decrement();
     }
 
+    @FXML
+    private void onZoomQuarter(){
+        resizeWindowToVideo(0.25);
+    }
+
+    @FXML
+    private void onZoomHalf(){
+        resizeWindowToVideo(0.5);
+    }
+
+    @FXML
+    private void onZoomOriginal(){
+        resizeWindowToVideo(1.0);
+    }
+
+    @FXML
+    private void onZoomDouble(){
+        resizeWindowToVideo(2.0);
+    }
+
     /**
      * Handles RendererStateChanged events, triggered by uPnP state classes via eventing thru RendererHandler.
      * @param rendererState Current RendererState of MediaRenderer
@@ -860,13 +900,50 @@ public class PlayerStageController implements IController {
         }
     }
 
-    private void resizeWindowToVideo(){
-        if(getStage().isMaximized()){
-            return;
+    /**
+     * Resize player window based on video size and given ratio.
+     * If the calculated window size is larger than the current screen's available visual space, player window will maximize instead.
+     * @param ratio Ratio to resize player window to.
+     */
+    private void resizeWindowToVideo(double ratio){
+        if(getStage().isFullScreen()){
+            getStage().setFullScreen(false);
         }
 
-        double ratio;
+        currentResizeRatio = ratio;
 
+        double videoWidth = player.getVideoWidth();
+        double videoHeight = player.getVideoHeight();
+        double uiHeight = menuBar.getHeight() + mediaToolbar.getHeight();
+
+        Scene scene = getStage().getScene();
+        double windowTopInset = scene.getY();
+        double windowLeftInset = scene.getX();
+        double windowBottomInset = getStage().getHeight() - scene.getHeight() - windowTopInset;
+        double windowRightInset = getStage().getWidth() - scene.getWidth() - windowLeftInset;
+
+        double resultHeight = (videoHeight * ratio) + uiHeight + windowTopInset + windowBottomInset;
+        double resultWidth = (videoWidth * ratio) + windowLeftInset + windowRightInset;
+
+        Rectangle2D screenRectangle = Screen.getScreensForRectangle(getStage().getX(), getStage().getY(), getStage().getWidth(), getStage().getHeight()).get(0).getVisualBounds();
+
+        if(resultHeight >= screenRectangle.getHeight() || resultWidth >= screenRectangle.getWidth()){
+            getStage().setMaximized(true);
+        }
+        else{
+            if(getStage().isMaximized()){
+                getStage().setMaximized(false);
+            }
+            getStage().setWidth(resultWidth);
+            getStage().setHeight(resultHeight);
+        }
+    }
+
+    /**
+     * Only called when video player is ready, player window will automatically resize based on AutoResizePreference.
+     */
+    private void autoResizeWindow(){
+        double ratio;
         switch(new AutoResizePreference().get()){
             case DISABLED:
                 return;
@@ -883,28 +960,28 @@ public class PlayerStageController implements IController {
                 ratio = 1.0;
                 break;
         }
+        resizeWindowToVideo(ratio);
+    }
 
-        double videoWidth = player.getVideoWidth();
-        double videoHeight = player.getVideoHeight();
-        double uiHeight = menuBar.getHeight() + mediaToolbar.getHeight();
-
-        Scene scene = getStage().getScene();
-        double windowTopInset = scene.getY();
-        double windowLeftInset = scene.getX();
-        double windowBottomInset = getStage().getHeight() - scene.getHeight() - windowTopInset;
-        double windowRightInset = getStage().getWidth() - scene.getWidth() - windowLeftInset;
-
-        double resultHeight = (videoHeight + uiHeight + windowTopInset + windowBottomInset) * ratio;
-        double resultWidth = (videoWidth + windowLeftInset + windowRightInset) * ratio;
-
-        Rectangle2D screenRectangle = Screen.getScreensForRectangle(getStage().getX(), getStage().getY(), getStage().getWidth(), getStage().getHeight()).get(0).getVisualBounds();
-
-        if(resultHeight >= screenRectangle.getHeight() || resultWidth >= screenRectangle.getWidth()){
-            getStage().setMaximized(true);
+    /**
+     * Only called on key press, player window will toggle between the set resize ratios
+     */
+    private void toggleResizeWindow(){
+        if(!Arrays.asList(0.25, 0.5, 1.0, 2.0).contains(currentResizeRatio)){
+            currentResizeRatio = 2.0;
         }
-        else{
-            getStage().setWidth(resultWidth);
-            getStage().setHeight(resultHeight);
+
+        if(currentResizeRatio == 0.25){
+            resizeWindowToVideo(0.5);
+        }
+        else if(currentResizeRatio == 0.5){
+            resizeWindowToVideo(1.0);
+        }
+        else if(currentResizeRatio == 1.0){
+            resizeWindowToVideo(2.0);
+        }
+        else if(currentResizeRatio == 2.0){
+            resizeWindowToVideo(0.25);
         }
     }
 }

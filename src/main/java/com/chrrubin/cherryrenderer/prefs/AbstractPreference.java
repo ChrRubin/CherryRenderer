@@ -2,9 +2,10 @@ package com.chrrubin.cherryrenderer.prefs;
 
 import com.chrrubin.cherryrenderer.CherryRenderer;
 
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-abstract class AbstractPreference<T> {
+public abstract class AbstractPreference<T> {
     private final Preferences NODE = Preferences.userNodeForPackage(CherryRenderer.class);
     private final String KEY;
     private final T DEFAULT;
@@ -28,5 +29,9 @@ abstract class AbstractPreference<T> {
 
     public T getDefault(){
         return DEFAULT;
+    }
+
+    public void forceFlush() throws BackingStoreException {
+        NODE.flush();
     }
 }

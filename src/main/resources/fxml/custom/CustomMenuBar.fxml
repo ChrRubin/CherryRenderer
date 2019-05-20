@@ -41,6 +41,14 @@
                 <MenuItem fx:id="volDownMenuItem" disable="true" mnemonicParsing="false" text="Decrease Volume" />
                 <MenuItem fx:id="muteMenuItem" disable="true" mnemonicParsing="false" text="Toggle Mute" />
                 <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+            <Menu fx:id="zoomSubMenu" disable="true" mnemonicParsing="false" text="Zoom">
+               <items>
+                  <MenuItem fx:id="zoomQuarterMenuItem" mnemonicParsing="false" text="1:4 Quarter" />
+                  <MenuItem fx:id="zoomHalfMenuItem" mnemonicParsing="false" text="1:2 Half" />
+                  <MenuItem fx:id="zoomOriginalMenuItem" mnemonicParsing="false" text="1:1 Original" />
+                  <MenuItem fx:id="zoomDoubleMenuItem" mnemonicParsing="false" text="2:1 Double" />
+               </items>
+            </Menu>
                 <MenuItem fx:id="fullscreenMenuItem" disable="true" mnemonicParsing="false" text="Toggle Fullscreen">
                     <accelerator>
                         <KeyCodeCombination alt="UP" code="F11" control="UP" meta="UP" shift="UP" shortcut="UP" />

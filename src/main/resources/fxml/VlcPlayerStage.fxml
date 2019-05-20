@@ -9,7 +9,7 @@
            fx:id="rootStackPane">
     <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" StackPane.alignment="CENTER" style="-fx-background-color: black" />
     <VlcPlayerCanvas fx:id="player" height="360.0" width="640.0" focusTraversable="true" StackPane.alignment="CENTER"/>
-    <CustomMenuBar fx:id="menuBar" useSystemMenuBar="true" StackPane.alignment="TOP_CENTER" onMediaInfo="#onMediaInfo" onPlayPause="#onPlayPause" onStop="#onStop" onRewind="#onRewind" onForward="#onForward" onVolumeUp="#onIncreaseVolume" onVolumeDown="#onDecreaseVolume" onToggleMute="#onToggleMute" onToggleFullscreen="#onToggleFullScreen"/>
+    <CustomMenuBar fx:id="menuBar" useSystemMenuBar="true" StackPane.alignment="TOP_CENTER" onMediaInfo="#onMediaInfo" onPlayPause="#onPlayPause" onStop="#onStop" onRewind="#onRewind" onForward="#onForward" onVolumeUp="#onIncreaseVolume" onVolumeDown="#onDecreaseVolume" onToggleMute="#onToggleMute" onToggleFullscreen="#onToggleFullScreen" onZoomQuarter="#onZoomQuarter" onZoomHalf="#onZoomHalf" onZoomOriginal="#onZoomOriginal" onZoomDouble="#onZoomDouble"/>
     <MediaToolbar fx:id="mediaToolbar" StackPane.alignment="BOTTOM_CENTER" onPlayPause="#onPlayPause" onRewind="#onRewind" onStop="#onStop" onForward="#onForward" onVolumeImageMouseReleased="#onToggleMute"/>
     <TooltipVBox fx:id="timeTooltipVBox" visible="false" text="0:00:00&#10;[-0:00:00]" maxHeight="-Infinity" maxWidth="-Infinity"/>
     <TooltipVBox fx:id="volumeTooltipVBox" visible="false" text="100%" maxHeight="-Infinity" maxWidth="-Infinity"/>

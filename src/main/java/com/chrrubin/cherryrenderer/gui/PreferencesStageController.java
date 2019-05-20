@@ -1,9 +1,11 @@
 package com.chrrubin.cherryrenderer.gui;
 
 import com.chrrubin.cherryrenderer.CherryUtil;
+import com.chrrubin.cherryrenderer.gui.prefs.AbstractPrefsPane;
 import com.chrrubin.cherryrenderer.gui.prefs.AdvancedPrefsPane;
 import com.chrrubin.cherryrenderer.gui.prefs.GeneralPrefsPane;
 import com.chrrubin.cherryrenderer.gui.prefs.InterfacePrefsPane;
+import com.chrrubin.cherryrenderer.prefs.ThemePreference;
 import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -14,7 +16,7 @@ import javafx.scene.layout.GridPane;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import java.util.prefs.BackingStoreException;
 
 public class PreferencesStageController implements IController {
     private final Logger LOGGER = Logger.getLogger(PreferencesStageController.class.getName());
@@ -27,9 +29,9 @@ public class PreferencesStageController implements IController {
     @FXML
     private ScrollPane prefScrollPane;
 
-    private GeneralPrefsPane generalPrefsPane = new GeneralPrefsPane();
-    private InterfacePrefsPane interfacePrefsPane = new InterfacePrefsPane();
-    private AdvancedPrefsPane advancedPrefsPane;
+    private AbstractPrefsPane generalPrefsPane = new GeneralPrefsPane();
+    private AbstractPrefsPane interfacePrefsPane = new InterfacePrefsPane();
+    private AbstractPrefsPane advancedPrefsPane;
 
     @Override
     public AbstractStage getStage() {
@@ -112,15 +114,24 @@ public class PreferencesStageController implements IController {
         alert.showAndWait();
 
         if(alert.getResult() == ButtonType.YES){
-            generalPrefsPane.resetToDefaults();
-            interfacePrefsPane.resetToDefaults();
-            advancedPrefsPane.resetToDefaults();
+            try {
+                generalPrefsPane.resetToDefaults();
+                interfacePrefsPane.resetToDefaults();
+                advancedPrefsPane.resetToDefaults();
 
-            LOGGER.fine("User preferences have been reset to their default values");
-            Alert alertOk = getStage().createInfoAlert("Preferences have been reset to their default values.");
-            alertOk.showAndWait();
+                new ThemePreference().forceFlush();
 
-            getStage().close();
+                LOGGER.fine("User preferences have been reset to their default values");
+                Alert alertOk = getStage().createInfoAlert("Preferences have been reset to their default values.");
+                alertOk.showAndWait();
+
+                getStage().close();
+            }
+            catch (BackingStoreException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Alert errorAlert = getStage().createErrorAlert(e.toString());
+                errorAlert.showAndWait();
+            }
         }
     }
 
@@ -136,11 +147,13 @@ public class PreferencesStageController implements IController {
             interfacePrefsPane.savePreferences();
             advancedPrefsPane.savePreferences();
 
+            new ThemePreference().forceFlush();
+
             Alert alert = getStage().createInfoAlert("Preferences have been saved.");
             alert.showAndWait();
             getStage().close();
         }
-        catch (RuntimeException e){
+        catch (RuntimeException | BackingStoreException e){
             LOGGER.log(Level.SEVERE, e.toString(), e);
             Alert alert = getStage().createErrorAlert(e.toString());
             alert.showAndWait();

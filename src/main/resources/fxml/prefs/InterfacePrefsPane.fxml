@@ -25,7 +25,7 @@
             <Font name="System Italic" size="13.0" />
          </font>
          <GridPane.margin>
-            <Insets bottom="10.0" />
+            <Insets bottom="20.0" />
          </GridPane.margin>
       </Label>
       <RadioButton fx:id="resizeDisabledRadioButton" mnemonicParsing="false" text="Disabled" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -52,6 +52,12 @@
          <tooltip>
             <Tooltip text="Window will automatically resize to double the video size when the video is loaded." />
          </tooltip></RadioButton>
+      <Label text="Remember window size:" GridPane.rowIndex="7" />
+      <CheckBox fx:id="saveWindowSizeCheckBox" mnemonicParsing="false" selected="true" text="Remember window size on exit" GridPane.columnIndex="1" GridPane.rowIndex="7">
+         <tooltip>
+            <Tooltip text="When enabled, CherryRenderer will launch in the same window size as you last exited." />
+         </tooltip>
+      </CheckBox>
    </children>
    <columnConstraints>
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
@@ -61,6 +67,7 @@
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
    </padding>
    <rowConstraints>
+      <RowConstraints />
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />

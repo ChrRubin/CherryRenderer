@@ -47,7 +47,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     private PixelWriter pixelWriter = this.getGraphicsContext2D().getPixelWriter();
     private WritablePixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteBgraInstance();
-    private MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory();
+    private MediaPlayerFactory mediaPlayerFactory = new MediaPlayerFactory("--no-osd", "--no-snapshot-preview");
     private EmbeddedMediaPlayer mediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
     private NativeLog nativeLog = mediaPlayerFactory.application().newLog();
     private WritableImage videoImage;
@@ -168,11 +168,8 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Releasing VLC player resources...");
-            LOGGER.info("Releasing nativeLog");
             nativeLog.release();
-            LOGGER.info("Releasing mediaPlayer");
             mediaPlayer.release();
-            LOGGER.info("Releasing mediaPlayerFactory");
             mediaPlayerFactory.release();
             // FIXME: one of these randomly causes JVM to crash.... Who knows which one...
         }));
@@ -206,9 +203,10 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            // FIXME: Workaround kinda breaks playlist formats that lets VLC choose which resolution to use
+            // FIXME: Workaround kinda breaks adaptive streaming on DASH/HLS, aka it uses whatever resolution it first used.
+            //  Also it still uses the buffer dimensions on normal multiplexed HLS for some reason...
             if(videoWidth == null || videoHeight == null){
-                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions instead of video resolution
+                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions after giving video resolution
                 videoHeight = sourceHeight;
             }
             videoImage = new WritableImage(videoWidth, videoHeight);

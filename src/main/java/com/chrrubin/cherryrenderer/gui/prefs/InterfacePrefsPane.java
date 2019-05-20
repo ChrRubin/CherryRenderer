@@ -1,21 +1,18 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
-import com.chrrubin.cherryrenderer.prefs.AutoResizePreference;
-import com.chrrubin.cherryrenderer.prefs.AutoResizePreferenceValue;
-import com.chrrubin.cherryrenderer.prefs.ThemePreference;
-import com.chrrubin.cherryrenderer.prefs.ThemePreferenceValue;
+import com.chrrubin.cherryrenderer.prefs.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public class InterfacePrefsPane extends GridPane implements IPrefsPane {
+public class InterfacePrefsPane extends AbstractPrefsPane {
     private final Logger LOGGER = Logger.getLogger(InterfacePrefsPane.class.getName());
     @FXML
     private ComboBox<ThemePreferenceValue> themeComboBox;
@@ -31,13 +28,16 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
     private RadioButton resizeOriginalRadioButton;
     @FXML
     private RadioButton resizeDoubleRadioButton;
+    @FXML
+    private CheckBox saveWindowSizeCheckBox;
 
-    private ThemePreference themePreference = new ThemePreference();
-    private AutoResizePreference autoResizePreference = new AutoResizePreference();
+    private AbstractPreference<ThemePreferenceValue> themePreference = new ThemePreference();
+    private AbstractPreference<AutoResizePreferenceValue> autoResizePreference = new AutoResizePreference();
+    private AbstractPreference<Boolean> saveWindowSizePreference = new SaveWindowSizePreference();
 
     public InterfacePrefsPane(){
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/prefs/InterfacePrefs.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/prefs/InterfacePrefsPane.fxml"));
             fxmlLoader.setRoot(this);
             fxmlLoader.setController(this);
             fxmlLoader.setClassLoader(getClass().getClassLoader());
@@ -66,6 +66,8 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
             case DOUBLE:
                 resizeDoubleRadioButton.setSelected(true);
         }
+
+        saveWindowSizeCheckBox.setSelected(saveWindowSizePreference.get());
     }
 
     @Override
@@ -76,6 +78,7 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
     @Override
     public void savePreferences() {
         ThemePreferenceValue theme = themeComboBox.getValue();
+        boolean saveWindowSize = saveWindowSizeCheckBox.isSelected();
 
         RadioButton selectedResize = (RadioButton)resizeToggleGroup.getSelectedToggle();
         AutoResizePreferenceValue resizeValue;
@@ -100,8 +103,10 @@ public class InterfacePrefsPane extends GridPane implements IPrefsPane {
 
         themePreference.put(theme);
         autoResizePreference.put(resizeValue);
+        saveWindowSizePreference.put(saveWindowSize);
 
         LOGGER.finer(themePreference.getKey() + " has been set to " + theme.name());
         LOGGER.finer(autoResizePreference.getKey() + " has been set to " + resizeValue.name());
+        LOGGER.finer(saveWindowSizePreference.getKey() + " has been set to " + saveWindowSize);
     }
 }

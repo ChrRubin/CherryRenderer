@@ -61,6 +61,16 @@ public class CustomMenuBar extends MenuBar {
     private MenuItem updateMenuItem;
     @FXML
     private Menu playbackMenu;
+    @FXML
+    private Menu zoomSubMenu;
+    @FXML
+    private MenuItem zoomQuarterMenuItem;
+    @FXML
+    private MenuItem zoomHalfMenuItem;
+    @FXML
+    private MenuItem zoomOriginalMenuItem;
+    @FXML
+    private MenuItem zoomDoubleMenuItem;
 
     private final Logger LOGGER = Logger.getLogger(CustomMenuBar.class.getName());
     private AbstractStage parentStage;
@@ -92,6 +102,7 @@ public class CustomMenuBar extends MenuBar {
         Image helpImage;
         Image updateImage;
         Image volumeDownImage;
+        Image zoomImage;
 
         if (CherryUtil.LOADED_THEME == ThemePreferenceValue.DARK) {
             playImage = new Image("icons/grey/play.png");
@@ -101,7 +112,6 @@ public class CustomMenuBar extends MenuBar {
             fastForwardImage = new Image("icons/grey/forward.png");
             volumeFullImage = new Image("icons/grey/volume-full.png");
             volumeMuteImage = new Image("icons/grey/volume-mute.png");
-
             preferencesImage = new Image("icons/grey/pref.png");
             infoImage = new Image("icons/grey/info.png");
             exitImage = new Image("icons/grey/exit.png");
@@ -110,6 +120,7 @@ public class CustomMenuBar extends MenuBar {
             helpImage = new Image("icons/grey/help.png");
             updateImage = new Image("icons/grey/update.png");
             volumeDownImage = new Image("icons/grey/volume-down.png");
+            zoomImage = new Image("icons/grey/zoom.png");
 
             getStylesheets().add(getClass().getResource("/fxml/custom/CustomMenuBar-Dark.css").toExternalForm());
         }
@@ -121,7 +132,6 @@ public class CustomMenuBar extends MenuBar {
             fastForwardImage = new Image("icons/forward.png");
             volumeFullImage = new Image("icons/volume-full.png");
             volumeMuteImage = new Image("icons/volume-mute.png");
-
             preferencesImage = new Image("icons/pref.png");
             infoImage = new Image("icons/info.png");
             exitImage = new Image("icons/exit.png");
@@ -130,6 +140,7 @@ public class CustomMenuBar extends MenuBar {
             helpImage = new Image("icons/help.png");
             updateImage = new Image("icons/update.png");
             volumeDownImage = new Image("icons/volume-down.png");
+            zoomImage = new Image("icons/zoom.png");
 
             getStylesheets().add(getClass().getResource("/fxml/custom/CustomMenuBar-Default.css").toExternalForm());
         }
@@ -149,6 +160,7 @@ public class CustomMenuBar extends MenuBar {
         helpMenuItem.setGraphic(createMenuImageView(helpImage));
         updateMenuItem.setGraphic(createMenuImageView(updateImage));
         aboutMenuItem.setGraphic(createMenuImageView(infoImage));
+        zoomSubMenu.setGraphic(createMenuImageView(zoomImage));
 
         preferencesMenuItem.setOnAction(event -> openNewWindow(new PreferencesStage(parentStage)));
         exitMenuItem.setOnAction(event -> Platform.exit());
@@ -286,6 +298,54 @@ public class CustomMenuBar extends MenuBar {
 
     public void setOnToggleFullscreen(EventHandler<ActionEvent> eventHandler){
         onToggleFullscreenProperty().set(eventHandler);
+    }
+
+    public final ObjectProperty<EventHandler<ActionEvent>> onZoomQuarterProperty(){
+        return zoomQuarterMenuItem.onActionProperty();
+    }
+
+    public EventHandler<ActionEvent> getOnZoomQuarter(){
+        return onZoomQuarterProperty().get();
+    }
+
+    public void setOnZoomQuarter(EventHandler<ActionEvent> eventHandler){
+        onZoomQuarterProperty().set(eventHandler);
+    }
+
+    public final ObjectProperty<EventHandler<ActionEvent>> onZoomHalfProperty(){
+        return zoomHalfMenuItem.onActionProperty();
+    }
+
+    public EventHandler<ActionEvent> getOnZoomHalf(){
+        return onZoomHalfProperty().get();
+    }
+
+    public void setOnZoomHalf(EventHandler<ActionEvent> eventHandler){
+        onZoomHalfProperty().set(eventHandler);
+    }
+
+    public final ObjectProperty<EventHandler<ActionEvent>> onZoomOriginalProperty(){
+        return zoomOriginalMenuItem.onActionProperty();
+    }
+
+    public EventHandler<ActionEvent> getOnZoomOriginal(){
+        return onZoomOriginalProperty().get();
+    }
+
+    public void setOnZoomOriginal(EventHandler<ActionEvent> eventHandler){
+        onZoomOriginalProperty().set(eventHandler);
+    }
+
+    public final ObjectProperty<EventHandler<ActionEvent>> onZoomDoubleProperty(){
+        return zoomDoubleMenuItem.onActionProperty();
+    }
+
+    public EventHandler<ActionEvent> getOnZoomDouble(){
+        return onZoomDoubleProperty().get();
+    }
+
+    public void setOnZoomDouble(EventHandler<ActionEvent> eventHandler){
+        onZoomDoubleProperty().set(eventHandler);
     }
     /*
     End properties
