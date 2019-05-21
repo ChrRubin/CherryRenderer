@@ -56,7 +56,7 @@ public class RendererService {
                         )
         );
 
-        Icon icon = new Icon("image/png", 64, 64, 32, "CherryRendererIcon.png",
+        Icon icon = new Icon("image/png", 64, 64, 8, "CherryRendererIcon.png",
                 this.getClass().getClassLoader().getResourceAsStream("icons/cherry64.png"));
 
         LocalService<AVTransportService> avTransportService = new AnnotationLocalServiceBinder().read(AVTransportService.class);
