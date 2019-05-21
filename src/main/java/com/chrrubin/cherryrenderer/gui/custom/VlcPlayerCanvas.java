@@ -204,9 +204,10 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
             // FIXME: Workaround kinda breaks adaptive streaming on DASH/HLS, aka it uses whatever resolution it first used.
-            //  Also it still uses the buffer dimensions on normal multiplexed HLS for some reason...
+            // FIXME: 1080p videos still gets the wrong height, either 1920*1088 or 1920*1090 huh.... Thanks VLC...
+            System.out.println(sourceWidth + " * " + sourceHeight);
             if(videoWidth == null || videoHeight == null){
-                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions after giving video resolution
+                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions after giving video resolution as https://github.com/caprica/vlcj/issues/616 and Javadoc for BufferFormatCallback
                 videoHeight = sourceHeight;
             }
             videoImage = new WritableImage(videoWidth, videoHeight);

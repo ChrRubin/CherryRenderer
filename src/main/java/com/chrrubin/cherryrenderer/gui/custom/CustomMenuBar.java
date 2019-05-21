@@ -390,8 +390,6 @@ public class CustomMenuBar extends MenuBar {
                 snapshotFile = new File(System.getProperty("user.home"), defaultFileName);
             }
             else {
-                // FIXME: JVM hard crashes when showing file chooser to save VLC snapshot
-                //  Seems to be a Linux issue. See https://github.com/caprica/vlcj/issues/834
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setInitialFileName(defaultFileName);
                 fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("PNG Image", "*.png"));

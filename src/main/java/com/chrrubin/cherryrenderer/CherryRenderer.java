@@ -49,7 +49,7 @@ public class CherryRenderer extends Application {
 
         if(!new HardwareAccelerationPreference().get()){
             LOGGER.info("Using software acceleration.");
-            System.setProperty("prism.order", "sw");
+            System.setProperty("prism.order", "sw"); // Fix occasional visual glitches as https://stackoverflow.com/questions/37750553/javafx-graphic-glitch-white-boxes
         }
 
         try {
@@ -57,6 +57,7 @@ public class CherryRenderer extends Application {
             NativeDiscovery vlcDiscovery = new NativeDiscovery();
             if (vlcDiscovery.discover()) {
                 LOGGER.info("VLC installation detected. Using embedded VLC player.");
+                System.setProperty("VLCJ_INITX", "no"); // Fix JVM crashing when opening FileChooser on X11 as https://github.com/caprica/vlcj/issues/353
                 stage = new VlcPlayerStage();
             }
             else{
