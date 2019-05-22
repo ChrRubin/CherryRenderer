@@ -16,7 +16,7 @@
       </VBox>
       <TitledPane fx:id="prefTitledPane" collapsible="false" focusTraversable="false" GridPane.columnIndex="1">
          <content>
-            <ScrollPane fx:id="prefScrollPane" fitToWidth="true" minHeight="275.0" />
+            <ScrollPane fx:id="prefScrollPane" fitToWidth="true" minHeight="300.0" />
          </content>
       </TitledPane>
       <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">

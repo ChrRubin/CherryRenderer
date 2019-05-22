@@ -73,6 +73,8 @@ public class InterfacePrefsPane extends AbstractPrefsPane {
     @Override
     public void resetToDefaults() {
         themePreference.reset();
+        autoResizePreference.reset();
+        saveWindowSizePreference.reset();
     }
 
     @Override
@@ -105,8 +107,9 @@ public class InterfacePrefsPane extends AbstractPrefsPane {
         autoResizePreference.put(resizeValue);
         saveWindowSizePreference.put(saveWindowSize);
 
-        LOGGER.finer(themePreference.getKey() + " has been set to " + theme.name());
-        LOGGER.finer(autoResizePreference.getKey() + " has been set to " + resizeValue.name());
-        LOGGER.finer(saveWindowSizePreference.getKey() + " has been set to " + saveWindowSize);
+
+        LOGGER.finer(getSavePrefsLoggingString(themePreference, theme.name()));
+        LOGGER.finer(getSavePrefsLoggingString(autoResizePreference, resizeValue.name()));
+        LOGGER.finer(getSavePrefsLoggingString(saveWindowSizePreference, Boolean.toString(saveWindowSize)));
     }
 }

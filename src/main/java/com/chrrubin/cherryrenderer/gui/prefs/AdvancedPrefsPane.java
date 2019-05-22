@@ -1,10 +1,8 @@
 package com.chrrubin.cherryrenderer.gui.prefs;
 
+import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
-import com.chrrubin.cherryrenderer.prefs.AbstractPreference;
-import com.chrrubin.cherryrenderer.prefs.HardwareAccelerationPreference;
-import com.chrrubin.cherryrenderer.prefs.LogLevelPreference;
-import com.chrrubin.cherryrenderer.prefs.LogLevelPreferenceValue;
+import com.chrrubin.cherryrenderer.prefs.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,10 +22,13 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
     private CheckBox hardwareCheckBox;
     @FXML
     private ComboBox<LogLevelPreferenceValue> logLevelComboBox;
+    @FXML
+    private CheckBox forceJfxCheckBox;
 
     private AbstractStage windowParent;
     private AbstractPreference<Boolean> hardwareAccelerationPreference = new HardwareAccelerationPreference();
     private AbstractPreference<LogLevelPreferenceValue> logLevelPreference = new LogLevelPreference();
+    private AbstractPreference<Boolean> forceJfxPreference = new ForceJfxPreference();
 
     public AdvancedPrefsPane(AbstractStage windowParent){
         try {
@@ -46,6 +47,14 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
         logLevelComboBox.setItems(FXCollections.observableArrayList(LogLevelPreferenceValue.values()));
         logLevelComboBox.setValue(logLevelPreference.get());
         logLevelComboBox.setOnAction(event -> onLogLevelSelect());
+
+        if(!CherryUtil.FOUND_VLC){
+            forceJfxCheckBox.setSelected(true);
+            forceJfxCheckBox.setDisable(true);
+        }
+        else{
+            forceJfxCheckBox.setSelected(forceJfxPreference.get());
+        }
 
         this.windowParent = windowParent;
     }
@@ -74,6 +83,7 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
     public void resetToDefaults() {
         hardwareAccelerationPreference.reset();
         logLevelPreference.reset();
+        forceJfxPreference.reset();
     }
 
     @Override
@@ -82,9 +92,11 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
 
         logLevelPreference.put(logLevel);
         hardwareAccelerationPreference.put(hardwareCheckBox.isSelected());
+        forceJfxPreference.put(forceJfxCheckBox.isSelected());
 
-        LOGGER.finer(logLevelPreference.getKey() + " has been set to " + logLevel.name());
-        LOGGER.finer(hardwareAccelerationPreference.getKey() + " has been set to " + hardwareCheckBox.isSelected());
+        LOGGER.finer(getSavePrefsLoggingString(logLevelPreference, logLevel.name()));
+        LOGGER.finer(getSavePrefsLoggingString(hardwareAccelerationPreference, Boolean.toString(hardwareCheckBox.isSelected())));
+        LOGGER.finer(getSavePrefsLoggingString(forceJfxPreference, Boolean.toString(forceJfxCheckBox.isSelected())));
     }
 
     @FXML

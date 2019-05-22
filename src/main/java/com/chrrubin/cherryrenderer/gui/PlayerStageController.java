@@ -543,6 +543,10 @@ public class PlayerStageController implements IController {
         /*
         ScheduledService that updates the current video time to control points every second.
          */
+        if(updateTimeService != null && updateTimeService.isRunning()){
+            LOGGER.warning("updateTimeService still running. Cancelling...");
+            updateTimeService.cancel();
+        }
         updateTimeService = new ScheduledService<Void>(){
             @Override
             protected Task<Void> createTask() {
@@ -562,7 +566,6 @@ public class PlayerStageController implements IController {
         updateTimeService.start();
 
         player.getNode().requestFocus();
-
     }
 
     /**
@@ -925,6 +928,7 @@ public class PlayerStageController implements IController {
         double resultHeight = (videoHeight * ratio) + uiHeight + windowTopInset + windowBottomInset;
         double resultWidth = (videoWidth * ratio) + windowLeftInset + windowRightInset;
 
+        // FIXME: This sometimes results in IndexOutOfBoundsException. I'll blame XFCE for now.
         Rectangle2D screenRectangle = Screen.getScreensForRectangle(getStage().getX(), getStage().getY(), getStage().getWidth(), getStage().getHeight()).get(0).getVisualBounds();
 
         if(resultHeight >= screenRectangle.getHeight() || resultWidth >= screenRectangle.getWidth()){

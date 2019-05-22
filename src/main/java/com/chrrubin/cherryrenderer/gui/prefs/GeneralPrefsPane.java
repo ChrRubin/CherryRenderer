@@ -60,8 +60,8 @@ public class GeneralPrefsPane extends AbstractPrefsPane {
         autoSaveSnapshotsPreference.put(autosaveCheckBox.isSelected());
         autoCheckUpdatePreference.put(updateCheckBox.isSelected());
 
-        LOGGER.finer(friendlyNamePreference.getKey() + " has been set to " + friendlyName);
-        LOGGER.finer(autoSaveSnapshotsPreference.getKey() + " has been set to " + updateCheckBox.isSelected());
-        LOGGER.finer(autoCheckUpdatePreference.getKey() + " has been set to " + autosaveCheckBox.isSelected());
+        LOGGER.finer(getSavePrefsLoggingString(friendlyNamePreference, friendlyName));
+        LOGGER.finer(getSavePrefsLoggingString(autoSaveSnapshotsPreference, Boolean.toString(autosaveCheckBox.isSelected())));
+        LOGGER.finer(getSavePrefsLoggingString(autoCheckUpdatePreference, Boolean.toString(updateCheckBox.isSelected())));
     }
 }

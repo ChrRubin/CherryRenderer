@@ -3,11 +3,11 @@ package com.chrrubin.cherryrenderer;
 import com.chrrubin.cherryrenderer.gui.AbstractStage;
 import com.chrrubin.cherryrenderer.gui.JfxPlayerStage;
 import com.chrrubin.cherryrenderer.gui.VlcPlayerStage;
+import com.chrrubin.cherryrenderer.prefs.ForceJfxPreference;
 import com.chrrubin.cherryrenderer.prefs.HardwareAccelerationPreference;
 import com.chrrubin.cherryrenderer.prefs.LogLevelPreference;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,14 +54,13 @@ public class CherryRenderer extends Application {
 
         try {
             AbstractStage stage;
-            NativeDiscovery vlcDiscovery = new NativeDiscovery();
-            if (vlcDiscovery.discover()) {
+            if (CherryUtil.FOUND_VLC && !(new ForceJfxPreference().get())) {
                 LOGGER.info("VLC installation detected. Using embedded VLC player.");
                 System.setProperty("VLCJ_INITX", "no"); // Fix JVM crashing when opening FileChooser on X11 as https://github.com/caprica/vlcj/issues/353
                 stage = new VlcPlayerStage();
             }
             else{
-                LOGGER.info("VLC installation not detected. Using default JavaFX media player.");
+                LOGGER.info("Using default JavaFX media player.");
                 stage = new JfxPlayerStage();
             }
             stage.prepareStage();

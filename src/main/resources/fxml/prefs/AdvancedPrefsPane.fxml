@@ -28,8 +28,8 @@
          <GridPane.margin>
             <Insets bottom="20.0" />
          </GridPane.margin></ComboBox>
-      <Button mnemonicParsing="false" onAction="#onOpenUserHome" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-      <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
+      <Button mnemonicParsing="false" onAction="#onOpenUserHome" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+      <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
          <font>
             <Font name="System Italic" size="13.0" />
          </font>
@@ -37,7 +37,7 @@
             <Insets bottom="20.0" />
          </GridPane.margin>
       </Label>
-      <Label text="* All changes in this category requires application restart&#10;to be applied" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4">
+      <Label text="* All changes in this category requires application restart&#10;to be applied" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5">
          <font>
             <Font name="System Bold" size="13.0" />
          </font>
@@ -45,6 +45,19 @@
             <Insets />
          </GridPane.margin>
       </Label>
+      <Label text="Force JavaFX Player:" GridPane.rowIndex="2">
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin>
+      </Label>
+      <CheckBox fx:id="forceJfxCheckBox" mnemonicParsing="false" text="Force use of JavaFX player instead of &#10;VLC player" GridPane.columnIndex="1" GridPane.rowIndex="2">
+         <tooltip>
+            <Tooltip text="When enabled, forces CherryRenderer to use the JavaFX player even if VLC installation is detected.&#10;This option is only available if a VLC installation is found." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin>
+      </CheckBox>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -54,6 +67,7 @@
       <ColumnConstraints hgrow="SOMETIMES" />
    </columnConstraints>
    <rowConstraints>
+      <RowConstraints />
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />

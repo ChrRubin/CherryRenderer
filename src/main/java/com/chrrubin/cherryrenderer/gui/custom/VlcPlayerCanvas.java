@@ -20,6 +20,7 @@ import uk.co.caprica.vlcj.log.LogLevel;
 import uk.co.caprica.vlcj.log.NativeLog;
 import uk.co.caprica.vlcj.media.Media;
 import uk.co.caprica.vlcj.media.MediaEventAdapter;
+import uk.co.caprica.vlcj.media.VideoTrackInfo;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.base.State;
@@ -34,6 +35,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +43,7 @@ import java.util.logging.Logger;
 /**
  * Media player based on an embedded VLC media player rendered on a JavaFX Canvas.
  * The video data from VLC is drawn onto the Canvas in 60FPS cause of course you need to manually render every frame if you're using JavaFX instead of Swing. Of course.
+ * The direct rendering implementation mostly follows the examples in vlcj-javafx (https://github.com/caprica/vlcj-javafx)
  */
 public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private final Logger LOGGER = Logger.getLogger(VlcPlayerCanvas.class.getName());
@@ -65,14 +68,14 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private DoubleProperty volume = new SimpleDoubleProperty();
     private ObjectProperty<Duration> currentTime = new SimpleObjectProperty<>();
     private ObjectProperty<State> state = new SimpleObjectProperty<>(State.NOTHING_SPECIAL);
-    private Integer videoWidth = null;
-    private Integer videoHeight = null;
+    private int videoWidth;
+    private int videoHeight;
 
     public VlcPlayerCanvas(){
         mediaPlayer.videoSurface().set(new JavaFxVideoSurface());
 
         timeline.setCycleCount(Timeline.INDEFINITE);
-        double duration = 1000.0 / 60.0;
+        double duration = 1000.0 / 60.0; // Render video in 60 FPS. This should cover most use cases
         timeline.getKeyFrames().add(new KeyFrame(Duration.millis(duration), event -> renderFrame()));
 
         mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter(){
@@ -87,7 +90,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             @Override
             public void playing(MediaPlayer mediaPlayer) {
                 LOGGER.finest("VLC media player playing");
-
                 if(onPlaying != null) {
                     Platform.runLater(onPlaying);
                 }
@@ -96,7 +98,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             @Override
             public void paused(MediaPlayer mediaPlayer) {
                 LOGGER.finest("VLC media player paused");
-
                 if(onPaused != null) {
                     Platform.runLater(onPaused);
                 }
@@ -105,10 +106,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             @Override
             public void stopped(MediaPlayer mediaPlayer) {
                 LOGGER.finest("VLC media player stopped");
-                timeline.stop();
-                videoWidth = null;
-                videoHeight = null;
-
                 if(onStopped != null) {
                     Platform.runLater(onStopped);
                 }
@@ -141,7 +138,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
             @Override
             public void timeChanged(MediaPlayer mediaPlayer, long newTime) {
-//                LOGGER.finest("VLC time changed to " + (int)newTime);
                 currentTime.set(Duration.millis(newTime));
             }
 
@@ -200,36 +196,64 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         }
     }
 
+    /**
+     * Invoked by native libvlc thread when the buffer format of the video is changed.
+     * sourceWidth and sourceHeight values are provided by libvlc, which is the buffer size of the video (different from display resolution).
+     * Video resolution is also acquired here to support adaptive streaming that can change resolutions mid playback.
+     */
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
         @Override
         public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            // FIXME: Workaround kinda breaks adaptive streaming on DASH/HLS, aka it uses whatever resolution it first used.
-            // FIXME: 1080p videos still gets the wrong height, either 1920*1088 or 1920*1090 huh.... Thanks VLC...
-            System.out.println(sourceWidth + " * " + sourceHeight);
-            if(videoWidth == null || videoHeight == null){
-                videoWidth = sourceWidth;  // Workaround for libvlc 3.0.X giving buffer dimensions after giving video resolution as https://github.com/caprica/vlcj/issues/616 and Javadoc for BufferFormatCallback
+            LOGGER.finer("Buffer size: " + sourceWidth + "x" + sourceHeight);
+
+            int currentTrack = mediaPlayer.video().track();
+            List<VideoTrackInfo> videoTracks = mediaPlayer.media().info().videoTracks();
+
+            if(videoTracks.isEmpty()){
+                LOGGER.warning("Unable to get video tracks. Using buffer size as display size for now.");
+                videoWidth = sourceWidth;
                 videoHeight = sourceHeight;
             }
+            else if(currentTrack < 0){ // Treat negative track int i as "last i element"
+                videoWidth = videoTracks.get(videoTracks.size() + currentTrack).width();
+                videoHeight = videoTracks.get(videoTracks.size() + currentTrack).height();
+            }
+            else{
+                videoWidth = videoTracks.get(currentTrack).width();
+                videoHeight = videoTracks.get(currentTrack).height();
+            }
+
+            LOGGER.finer("Video resolution: " + videoWidth + "x" + videoHeight);
+
             videoImage = new WritableImage(videoWidth, videoHeight);
             pixelWriter = videoImage.getPixelWriter();
 
-            return new RV32BufferFormat(videoWidth, videoHeight);
+            return new RV32BufferFormat(sourceWidth, sourceHeight);
         }
     }
 
+    /**
+     * Invoked by the native libvlc thread every video frame for rendering.
+     * Semaphore prevents updating pixel data when image is being rendered on another thread.
+     */
     private class JavaFxRenderCallback implements RenderCallback {
         @Override
         public void display(MediaPlayer mediaPlayer, ByteBuffer[] nativeBuffers, BufferFormat bufferFormat) {
             try {
                 renderingSemaphore.acquire();
-                pixelWriter.setPixels(0, 0, bufferFormat.getWidth(), bufferFormat.getHeight(), pixelFormat, nativeBuffers[0], bufferFormat.getPitches()[0]);
+                pixelWriter.setPixels(0, 0, videoWidth, videoHeight, pixelFormat, nativeBuffers[0], bufferFormat.getPitches()[0]);
                 renderingSemaphore.release();
             }
             catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
     }
 
+    /**
+     * Called by the Timeline timer to render video pixel data onto the canvas.
+     * Semaphore prevents trying to render image while pixel data is being updated on another thread.
+     */
     private void renderFrame() {
         GraphicsContext graphicsContext = this.getGraphicsContext2D();
 
@@ -398,8 +422,9 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
         onFinished = null;
         onStopped = null;
 
-        videoWidth = null;
-        videoHeight = null;
+        timeline.stop();
+        videoWidth = 0;
+        videoHeight = 0;
     }
 
     @Override
