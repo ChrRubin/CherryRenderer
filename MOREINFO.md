@@ -1,24 +1,60 @@
 # More Info
 
 ## Table of Contents
- - [Application Specific](#application-specific)
+ - [Troubleshooting](#troubleshooting)
+   - [I have OpenJDK 8 installed and I can't run CherryRenderer.](#i-have-openjdk-8-installed-and-i-cant-run-cherryrenderer)
+   - [I have a VLC installation, but CherryRenderer doesn't detect it as a valid libVLC directory.](#i-have-a-vlc-installation-but-cherryrenderer-doesnt-detect-it-as-a-valid-libvlc-directory)
+   - [Some of the buttons are turning into white boxes.](#some-of-the-buttons-are-turning-into-white-boxes)
+ - [Application Specific Information](#application-specific-information)
    - [What control point applications have been tested with CherryRenderer?](#what-control-point-applications-have-been-tested-with-cherryrenderer)
    - [What control point application should I use?](#what-control-point-application-should-i-use)
+   - [How do I use the embedded VLC player?](#how-do-i-use-the-embedded-vlc-player)
+   - [How do I differentiate between the JavaFX player and the embedded VLC player?](#how-do-i-differentiate-between-the-javafx-player-and-the-embedded-vlc-player)
    - [What video formats are supported by CherryRenderer?](#what-video-formats-are-supported-by-cherryrenderer)
-   - [Do I need specific codecs to play videos?](#do-i-need-specific-codecs-to-play-videos)
-   - [Some of the buttons are turning into white boxes. How do I fix this?](#some-of-the-buttons-are-turning-into-white-boxes-how-do-i-fix-this)
- - [General](#general)
+ - [General Information](#general-information)
    - [What is a UPnP MediaRenderer and how does it work?](#what-is-a-upnp-mediarenderer-and-how-does-it-work)
    - [What about UPnP Media Servers and UPnP Clients? How are they different from a MediaRenderer?](#what-about-upnp-media-servers-and-upnp-clients-how-are-they-different-from-a-mediarenderer)
    - [DLNA? Chromecast? Airplay? Miracast? This is so confusing.](#dlna-chromecast-airplay-miracast-this-is-so-confusing)
    - [Why was CherryRenderer created?](#why-was-cherryrenderer-created)
    
+## Troubleshooting
+### I have OpenJDK 8 installed and I can't run CherryRenderer.
+ - Unlike Oracle's JDK/JRE, OpenJDK 8 does not include JavaFX by default. You would have to install OpenJFX 8 manually based on your distro's package manager.
+ - On Ubuntu/Debian based distros, you can install OpenJFX 8 with the following:
+ ```
+ sudo apt install openjfx=8u161-b12-1ubuntu2 libopenjfx-java=8u161-b12-1ubuntu2 libopenjfx-jni=8u161-b12-1ubuntu2
+ ``` 
+ - I blame Oracle for making everyone's lives harder post license change.
 
-## Application Specific
+### I have a VLC installation, but CherryRenderer doesn't detect it as a valid libVLC directory.
+ - The most common cause of this issue is that your Java and VLC installations are in different architectures. 32-bit programs can't access 64-bit native libraries and vice versa.
+ - Check your Java architecture by running `java -version` in a terminal.
+   - A 32-bit version of Java will output something along the lines of:
+   ```
+   java version "1.8.0_201"
+   Java(TM) SE Runtime Environment (build 1.8.0_201-b09)
+   Java HotSpot(TM) Client VM (build 25.201-b09, mixed mode, sharing)
+   ```
+   - A 64-bit version of Java will output something along the lines of:
+   ```
+   java version "1.8.0_202"
+   Java(TM) SE Runtime Environment (build 1.8.0_202-b08)
+   Java HotSpot(TM) 64-Bit Server VM (build 25.202-b08, mixed mode)
+   ```
+   - Note the absence of `64-Bit` in the 32-bit version of Java.
+ - On Windows, the default Java installation is 32-bit while the default VLC installation is 64-bit. Annoying, I know. Blame Oracle.
+    - You can download the 64-bit version of Java on [Oracle's manual download page](https://www.java.com/en/download/manual.jsp).
+
+### Some of the buttons are turning into white boxes.
+ - This is a JavaFX rendering issue that occurs on certain systems.
+ - Try disabling hardware acceleration via `Menu - Preferences - Interface`.
+ - However, do note that disabling hardware acceleration may slow down UI rendering significantly in older systems. Use with care.
+
+
+## Application Specific Information
 ### What control point applications have been tested with CherryRenderer?
  - Tested and works:
    - [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp&hl=en)
-     - Works as of version 1.1
    - [Localcast](https://www.localcast.app/)
    - [All Screen](https://play.google.com/store/apps/details?id=com.toxic.apps.chrome&hl=en)
    - [All Cast](https://www.allcast.io/)
@@ -31,33 +67,33 @@ Note that all of the above are tested on Android only. Please do let me know if 
 ### What control point application should I use?
  - **Just choose whichever works for you.** Each app works slightly differently than others. Preferably not one that has been tested to not work with CherryRenderer.
 
+### How do I use the embedded VLC player?
+ - If you have a normal installation of VLC media player, the required native libVLC libraries *should* be automatically detected and used.
+ - If the native libraries are not automatically detected, you can manually set the libVLC directory in `Menu - Preferences - Advanced`.
+   - On Windows, the libVLC directory would be your VLC installation directory. Example: `C:\Program Files\VideoLAN\VLC`
+   - On Linux, the libVLC directory would be the distro dependant lib folder. Examples: `/usr/lib64`, `/usr/local/lib64`
+   - On macOS, the libVLC directory is inside `VLC.app`. Example: `/Applications/VLC.app/Contents/MacOS/lib`
+
+### How do I differentiate between the JavaFX player and the embedded VLC player?
+ - You will see an indication on the end of the title of the window. It will say `[JFX]` if the JavaFX player is used and `[VLC]` if the embedded VLC player is used.
+ - Here's an example screenshot of CherryRenderer when using the **JavaFX player**:
+ 
+ ![cherryjfx](https://media.discordapp.net/attachments/480408561290182667/582566105323667457/cherryjfx.png "Using default JavaFX player")
+ 
+ - Here's an example screenshot of CherryRenderer when using the **embedded VLC player**:
+ 
+ ![cherryvlc](https://media.discordapp.net/attachments/480408561290182667/582566107240595460/cherryvlc.png "Using embedded VLC player")
+
 ### What video formats are supported by CherryRenderer?
- - As per [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html), the following are the supported video formats:
- 
- | Container | File Extension | Video Encoding | Audio Encoding | MIME Type                     |
- |-----------|----------------|----------------|----------------|-----------                    |
- | FXM, FLV  | .fxm, .flv     | VP6            | MP3            | video/x-javafx, video/x-flv   |
- | HLS (*)   | .m3u8          | H.264/AVC      | AAC            | application/vnd.apple.mpegurl |
- | MP4       | .mp4, .m4v     | H.264/AVC      | AAC            | video/mp4, video/x-m4v        |
- 
- - In addition, HLS video playback will only work properly if it has the following characteristics:
-   - On-demand or live playlist.
-   - Multiplexed MP2T streams with one AAC audio and one H.264/AVC video track.
-   - Playlist with integer or float duration.
- - Other HLS profiles are not guaranteed to work.
- 
-### Do I need specific codecs to play videos?
- - On Windows 7 to 10, the required codecs *should* be included by your Windows installation by default. Older Windows versions or Windows Server editions may have to install third party codecs like MainConcept manually.
- - On Linux, you may need to install distro-dependant codecs. Examples of the codecs are ffmpeg/libavcodec/libavformat, x264 and Xvid.
- - If your system lacks the required codecs, or you try to play a non-supported video format, a MEDIA_UNSUPPORTED error will be thrown.
-
-### Some of the buttons are turning into white boxes. How do I fix this?
- - This is a JavaFX rendering issue that occurs on certain systems.
- - Try disabling hardware acceleration via Menu - Preferences.
- - However, do note that disabling hardware acceleration may slow down UI rendering significantly in older systems. Use with care.
+ - If you are using the **default JavaFX player**, CherryRenderer supports a few popular video formats as per [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html).
+   - These are the `.fxm`, `.flv`, `.m3u8`, `.mp4` and `.m4v` video formats.
+   - There are also certain limitations to these formats, especially for the `.m3u8` format, of which please refer to the [javafx.scene.media docs](https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/package-summary.html).
+   - You may also need to install additional codecs depending on your operating system. Please refer to Oracle's [Certified System Configurations page](https://www.oracle.com/technetwork/java/javase/certconfig-2095354.html) and scroll down to the `JavaFX Media` section.
+ - If you are using the **embedded VLC player**, CherryRenderer *theoretically* supports all playable video formats that VLC player supports as per [VLC's wiki page](https://wiki.videolan.org/VLC_Features_Formats/).
+   - Notable video format support when using the embedded VLC player are the MPEG-DASH `.mpd` format and less limitations on the HLS `.m3u8` format.
 
 
-## General
+## General Information
 ### What is a UPnP MediaRenderer and how does it work?
  - A UPnP MediaRenderer is a device that is able to play (render) media content when connected with a UPnP Control Point application.
  - The Control Point sends the URL of the media resource to the MediaRenderer (also known as casting), which then loads and plays the media content.

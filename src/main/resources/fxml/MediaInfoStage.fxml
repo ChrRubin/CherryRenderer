@@ -43,7 +43,7 @@
             <Font name="System Bold" size="13.0" />
          </font>
       </TitledPane>
-      <Button mnemonicParsing="false" onAction="#onClose" text="Close" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
+      <Button minWidth="75.0" mnemonicParsing="false" onAction="#onClose" text="Close" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
    </children>
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />

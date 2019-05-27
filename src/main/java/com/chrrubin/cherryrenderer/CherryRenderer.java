@@ -20,6 +20,7 @@ public class CherryRenderer extends Application {
 
     @Override
     public void start(Stage primaryStage){
+        Thread.currentThread().setName("JavaFX Thread");
         String agent = "CherryRenderer/" + CherryUtil.VERSION + " (" + System.getProperty("os.name") + "; " + System.getProperty("os.arch") + "; " + System.getProperty("os.version") + ")";
         System.setProperty("http.agent", agent);
         try {
@@ -41,18 +42,13 @@ public class CherryRenderer extends Application {
             InputStream inputStream = CherryRenderer.class.getClassLoader().getResourceAsStream(propertiesFileName);
             LogManager.getLogManager().readConfiguration(inputStream);
             LOGGER.info("Loaded logger properties from " + propertiesFileName);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
 
-        if(!new HardwareAccelerationPreference().get()){
-            LOGGER.info("Using software acceleration.");
-            System.setProperty("prism.order", "sw"); // Fix occasional visual glitches as https://stackoverflow.com/questions/37750553/javafx-graphic-glitch-white-boxes
-        }
+            if(!new HardwareAccelerationPreference().get()){
+                LOGGER.info("Using software acceleration.");
+                System.setProperty("prism.order", "sw"); // Fix occasional visual glitches as https://stackoverflow.com/questions/37750553/javafx-graphic-glitch-white-boxes
+            }
 
-        try {
+
             AbstractStage stage;
             if (CherryUtil.FOUND_VLC && !(new ForceJfxPreference().get())) {
                 LOGGER.info("VLC installation detected. Using embedded VLC player.");

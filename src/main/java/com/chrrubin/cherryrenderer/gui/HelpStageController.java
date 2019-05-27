@@ -42,7 +42,8 @@ public class HelpStageController implements IController {
                 new HotKey("Fast Forward", "Right"),
                 new HotKey("Volume Up", "Up"),
                 new HotKey("Volume Down", "Down"),
-                new HotKey("Toggle Mute", "M")
+                new HotKey("Toggle Mute", "M"),
+                new HotKey("Cycle Zoom Level", "Z")
         );
 
         hotkeyTableView.setItems(data);

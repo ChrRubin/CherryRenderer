@@ -279,7 +279,7 @@ public class PlayerStageController implements IController {
                 onDecreaseVolume();
                 break;
             case Z:
-                toggleResizeWindow();
+                cycleResizeWindow();
                 break;
         }
     };
@@ -968,9 +968,9 @@ public class PlayerStageController implements IController {
     }
 
     /**
-     * Only called on key press, player window will toggle between the set resize ratios
+     * Only called on key press, player window will cycle between the set resize ratios
      */
-    private void toggleResizeWindow(){
+    private void cycleResizeWindow(){
         if(!Arrays.asList(0.25, 0.5, 1.0, 2.0).contains(currentResizeRatio)){
             currentResizeRatio = 2.0;
         }

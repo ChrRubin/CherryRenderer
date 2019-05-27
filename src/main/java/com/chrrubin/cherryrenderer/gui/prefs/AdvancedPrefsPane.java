@@ -57,11 +57,9 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
 
         if(CherryUtil.FOUND_VLC){
             forceJfxCheckBox.setSelected(forceJfxPreference.get());
-
             libVlcTextField.setText(CherryUtil.VLC_NATIVE_DISCOVERY.discoveredPath());
         }
         else{
-            forceJfxCheckBox.setSelected(true);
             forceJfxCheckBox.setDisable(true);
         }
 

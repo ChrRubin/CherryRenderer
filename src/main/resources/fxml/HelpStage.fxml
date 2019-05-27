@@ -59,7 +59,7 @@
             </GridPane>
          </content>
       </ScrollPane>
-      <Button mnemonicParsing="false" onAction="#onClose" text="Close" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+      <Button minWidth="75.0" mnemonicParsing="false" onAction="#onClose" text="Close" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
    </children>
    <opaqueInsets>
       <Insets />

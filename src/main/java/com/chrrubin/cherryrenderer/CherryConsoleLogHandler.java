@@ -30,7 +30,7 @@ public class CherryConsoleLogHandler extends StreamHandler {
             StringBuilder builder = new StringBuilder(180);
             DateFormat dateFormat = new SimpleDateFormat("kk:mm:ss,SS");
 
-            builder.append("[").append(pad(Thread.currentThread().getName(), 25)).append("] ");
+            builder.append("[").append(pad(Thread.currentThread().getName(), 20)).append("] ");
             builder.append(pad(record.getLevel().toString(), 7));
             builder.append(" - ");
             builder.append(pad(dateFormat.format(new Date(record.getMillis())), 12));

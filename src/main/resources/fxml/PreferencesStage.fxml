@@ -16,14 +16,14 @@
       </VBox>
       <TitledPane fx:id="prefTitledPane" collapsible="false" focusTraversable="false" GridPane.columnIndex="1">
          <content>
-            <ScrollPane fx:id="prefScrollPane" fitToWidth="true" minHeight="350.0" />
+            <ScrollPane fx:id="prefScrollPane" fitToWidth="true" prefHeight="350.0" />
          </content>
       </TitledPane>
       <HBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
          <children>
-            <Button mnemonicParsing="false" onAction="#onResetDefault" text="Reset Defaults" />
-            <Button mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
-            <Button mnemonicParsing="false" onAction="#onSave" text="Save" />
+            <Button minWidth="75.0" mnemonicParsing="false" onAction="#onResetDefault" text="Reset Defaults" />
+            <Button minWidth="75.0" mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
+            <Button minWidth="75.0" mnemonicParsing="false" onAction="#onSave" text="Save" />
          </children>
       </HBox>
       <Label disable="true" text="(Hover over a preference to view its description.)" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">

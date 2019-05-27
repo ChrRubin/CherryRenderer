@@ -68,8 +68,8 @@
       </GridPane>
       <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.rowIndex="4">
          <children>
-            <Button mnemonicParsing="false" onAction="#onLicense" text="License" />
-            <Button mnemonicParsing="false" onAction="#onClose" text="Close" />
+            <Button minWidth="75.0" mnemonicParsing="false" onAction="#onLicense" text="License" />
+            <Button minWidth="75.0" mnemonicParsing="false" onAction="#onClose" text="Close" />
          </children>
       </HBox>
       <Label text="A very special thanks to my alpha testers for helping me test this." textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
