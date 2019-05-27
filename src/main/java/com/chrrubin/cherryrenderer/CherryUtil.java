@@ -20,7 +20,8 @@ import java.util.regex.Pattern;
 public class CherryUtil {
     public static final String VERSION = "2.0-SNAPSHOT";
     public static final ThemePreferenceValue LOADED_THEME = new ThemePreference().get(); // Ensures theme is consistent throughout application runtime
-    public static final boolean FOUND_VLC = new NativeDiscovery().discover();
+    public static final NativeDiscovery VLC_NATIVE_DISCOVERY = new NativeDiscovery();
+    public static final boolean FOUND_VLC = VLC_NATIVE_DISCOVERY.discover();
 
     public static String durationToString(Duration duration){
         int intSeconds = (int)Math.floor(duration.toSeconds());

@@ -9,12 +9,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import javafx.stage.DirectoryChooser;
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
 
 public class AdvancedPrefsPane extends AbstractPrefsPane {
     private final Logger LOGGER = Logger.getLogger(AdvancedPrefsPane.class.getName());
@@ -24,11 +28,14 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
     private ComboBox<LogLevelPreferenceValue> logLevelComboBox;
     @FXML
     private CheckBox forceJfxCheckBox;
+    @FXML
+    private TextField libVlcTextField;
 
     private AbstractStage windowParent;
     private AbstractPreference<Boolean> hardwareAccelerationPreference = new HardwareAccelerationPreference();
     private AbstractPreference<LogLevelPreferenceValue> logLevelPreference = new LogLevelPreference();
     private AbstractPreference<Boolean> forceJfxPreference = new ForceJfxPreference();
+    private AbstractPreference<String> libVlcDirectoryPreference = new LibVlcDirectoryPreference();
 
     public AdvancedPrefsPane(AbstractStage windowParent){
         try {
@@ -48,12 +55,14 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
         logLevelComboBox.setValue(logLevelPreference.get());
         logLevelComboBox.setOnAction(event -> onLogLevelSelect());
 
-        if(!CherryUtil.FOUND_VLC){
-            forceJfxCheckBox.setSelected(true);
-            forceJfxCheckBox.setDisable(true);
+        if(CherryUtil.FOUND_VLC){
+            forceJfxCheckBox.setSelected(forceJfxPreference.get());
+
+            libVlcTextField.setText(CherryUtil.VLC_NATIVE_DISCOVERY.discoveredPath());
         }
         else{
-            forceJfxCheckBox.setSelected(forceJfxPreference.get());
+            forceJfxCheckBox.setSelected(true);
+            forceJfxCheckBox.setDisable(true);
         }
 
         this.windowParent = windowParent;
@@ -84,15 +93,21 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
         hardwareAccelerationPreference.reset();
         logLevelPreference.reset();
         forceJfxPreference.reset();
+        libVlcDirectoryPreference.reset();
     }
 
     @Override
     public void savePreferences() {
         LogLevelPreferenceValue logLevel = logLevelComboBox.getValue();
+        String libVlcDirectory = libVlcTextField.getText();
 
         logLevelPreference.put(logLevel);
         hardwareAccelerationPreference.put(hardwareCheckBox.isSelected());
         forceJfxPreference.put(forceJfxCheckBox.isSelected());
+        if(libVlcDirectory != null && !libVlcDirectory.isEmpty()){
+            libVlcDirectoryPreference.put(libVlcDirectory);
+            LOGGER.finer(getSavePrefsLoggingString(libVlcDirectoryPreference, libVlcDirectory));
+        }
 
         LOGGER.finer(getSavePrefsLoggingString(logLevelPreference, logLevel.name()));
         LOGGER.finer(getSavePrefsLoggingString(hardwareAccelerationPreference, Boolean.toString(hardwareCheckBox.isSelected())));
@@ -117,5 +132,57 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
                 alert.showAndWait();
             }
         }).start();
+    }
+
+    @FXML
+    private void onBrowseLibVlc(){
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select libVLC directory");
+
+        File directory = directoryChooser.showDialog(windowParent);
+
+        if(directory == null){
+            return;
+        }
+
+        try {
+            // AFAIK there's no easy way to ask vlcj to check a directory, so this is my workaround
+            String oldPreference = libVlcDirectoryPreference.get();
+            String directoryPath = directory.getPath();
+            libVlcDirectoryPreference.put(directoryPath);
+            libVlcDirectoryPreference.forceFlush();
+
+            LOGGER.fine("Testing libVLC directory on " + directoryPath);
+
+            NativeDiscovery testingDiscovery = new NativeDiscovery();
+            boolean discovered = testingDiscovery.discover();
+            Alert alert;
+
+            if(!discovered){
+                LOGGER.warning("Specified libVLC directory not found");
+                alert = windowParent.createWarningAlert("libVLC directory not found! Please ensure you have selected the correct directory.");
+            }
+            else if(testingDiscovery.discoveredPath().equals(directoryPath)){
+                LOGGER.fine("Specified libVLC directory was found");
+                alert = windowParent.createInfoAlert("libVLC directory has been found and set.");
+                libVlcTextField.setText(directoryPath);
+            }
+            else{
+                String discoveredPath = testingDiscovery.discoveredPath();
+                LOGGER.warning("A valid libVLC directory was found, but it is not the specified directory. The discovered directory is " + discoveredPath);
+                alert = windowParent.createWarningAlert("A valid libVLC directory was found, but it was not the directory you specified." +
+                        System.lineSeparator() + "The discovered libVLC directory is \"" + discoveredPath + "\"." +
+                        System.lineSeparator() + "This directory will be used instead of the specified directory.");
+                libVlcTextField.setText(discoveredPath);
+            }
+            libVlcDirectoryPreference.put(oldPreference);
+            libVlcDirectoryPreference.forceFlush();
+            alert.showAndWait();
+        }
+        catch (BackingStoreException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            Alert errorAlert = windowParent.createErrorAlert(e.toString());
+            errorAlert.showAndWait();
+        }
     }
 }
