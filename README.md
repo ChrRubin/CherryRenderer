@@ -16,7 +16,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  4. Connect to the CherryRenderer device.
  5. Start casting!
 
-*&ast; OpenJDK 8 does not include JavaFX by default. Read more about this [here](MOREINFO.md#i-have-openjdk-8-installed-and-i-cant-run-cherryrenderer).*
+*&ast; OpenJDK 8 **does not** include JavaFX by default. Read more about this [here](MOREINFO.md#i-have-openjdk-8-installed-and-i-cant-run-cherryrenderer).*
 
 *&ast; If you are planning to use the embedded VLC player, make sure that your Java and VLC installations are of the same architecture. More info about this can be found [here](MOREINFO.md#i-have-a-vlc-installation-but-cherryrenderer-doesnt-detect-it-as-a-valid-libvlc-directory).*
 

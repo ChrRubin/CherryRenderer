@@ -21,8 +21,7 @@ public class CherryRenderer extends Application {
     @Override
     public void start(Stage primaryStage){
         Thread.currentThread().setName("JavaFX Thread");
-        String agent = "CherryRenderer/" + CherryUtil.VERSION + " (" + System.getProperty("os.name") + "; " + System.getProperty("os.arch") + "; " + System.getProperty("os.version") + ")";
-        System.setProperty("http.agent", agent);
+        System.setProperty("http.agent", CherryUtil.USER_AGENT);
         try {
             String propertiesFileName;
             switch (new LogLevelPreference().get()) {
@@ -42,6 +41,8 @@ public class CherryRenderer extends Application {
             InputStream inputStream = CherryRenderer.class.getClassLoader().getResourceAsStream(propertiesFileName);
             LogManager.getLogManager().readConfiguration(inputStream);
             LOGGER.info("Loaded logger properties from " + propertiesFileName);
+
+            LOGGER.info("CherryRenderer version is " + CherryUtil.VERSION);
 
             if(!new HardwareAccelerationPreference().get()){
                 LOGGER.info("Using software acceleration.");

@@ -28,7 +28,9 @@
 
 ### I have a VLC installation, but CherryRenderer doesn't detect it as a valid libVLC directory.
  - The most common cause of this issue is that your Java and VLC installations are in different architectures. 32-bit programs can't access 64-bit native libraries and vice versa.
- - Check your Java architecture by running `java -version` in a terminal.
+ - **On Windows, the default Java installation is 32-bit while the default VLC installation is 64-bit**. Annoying, I know. Blame Oracle.
+     - You can download the 64-bit version of Java on [Oracle's manual download page](https://www.java.com/en/download/manual.jsp).
+ - You can check your Java architecture by running `java -version` in a terminal.
    - A 32-bit version of Java will output something along the lines of:
    ```
    java version "1.8.0_201"
@@ -42,8 +44,6 @@
    Java HotSpot(TM) 64-Bit Server VM (build 25.202-b08, mixed mode)
    ```
    - Note the absence of `64-Bit` in the 32-bit version of Java.
- - On Windows, the default Java installation is 32-bit while the default VLC installation is 64-bit. Annoying, I know. Blame Oracle.
-    - You can download the 64-bit version of Java on [Oracle's manual download page](https://www.java.com/en/download/manual.jsp).
 
 ### Some of the buttons are turning into white boxes.
  - This is a JavaFX rendering issue that occurs on certain systems.

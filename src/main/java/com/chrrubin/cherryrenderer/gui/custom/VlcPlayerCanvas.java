@@ -1,5 +1,6 @@
 package com.chrrubin.cherryrenderer.gui.custom;
 
+import com.chrrubin.cherryrenderer.CherryUtil;
 import com.chrrubin.cherryrenderer.MediaObject;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -72,11 +73,15 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private int videoHeight;
 
     public VlcPlayerCanvas(){
+        mediaPlayerFactory.application().setUserAgent(CherryUtil.USER_AGENT, CherryUtil.USER_AGENT);
         mediaPlayer.videoSurface().set(new JavaFxVideoSurface());
 
         timeline.setCycleCount(Timeline.INDEFINITE);
         double duration = 1000.0 / 60.0; // Render video in 60 FPS. This should cover most use cases
-        timeline.getKeyFrames().add(new KeyFrame(Duration.millis(duration), event -> renderFrame()));
+        timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(duration), event -> {
+            checkVideoResolution();
+            renderFrame();
+        }));
 
         mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter(){
             @Override
@@ -167,7 +172,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             nativeLog.release();
             mediaPlayer.release();
             mediaPlayerFactory.release();
-            // FIXME: one of these randomly causes JVM to crash.... Who knows which one...
+            // FIXME: one of these can randomly cause JVM to crash.... Who knows which one...
         }));
 
         nativeLog.setLevel(LogLevel.WARNING);
@@ -198,29 +203,23 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
     /**
      * Invoked by native libvlc thread when the buffer format of the video is changed.
-     * sourceWidth and sourceHeight values are provided by libvlc, which is the buffer size of the video (different from display resolution).
+     * bufferWidth and bufferHeight values are provided by libvlc, which is the buffer size of the video (different from display resolution).
      * Video resolution is also acquired here to support adaptive streaming that can change resolutions mid playback.
      */
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
         @Override
-        public BufferFormat getBufferFormat(int sourceWidth, int sourceHeight) {
-            LOGGER.finer("Buffer size: " + sourceWidth + "x" + sourceHeight);
+        public BufferFormat getBufferFormat(int bufferWidth, int bufferHeight) {
+            LOGGER.finer("Buffer size: " + bufferWidth + "x" + bufferHeight);
 
-            int currentTrack = mediaPlayer.video().track();
-            List<VideoTrackInfo> videoTracks = mediaPlayer.media().info().videoTracks();
+            int[] resolution = queryVideoResolution();
 
-            if(videoTracks.isEmpty()){
-                LOGGER.warning("Unable to get video tracks. Using buffer size as display size for now.");
-                videoWidth = sourceWidth;
-                videoHeight = sourceHeight;
-            }
-            else if(currentTrack < 0){ // Treat negative track int i as "last i element"
-                videoWidth = videoTracks.get(videoTracks.size() + currentTrack).width();
-                videoHeight = videoTracks.get(videoTracks.size() + currentTrack).height();
-            }
-            else{
-                videoWidth = videoTracks.get(currentTrack).width();
-                videoHeight = videoTracks.get(currentTrack).height();
+            if (resolution[0] == 0 || resolution[1] == 0) {
+                LOGGER.warning("Video resolution has zero value. Setting to buffer size.");
+                videoWidth = bufferWidth;
+                videoHeight = bufferHeight;
+            } else {
+                videoWidth = resolution[0];
+                videoHeight = resolution[1];
             }
 
             LOGGER.finer("Video resolution: " + videoWidth + "x" + videoHeight);
@@ -228,13 +227,13 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             videoImage = new WritableImage(videoWidth, videoHeight);
             pixelWriter = videoImage.getPixelWriter();
 
-            return new RV32BufferFormat(sourceWidth, sourceHeight);
+            return new RV32BufferFormat(bufferWidth, bufferHeight);
         }
     }
 
     /**
      * Invoked by the native libvlc thread every video frame for rendering.
-     * Semaphore prevents updating pixel data when image is being rendered on another thread.
+     * This callback taking too long can cause deadlocks in native thread, so try not to add more stuff here.
      */
     private class JavaFxRenderCallback implements RenderCallback {
         @Override
@@ -251,8 +250,67 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     }
 
     /**
+     * Retrieves video resolution based on current video track.
+     * @return video resolution as int array {width, height}
+     */
+    private int[] queryVideoResolution(){
+        int currentTrack = mediaPlayer.video().track();
+        List<VideoTrackInfo> videoTracks = mediaPlayer.media().info().videoTracks();
+        int width;
+        int height;
+
+        if(videoTracks == null || videoTracks.isEmpty()){
+            LOGGER.warning("Unable to get video tracks.");
+            width = 0;
+            height = 0;
+        }
+        else if(currentTrack < 0){ // Treat negative track int i as "last i element"
+            width = videoTracks.get(videoTracks.size() + currentTrack).width();
+            height = videoTracks.get(videoTracks.size() + currentTrack).height();
+        }
+        else if(currentTrack >= videoTracks.size()){
+            width = videoTracks.get(videoTracks.size() - 1).width();
+            height = videoTracks.get(videoTracks.size() -1).height();
+        }
+        else{
+            width = videoTracks.get(currentTrack).width();
+            height = videoTracks.get(currentTrack).height();
+        }
+
+        return new int[]{width, height};
+    }
+
+    /**
+     * Called by Timeline timer to check current video resolution.
+     * This is a workaround for certain adaptive formats where current track resolution hasn't updated when buffer size is updated.
+     */
+    private void checkVideoResolution(){
+        try {
+            int[] resolution = queryVideoResolution();
+            int getWidth = resolution[0];
+            int getHeight = resolution[1];
+
+            if (state.get() != State.PLAYING || getWidth == 0 || getHeight == 0 || (getWidth == videoWidth && getHeight == videoHeight)){
+                return;
+            }
+
+            LOGGER.finer("Resolution changed to " + getWidth + "x" + getHeight);
+
+            renderingSemaphore.acquire();
+            videoWidth = getWidth;
+            videoHeight = getHeight;
+            videoImage = new WritableImage(videoWidth, videoHeight);
+            pixelWriter = videoImage.getPixelWriter();
+            renderingSemaphore.release();
+        }
+        catch (InterruptedException e){
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+        }
+
+    }
+
+    /**
      * Called by the Timeline timer to render video pixel data onto the canvas.
-     * Semaphore prevents trying to render image while pixel data is being updated on another thread.
      */
     private void renderFrame() {
         GraphicsContext graphicsContext = this.getGraphicsContext2D();
