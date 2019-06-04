@@ -12,7 +12,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
 ## Instructions
  1. Make sure Java 8 is installed. You can check your Java version by following [these instructions](https://www.java.com/en/download/help/version_manual.xml). 
  2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer_*[version]*.jar.
- 3. Open the control point application on your remote device.
+ 3. Open a [control point application](MOREINFO.md#what-control-point-applications-have-been-tested-with-cherryrenderer) on your remote device.
  4. Connect to the CherryRenderer device.
  5. Start casting!
 
@@ -44,7 +44,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  | Cycle Zoom Level  | Z     |
 
 ## More Info
-For more info such as what control point apps have been tested and what video formats CherryRenderer supports, click [here](MOREINFO.md).
+For more information such as common troubleshooting steps and other miscellaneous information, click [here](MOREINFO.md).
 
 *&ast; I do not own a macOS device, nor do my alpha testers, but technically as long as Java 8 is installed it should run fine.*
 

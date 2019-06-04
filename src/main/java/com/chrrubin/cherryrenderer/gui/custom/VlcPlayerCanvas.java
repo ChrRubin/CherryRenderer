@@ -172,7 +172,6 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
             nativeLog.release();
             mediaPlayer.release();
             mediaPlayerFactory.release();
-            // FIXME: one of these can randomly cause JVM to crash.... Who knows which one...
         }));
 
         nativeLog.setLevel(LogLevel.WARNING);

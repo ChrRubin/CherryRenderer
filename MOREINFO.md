@@ -19,7 +19,7 @@
    
 ## Troubleshooting
 ### I have OpenJDK 8 installed and I can't run CherryRenderer.
- - Unlike Oracle's JDK/JRE, OpenJDK 8 does not include JavaFX by default. You would have to install OpenJFX 8 manually based on your distro's package manager.
+ - Unlike Oracle's JDK/JRE, OpenJDK 8 does not include JavaFX by default. You would have to install OpenJFX 8 manually based on your distro's package manager, or manually build OpenJFX 8 following [these instructions](https://wiki.openjdk.java.net/display/OpenJFX/Building+OpenJFX+8u).
  - On Ubuntu/Debian based distros, you can install OpenJFX 8 with the following:
  ```
  sudo apt install openjfx=8u161-b12-1ubuntu2 libopenjfx-java=8u161-b12-1ubuntu2 libopenjfx-jni=8u161-b12-1ubuntu2
@@ -59,8 +59,6 @@
    - [All Screen](https://play.google.com/store/apps/details?id=com.toxic.apps.chrome&hl=en)
    - [All Cast](https://www.allcast.io/)
    - [Web Video Caster](http://www.webvideocaster.com)
- - Tested and does not work:
-   - No other apps have been tested for now
 
 Note that all of the above are tested on Android only. Please do let me know if other applications work as well.
 
