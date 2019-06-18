@@ -23,6 +23,7 @@
  - On Ubuntu/Debian based distros, you can install OpenJFX 8 with the following:
  ```
  sudo apt install openjfx=8u161-b12-1ubuntu2 libopenjfx-java=8u161-b12-1ubuntu2 libopenjfx-jni=8u161-b12-1ubuntu2
+ sudo apt-mark hold libopenjfx-java libopenjfx-jni openjfx
  ``` 
  - I blame Oracle for making everyone's lives harder post license change.
 
