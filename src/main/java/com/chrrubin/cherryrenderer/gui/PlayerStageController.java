@@ -588,6 +588,10 @@ public class PlayerStageController implements IController {
 
         getStage().setTitle("CherryRenderer " + CherryUtil.VERSION + playerName);
 
+        if(getStage().isFullScreen()){
+            getStage().setFullScreen(false);
+        }
+
         LOGGER.finer("Clearing player property listeners");
         player.currentTimeProperty().removeListener(playerCurrentTimeListener);
         player.muteProperty().removeListener(playerMuteListener);
@@ -613,10 +617,6 @@ public class PlayerStageController implements IController {
         loadingVBox.setVisible(true);
 
         currentMediaObject = null;
-
-        if(getStage().isFullScreen()){
-            getStage().setFullScreen(false);
-        }
     }
 
     @FXML
