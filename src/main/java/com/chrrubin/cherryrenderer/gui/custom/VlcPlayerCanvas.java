@@ -71,6 +71,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     private ObjectProperty<State> state = new SimpleObjectProperty<>(State.NOTHING_SPECIAL);
     private int videoWidth;
     private int videoHeight;
+    private boolean checkResolutionDuringRender = false;
 
     public VlcPlayerCanvas(){
         mediaPlayerFactory.application().setUserAgent(CherryUtil.USER_AGENT, CherryUtil.USER_AGENT);
@@ -78,10 +79,7 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
 
         timeline.setCycleCount(Timeline.INDEFINITE);
         double duration = 1000.0 / 60.0; // Render video in 60 FPS. This should cover most use cases
-        timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(duration), event -> {
-            checkVideoResolution();
-            renderFrame();
-        }));
+        timeline.getKeyFrames().setAll(new KeyFrame(Duration.millis(duration), event -> renderFrame()));
 
         mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter(){
             @Override
@@ -206,25 +204,47 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
      * Video resolution is also acquired here to support adaptive streaming that can change resolutions mid playback.
      */
     private class JavaFxBufferFormatCallback implements BufferFormatCallback {
+        private int storedBufferWidth;
+        private int storedBufferHeight;
+        private boolean resolutionChanged = false;
+
         @Override
         public BufferFormat getBufferFormat(int bufferWidth, int bufferHeight) {
             LOGGER.finer("Buffer size: " + bufferWidth + "x" + bufferHeight);
 
             int[] resolution = queryVideoResolution();
+            int queriedWidth = resolution[0];
+            int queriedHeight = resolution[1];
 
-            if (resolution[0] == 0 || resolution[1] == 0) {
-                LOGGER.warning("Video resolution has zero value. Setting to buffer size.");
-                videoWidth = bufferWidth;
-                videoHeight = bufferHeight;
-            } else {
-                videoWidth = resolution[0];
-                videoHeight = resolution[1];
+            try {
+                renderingSemaphore.acquire();
+                if (queriedWidth == 0 || queriedHeight == 0) {
+                    LOGGER.warning("Video resolution has zero value. Setting to buffer size.");
+                    videoWidth = bufferWidth;
+                    videoHeight = bufferHeight;
+                } else if (videoWidth != queriedWidth || videoHeight != queriedHeight) {
+                    LOGGER.finer("Resolution change during buffer format: " + queriedWidth + "x" + queriedHeight);
+                    videoWidth = queriedWidth;
+                    videoHeight = queriedHeight;
+                    resolutionChanged = true;
+                    checkResolutionDuringRender = false;
+                }
+                videoImage = new WritableImage(videoWidth, videoHeight);
+                pixelWriter = videoImage.getPixelWriter();
+                renderingSemaphore.release();
+            }
+            catch (InterruptedException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
             }
 
-            LOGGER.finer("Video resolution: " + videoWidth + "x" + videoHeight);
+            if(!resolutionChanged && storedBufferWidth != 0 && storedBufferHeight != 0 && storedBufferWidth != bufferWidth && storedBufferHeight != bufferHeight){
+                LOGGER.warning("Buffer changed while resolution hasn't. Invoking resolution check during frame render.");
+                checkResolutionDuringRender = true; // ensures that an appropriate buffer is available before checking resolution during frame render
+            }
 
-            videoImage = new WritableImage(videoWidth, videoHeight);
-            pixelWriter = videoImage.getPixelWriter();
+            storedBufferWidth = bufferWidth;
+            storedBufferHeight = bufferHeight;
+            resolutionChanged = false;
 
             return new RV32BufferFormat(bufferWidth, bufferHeight);
         }
@@ -280,38 +300,33 @@ public class VlcPlayerCanvas extends Canvas implements IPlayer{
     }
 
     /**
-     * Called by Timeline timer to check current video resolution.
-     * This is a workaround for certain adaptive formats where current track resolution hasn't updated when buffer size is updated.
-     */
-    private void checkVideoResolution(){
-        try {
-            int[] resolution = queryVideoResolution();
-            int getWidth = resolution[0];
-            int getHeight = resolution[1];
-
-            if (state.get() != State.PLAYING || getWidth == 0 || getHeight == 0 || (getWidth == videoWidth && getHeight == videoHeight)){
-                return;
-            }
-
-            LOGGER.finer("Resolution changed to " + getWidth + "x" + getHeight);
-
-            renderingSemaphore.acquire();
-            videoWidth = getWidth;
-            videoHeight = getHeight;
-            videoImage = new WritableImage(videoWidth, videoHeight);
-            pixelWriter = videoImage.getPixelWriter();
-            renderingSemaphore.release();
-        }
-        catch (InterruptedException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-        }
-
-    }
-
-    /**
      * Called by the Timeline timer to render video pixel data onto the canvas.
+     * Also checks resolution as a workaround to certain adaptive formats not updating resolution even though buffer size is updated.
      */
     private void renderFrame() {
+        if(checkResolutionDuringRender){
+            int[] resolution = queryVideoResolution();
+            int queriedWidth = resolution[0];
+            int queriedHeight = resolution[1];
+
+            try {
+                if (queriedWidth != 0 && queriedHeight != 0 && (queriedWidth != videoWidth || queriedHeight != videoHeight)) {
+                    LOGGER.finer("Resolution change during frame render: " + queriedWidth + "x" + queriedHeight);
+                    renderingSemaphore.acquire();
+                    videoWidth = queriedWidth;
+                    videoHeight = queriedHeight;
+                    videoImage = new WritableImage(videoWidth, videoHeight);
+                    pixelWriter = videoImage.getPixelWriter();
+                    renderingSemaphore.release();
+
+                    checkResolutionDuringRender = false;
+                }
+            }
+            catch (InterruptedException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
+        }
+
         GraphicsContext graphicsContext = this.getGraphicsContext2D();
 
         double canvasWidth = this.getWidth();
