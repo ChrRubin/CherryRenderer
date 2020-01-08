@@ -294,21 +294,24 @@ public class PlayerStageController implements IController {
 
     @FXML
     private void initialize(){
-        try{
-            apiService = new ApiService();
-            apiService.getMediaObjectEvent().addListener(this::playNewMedia);
-            apiService.getTogglePauseEvent().addListener(object -> onPlayPause());
-            apiService.getSeekEvent().addListener(this::seekSpecificDuration);
-            apiService.getStopEvent().addListener(object -> onStop());
-            apiService.getToggleMuteEvent().addListener(object -> onToggleMute());
-            apiService.getSetVolumeEvent().addListener(this::onRendererVolumeChanged);
-        }
-        catch (IOException | RuntimeException e){
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            Platform.runLater(() -> {
-                Alert alert = getStage().createErrorAlert(e.toString());
-                alert.showAndWait();
-            });
+        if(new EnableApiPreference().get()){
+            try{
+                apiService = new ApiService();
+                apiService.getMediaObjectEvent().addListener(this::playNewMedia);
+                apiService.getTogglePauseEvent().addListener(object -> onPlayPause());
+                apiService.getSeekEvent().addListener(this::seekSpecificDuration);
+                apiService.getStopEvent().addListener(object -> onStop());
+                apiService.getToggleMuteEvent().addListener(object -> onToggleMute());
+                apiService.getSetVolumeEvent().addListener(this::onRendererVolumeChanged);
+                LOGGER.info("API is enabled and running");
+            }
+            catch (IOException | RuntimeException e){
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+                Platform.runLater(() -> {
+                    Alert alert = getStage().createErrorAlert(e.toString());
+                    alert.showAndWait();
+                });
+            }
         }
 
         String friendlyName = new FriendlyNamePreference().get();

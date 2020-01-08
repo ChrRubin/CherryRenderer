@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <Label text="Hardware Acceleration:">
          <GridPane.margin>
@@ -28,8 +28,8 @@
          <GridPane.margin>
             <Insets bottom="20.0" />
          </GridPane.margin></ComboBox>
-      <Button mnemonicParsing="false" onAction="#onOpenUserHome" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
-      <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
+      <Button mnemonicParsing="false" onAction="#onOpenUserHome" text="View user home directory" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
+      <Label disable="true" text="(Opening the log file while application is running&#10;may interrupt the logging process)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
          <font>
             <Font name="System Italic" size="13.0" />
          </font>
@@ -37,7 +37,7 @@
             <Insets bottom="20.0" />
          </GridPane.margin>
       </Label>
-      <Label text="* All changes in this category requires application restart&#10;to be applied" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="6">
+      <Label text="* All changes in this category requires application restart&#10;to be applied" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="7">
          <font>
             <Font name="System Bold" size="13.0" />
          </font>
@@ -74,6 +74,19 @@
             <Insets bottom="20.0" />
          </padding>
       </HBox>
+      <Label layoutX="63.0" layoutY="176.0" text="Experimental API:" GridPane.rowIndex="4">
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin>
+      </Label>
+      <CheckBox fx:id="enableApiCheckBox" layoutX="183.0" layoutY="20.0" mnemonicParsing="false" text="Enable" GridPane.columnIndex="1" GridPane.rowIndex="4">
+         <tooltip>
+            <Tooltip text="Check the GitHub wiki for information about the experimental API." />
+         </tooltip>
+         <GridPane.margin>
+            <Insets bottom="20.0" />
+         </GridPane.margin>
+      </CheckBox>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -83,6 +96,7 @@
       <ColumnConstraints hgrow="SOMETIMES" />
    </columnConstraints>
    <rowConstraints>
+      <RowConstraints />
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />

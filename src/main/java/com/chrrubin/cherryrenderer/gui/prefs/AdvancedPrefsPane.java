@@ -30,12 +30,15 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
     private CheckBox forceJfxCheckBox;
     @FXML
     private TextField libVlcTextField;
+    @FXML
+    private CheckBox enableApiCheckBox;
 
     private AbstractStage windowParent;
     private AbstractPreference<Boolean> hardwareAccelerationPreference = new HardwareAccelerationPreference();
     private AbstractPreference<LogLevelPreferenceValue> logLevelPreference = new LogLevelPreference();
     private AbstractPreference<Boolean> forceJfxPreference = new ForceJfxPreference();
     private AbstractPreference<String> libVlcDirectoryPreference = new LibVlcDirectoryPreference();
+    private AbstractPreference<Boolean> enableApiPreference = new EnableApiPreference();
 
     public AdvancedPrefsPane(AbstractStage windowParent){
         try {
@@ -62,6 +65,8 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
         else{
             forceJfxCheckBox.setDisable(true);
         }
+
+        enableApiCheckBox.setSelected(enableApiPreference.get());
 
         this.windowParent = windowParent;
     }
@@ -106,10 +111,12 @@ public class AdvancedPrefsPane extends AbstractPrefsPane {
             libVlcDirectoryPreference.put(libVlcDirectory);
             LOGGER.finer(getSavePrefsLoggingString(libVlcDirectoryPreference, libVlcDirectory));
         }
+        enableApiPreference.put(enableApiCheckBox.isSelected());
 
         LOGGER.finer(getSavePrefsLoggingString(logLevelPreference, logLevel.name()));
         LOGGER.finer(getSavePrefsLoggingString(hardwareAccelerationPreference, Boolean.toString(hardwareCheckBox.isSelected())));
         LOGGER.finer(getSavePrefsLoggingString(forceJfxPreference, Boolean.toString(forceJfxCheckBox.isSelected())));
+        LOGGER.finer(getSavePrefsLoggingString(enableApiPreference, Boolean.toString(enableApiCheckBox.isSelected())));
     }
 
     @FXML
