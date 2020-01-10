@@ -5,5 +5,6 @@ public enum AutoResizePreferenceValue {
     QUARTER,
     HALF,
     ORIGINAL,
-    DOUBLE
+    DOUBLE,
+    FULLSCREEN
 }

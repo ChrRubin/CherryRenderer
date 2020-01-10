@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root hgap="10.0" type="javafx.scene.layout.GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <Label text="Theme:">
          <GridPane.margin>
@@ -20,7 +20,7 @@
          </tooltip>
       </ComboBox>
       <Label text="Auto Resize Window:" GridPane.rowIndex="1" />
-      <Label disable="true" text="(If the automatically resized window is larger than the&#10;available monitor size, the window will maximize instead.)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
+      <Label disable="true" text="(If the automatically resized window is larger than the&#10;available monitor size, the window will maximize instead.)" textAlignment="RIGHT" GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
          <font>
             <Font name="System Italic" size="13.0" />
          </font>
@@ -52,8 +52,13 @@
          <tooltip>
             <Tooltip text="Window will automatically resize to double the video size when the video is loaded." />
          </tooltip></RadioButton>
-      <Label text="Remember window size:" GridPane.rowIndex="7" />
-      <CheckBox fx:id="saveWindowSizeCheckBox" mnemonicParsing="false" selected="true" text="Remember window size on exit" GridPane.columnIndex="1" GridPane.rowIndex="7">
+      <RadioButton fx:id="resizeFullscreenRadioButton" mnemonicParsing="false" text="Fullscreen" toggleGroup="$resizeToggleGroup" GridPane.columnIndex="1" GridPane.rowIndex="6">
+         <tooltip>
+            <Tooltip text="Window will automatically go to fullscreen when the video is loaded." />
+         </tooltip>
+      </RadioButton>
+      <Label text="Remember window size:" GridPane.rowIndex="8" />
+      <CheckBox fx:id="saveWindowSizeCheckBox" mnemonicParsing="false" selected="true" text="Remember window size on exit" GridPane.columnIndex="1" GridPane.rowIndex="8">
          <tooltip>
             <Tooltip text="When enabled, CherryRenderer will launch in the same window size as you last exited." />
          </tooltip>
@@ -67,6 +72,7 @@
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
    </padding>
    <rowConstraints>
+      <RowConstraints />
       <RowConstraints />
       <RowConstraints />
       <RowConstraints />

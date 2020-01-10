@@ -29,6 +29,8 @@ public class InterfacePrefsPane extends AbstractPrefsPane {
     @FXML
     private RadioButton resizeDoubleRadioButton;
     @FXML
+    private RadioButton resizeFullscreenRadioButton;
+    @FXML
     private CheckBox saveWindowSizeCheckBox;
 
     private AbstractPreference<ThemePreferenceValue> themePreference = new ThemePreference();
@@ -65,6 +67,10 @@ public class InterfacePrefsPane extends AbstractPrefsPane {
                 break;
             case DOUBLE:
                 resizeDoubleRadioButton.setSelected(true);
+                break;
+            case FULLSCREEN:
+                resizeFullscreenRadioButton.setSelected(true);
+                break;
         }
 
         saveWindowSizeCheckBox.setSelected(saveWindowSizePreference.get());
@@ -98,6 +104,9 @@ public class InterfacePrefsPane extends AbstractPrefsPane {
         }
         else if(selectedResize == resizeDoubleRadioButton){
             resizeValue = AutoResizePreferenceValue.DOUBLE;
+        }
+        else if(selectedResize == resizeFullscreenRadioButton){
+            resizeValue = AutoResizePreferenceValue.FULLSCREEN;
         }
         else {
             throw new RuntimeException("None of the Auto Resize Window RadioButtons are selected.");

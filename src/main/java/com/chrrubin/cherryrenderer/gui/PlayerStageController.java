@@ -951,6 +951,7 @@ public class PlayerStageController implements IController {
      */
     private void autoResizeWindow(){
         double ratio;
+        boolean fullscreen = false;
         switch(new AutoResizePreference().get()){
             case DISABLED:
                 return;
@@ -963,9 +964,18 @@ public class PlayerStageController implements IController {
             case DOUBLE:
                 ratio = 2.0;
                 break;
+            case FULLSCREEN:
+                ratio = 1.0;
+                fullscreen = true;
+                break;
             default:
                 ratio = 1.0;
                 break;
+        }
+
+        if(fullscreen){
+            onToggleFullScreen();
+            return;
         }
         resizeWindowToVideo(ratio);
     }
