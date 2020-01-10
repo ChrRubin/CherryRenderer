@@ -12,13 +12,13 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
 ## Instructions
  1. Make sure Java 8 is installed. You can check your Java version by following [these instructions](https://www.java.com/en/download/help/version_manual.xml). 
  2. [Download](https://github.com/ChrRubin/CherryRenderer/releases) and run CherryRenderer_*[version]*.jar.
- 3. Open a [control point application](MOREINFO.md#what-control-point-applications-have-been-tested-with-cherryrenderer) on your remote device.
+ 3. Open a [control point application](https://github.com/ChrRubin/CherryRenderer/wiki/Application-Specific-Information#what-control-point-applications-have-been-tested-with-cherryrenderer) on your remote device.
  4. Connect to the CherryRenderer device.
  5. Start casting!
 
-*&ast; OpenJDK 8 **does not** include JavaFX by default. Read more about this [here](MOREINFO.md#i-have-openjdk-8-installed-and-i-cant-run-cherryrenderer).*
+*&ast; OpenJDK 8 **does not** include JavaFX by default. Read more about this [here](https://github.com/ChrRubin/CherryRenderer/wiki/Troubleshooting#i-have-openjdk-8-installed-and-i-cant-run-cherryrenderer).*
 
-*&ast; If you are planning to use the embedded VLC player, make sure that your Java and VLC installations are of the same architecture. More info about this can be found [here](MOREINFO.md#i-have-a-vlc-installation-but-cherryrenderer-doesnt-detect-it-as-a-valid-libvlc-directory).*
+*&ast; If you are planning to use the embedded VLC player, make sure that your Java and VLC installations are of the same architecture. More info about this can be found [here](https://github.com/ChrRubin/CherryRenderer/wiki/Troubleshooting#i-have-a-vlc-installation-but-cherryrenderer-doesnt-detect-it-as-a-valid-libvlc-directory).*
 
 ## Features
  - **UPnP MediaRenderer support**
@@ -44,7 +44,7 @@ CherryRenderer is built with JavaFX and [Cling](https://github.com/4thline/cling
  | Cycle Zoom Level  | Z     |
 
 ## More Info
-For more information such as common troubleshooting steps and other miscellaneous information, click [here](MOREINFO.md).
+For more information such as common troubleshooting steps and other miscellaneous information, you can visit the [wiki](https://github.com/ChrRubin/CherryRenderer/wiki).
 
 *&ast; I do not own a macOS device, nor do my alpha testers, but technically as long as Java 8 is installed it should run fine.*
 
